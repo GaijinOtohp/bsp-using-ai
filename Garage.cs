@@ -553,20 +553,8 @@ namespace BSP_Using_AI
                 // Set tangent deviation angle if enabled
                 if (states.Count > 1 && deviationtionEnabled)
                 {
-                    // Calculate tangent argument between last two states
-                    states[states.Count - 1][3] = (samples[(int)states[states.Count - 1][1]] - samples[(int)states[states.Count - 2][1]]) / ((int)states[states.Count - 1][1] - (int)states[states.Count - 2][1]);
-                    // Update mean_amplitude
-                    if (!double.IsNegativeInfinity((double)states[states.Count - 1][5]))
-                        states[states.Count - 1][5] = ((double)states[states.Count - 1][5] + samples[(int)states[states.Count - 1][1]]) / 2;
-                    else
-                        states[states.Count - 1][5] = (samples[(int)states[states.Count - 1][1]] + samples[(int)states[states.Count - 2][1]]) / 2;
-                    // Update mean_tangent
-                    states[states.Count - 1][6] = ((double)states[states.Count - 1][5] - samples[(int)states[states.Count - 2][1]]) / ((int)states[states.Count - 1][1] - (int)states[states.Count - 2][1]);
-
-                    // Calculate deviation between last tangent and mean tangent in rad
-                    tangentedeviation = Math.Abs(Math.Atan((double)states[states.Count - 1][3]) - Math.Atan((double)states[states.Count - 1][6]));
                     // Calculate this deviation in amplitude
-                    tolerance = Math.Sin(tangentedeviation) * Math.Sqrt(Math.Pow(samples[(int)states[states.Count - 1][1]] - samples[(int)states[states.Count - 2][1]], 2) + Math.Pow((int)states[states.Count - 1][1] - (int)states[states.Count - 2][1], 2));
+                    tolerance = opposite(samples, states);
 
                     // Check if tolerance is higher than tdtThresholdRatio % of interval
                     if (tolerance / interval > tdtThresholdRatio)
@@ -614,6 +602,24 @@ namespace BSP_Using_AI
             }
 
             return states;
+        }
+
+        private static double opposite(double[] samples, List<object[]> states)
+        {
+            // Calculate tangent argument between last two states
+            states[states.Count - 1][3] = (samples[(int)states[states.Count - 1][1]] - samples[(int)states[states.Count - 2][1]]) / ((int)states[states.Count - 1][1] - (int)states[states.Count - 2][1]);
+            // Update mean_amplitude
+            if (!double.IsNegativeInfinity((double)states[states.Count - 1][5]))
+                states[states.Count - 1][5] = ((double)states[states.Count - 1][5] + samples[(int)states[states.Count - 1][1]]) / 2;
+            else
+                states[states.Count - 1][5] = (samples[(int)states[states.Count - 1][1]] + samples[(int)states[states.Count - 2][1]]) / 2;
+            // Update mean_tangent
+            states[states.Count - 1][6] = ((double)states[states.Count - 1][5] - samples[(int)states[states.Count - 2][1]]) / ((int)states[states.Count - 1][1] - (int)states[states.Count - 2][1]);
+
+            // Calculate deviation between last tangent and mean tangent in rad
+            double tangentedeviation = Math.Abs(Math.Atan((double)states[states.Count - 1][3]) - Math.Atan((double)states[states.Count - 1][6]));
+            // Calculate this deviation in amplitude
+            return Math.Sin(tangentedeviation) * Math.Sqrt(Math.Pow(samples[(int)states[states.Count - 1][1]] - samples[(int)states[states.Count - 2][1]], 2) + Math.Pow((int)states[states.Count - 1][1] - (int)states[states.Count - 2][1], 2));
         }
 
         private static void addUpState(double[] samples, ref List<object[]> states, ref double[] up, ref int[] lastUpIndx, int[] lastDownIndx, int[] lastStableIndx, ref bool resetEverything, bool justAdd)
