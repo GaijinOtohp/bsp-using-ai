@@ -11,10 +11,12 @@ namespace Biological_Signal_Processing_Using_AI
         public class State
         {
             public string Name { get; set; }
-            public int _startingIndex { get; set; }
             public int _index { get; set; }
-            public double _startingValue { get; set; }
             public double _value { get; set; }
+            public int _minIndex { get; set; }
+            public double _min { get; set; }
+            public int _maxIndex { get; set; }
+            public double _max { get; set; }
             public double _meanFromLastState { get; set; }
             public double _tangentFromLastState { get; set; }
             public double _meanTangentFromLastState { get; set; }
