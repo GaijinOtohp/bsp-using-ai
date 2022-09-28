@@ -10,13 +10,15 @@ namespace Biological_Signal_Processing_Using_AI
     {
         public class State
         {
-            public string Name;
-            public int _index;
-            public double _value;
-            public double _meanFromLastState;
-            public double _tangentFromLastState;
-            public double _meanTangentFromLastState;
-            public double _deviantionAngle;
+            public string Name { get; set; }
+            public int _startingIndex { get; set; }
+            public int _index { get; set; }
+            public double _startingValue { get; set; }
+            public double _value { get; set; }
+            public double _meanFromLastState { get; set; }
+            public double _tangentFromLastState { get; set; }
+            public double _meanTangentFromLastState { get; set; }
+            public double _deviantionAngle { get; set; }
         }
     }
 }
