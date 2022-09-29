@@ -483,9 +483,11 @@ namespace BSP_Using_AI
                 _index = 0,
                 _value = samples[0],
                 _minIndex = 0,
-                _min = samples[0],
+                _minValue = samples[0],
                 _maxIndex = 0,
-                _max = samples[0],
+                _maxValue = samples[0],
+                _stableIndex = 0,
+                _stableValue = samples[0],
                 _deviantionAngle = 0d,
                 _meanFromLastState = samples[0],
                 _meanTangentFromLastState = double.MinValue,
@@ -498,9 +500,11 @@ namespace BSP_Using_AI
                 _index = 0,
                 _value = samples[0],
                 _minIndex = 0,
-                _min = samples[0],
+                _minValue = samples[0],
                 _maxIndex = 0,
-                _max = samples[0],
+                _maxValue = samples[0],
+                _stableIndex = 0,
+                _stableValue = samples[0],
                 _deviantionAngle = 0d,
                 _meanFromLastState = samples[0],
                 _meanTangentFromLastState = double.MinValue,
@@ -529,45 +533,63 @@ namespace BSP_Using_AI
                 oppositeRatio = opposite(ref states, ref tempNewState) / interval;
 
                 // Update min and max of tempNewState
-                if (samples[i] < tempNewState._min)
+                if (samples[i] < tempNewState._minValue)
                 {
-                    tempNewState._min = samples[i];
+                    tempNewState._minValue = samples[i];
                     tempNewState._minIndex = i;
                 }
-                if (samples[i] > tempNewState._max)
+                if (samples[i] > tempNewState._maxValue)
                 {
-                    tempNewState._max = samples[i];
+                    tempNewState._maxValue = samples[i];
                     tempNewState._maxIndex = i;
+                }
+                if (differenceRatio < thresholdRatio)
+                {
+                    tempNewState._stableValue = samples[i];
+                    tempNewState._stableIndex = i;
                 }
 
                 // Check if opposite reaches thresholdRatio
                 if (oppositeRatio > thresholdRatio)
                 {
                     // Check if amplitude between current sample and last state is greater than thresholdRatio
-                    if (differenceRatio > 2 * thresholdRatio)
+                    if (differenceRatio > 1.5 * thresholdRatio || (lastState.Name.Equals("up") && lastState._maxValue < tempNewState._maxValue))
                     {
                         // If yes then set the new state as Up
                         tempNewState.Name = "up";
-                        tempNewState._value = tempNewState._max;
+                        tempNewState._value = tempNewState._maxValue;
                         tempNewState._index = tempNewState._maxIndex;
                     }
                     // Check if amplitude between current sample and last state is less than -thresholdRatio
-                    else if (differenceRatio < -2 * thresholdRatio)
+                    else if (differenceRatio < -1.5 * thresholdRatio || (lastState.Name.Equals("down") && lastState._maxValue > tempNewState._maxValue))
                     {
                         // If yes then set the new state as Up
                         tempNewState.Name = "down";
-                        tempNewState._value = tempNewState._min;
+                        tempNewState._value = tempNewState._minValue;
                         tempNewState._index = tempNewState._minIndex;
                     }
                     else
+                    {
                         // If yes then set the new state as Stable
                         tempNewState.Name = "stable";
+                        tempNewState._value = tempNewState._stableValue;
+                        tempNewState._index = tempNewState._stableIndex;
+                    }
 
                     // Check if temporary new state has a name
                     if (tempNewState.Name != null)
                     {
-                        // If yes then add a new state
-                        states.Add(tempNewState);
+                        // Check if previous state is not the same as the new state
+                        if (lastState.Name != tempNewState.Name)
+                            // If yes then add a new state
+                            states.Add(tempNewState);
+                        else
+                            // Else just remplace it with the new state
+                            states[states.Count - 1] = tempNewState;
+
+                        // Reset i of iteration
+                        if (i < samples.Length - 1)
+                            i = tempNewState._index + 1;
 
                         // Refresh the temporary new state
                         tempNewState = new State
@@ -575,9 +597,11 @@ namespace BSP_Using_AI
                             _index = i,
                             _value = samples[i],
                             _minIndex = i,
-                            _min = samples[i],
+                            _minValue = samples[i],
                             _maxIndex = i,
-                            _max = samples[i],
+                            _maxValue = samples[i],
+                            _stableIndex = i,
+                            _stableValue = samples[i],
                             _deviantionAngle = 0d,
                             _meanFromLastState = samples[i],
                             _meanTangentFromLastState = double.MinValue,
@@ -605,9 +629,11 @@ namespace BSP_Using_AI
                                 _index = i,
                                 _value = samples[i],
                                 _minIndex = i,
-                                _min = samples[i],
+                                _minValue = samples[i],
                                 _maxIndex = i,
-                                _max = samples[i],
+                                _maxValue = samples[i],
+                                _stableIndex = i,
+                                _stableValue = samples[i],
                                 _deviantionAngle = 0d,
                                 _meanFromLastState = samples[i],
                                 _meanTangentFromLastState = double.MinValue,
@@ -620,9 +646,11 @@ namespace BSP_Using_AI
                                 _index = i,
                                 _value = samples[i],
                                 _minIndex = i,
-                                _min = samples[i],
+                                _minValue = samples[i],
                                 _maxIndex = i,
-                                _max = samples[i],
+                                _maxValue = samples[i],
+                                _stableIndex = i,
+                                _stableValue = samples[i],
                                 _deviantionAngle = 0d,
                                 _meanFromLastState = samples[i],
                                 _meanTangentFromLastState = double.MinValue,
@@ -635,9 +663,11 @@ namespace BSP_Using_AI
                                 _index = i,
                                 _value = samples[i],
                                 _minIndex = i,
-                                _min = samples[i],
+                                _minValue = samples[i],
                                 _maxIndex = i,
-                                _max = samples[i],
+                                _maxValue = samples[i],
+                                _stableIndex = i,
+                                _stableValue = samples[i],
                                 _deviantionAngle = 0d,
                                 _meanFromLastState = samples[i],
                                 _meanTangentFromLastState = double.MinValue,
