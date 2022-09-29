@@ -520,7 +520,7 @@ namespace BSP_Using_AI
                 // Update the temporary new state
                 tempNewState._index = i;
                 tempNewState._value = samples[i];
-                tempNewState._meanFromLastState = (tempNewState._meanFromLastState + samples[i]) / 2;
+                tempNewState._meanFromLastState = (tempNewState._meanFromLastState * (tempNewState._index - states[states.Count - 1]._index) + samples[i]) / (tempNewState._index - states[states.Count - 1]._index + 1);
 
                 // Compute difference ratio between current sample and last state
                 differenceRatio = (samples[i] - lastState._value) / interval;
@@ -544,7 +544,7 @@ namespace BSP_Using_AI
                 if (oppositeRatio > thresholdRatio)
                 {
                     // Check if amplitude between current sample and last state is greater than thresholdRatio
-                    if (differenceRatio > thresholdRatio)
+                    if (differenceRatio > 2 * thresholdRatio)
                     {
                         // If yes then set the new state as Up
                         tempNewState.Name = "up";
@@ -552,7 +552,7 @@ namespace BSP_Using_AI
                         tempNewState._index = tempNewState._maxIndex;
                     }
                     // Check if amplitude between current sample and last state is less than -thresholdRatio
-                    else if (differenceRatio < -thresholdRatio)
+                    else if (differenceRatio < -2 * thresholdRatio)
                     {
                         // If yes then set the new state as Up
                         tempNewState.Name = "down";
@@ -666,7 +666,10 @@ namespace BSP_Using_AI
             // Calculate tangent argument between last two states
             tempNewState._tangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / (tempNewState._index - states[states.Count - 1]._index);
             // Update mean_tangent
-            tempNewState._meanTangentFromLastState = (tempNewState._meanFromLastState - states[states.Count - 1]._value) / (tempNewState._index - states[states.Count - 1]._index);
+            if (double.IsNegativeInfinity(tempNewState._meanTangentFromLastState))
+                tempNewState._meanTangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / (tempNewState._index - states[states.Count - 1]._index);
+            else
+                tempNewState._meanTangentFromLastState = (tempNewState._meanTangentFromLastState * (tempNewState._index - states[states.Count - 1]._index) + (tempNewState._value - states[states.Count - 1]._value) / (tempNewState._index - states[states.Count - 1]._index)) / (tempNewState._index - states[states.Count - 1]._index + 1);
 
             // Calculate deviation between last tangent and mean tangent in rad
             double tangentedeviation = Math.Abs(Math.Atan(tempNewState._tangentFromLastState) - Math.Atan(tempNewState._meanTangentFromLastState));
