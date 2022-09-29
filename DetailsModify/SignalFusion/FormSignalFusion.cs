@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify.SignalFusion
 {
@@ -16,6 +17,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         double[] _samples;
 
         double _samplingRate;
+        double _quantizationStep;
         double _offset;
 
         List<int[]> _qrsPeaks;
@@ -29,7 +31,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         bool _mouseDown = false;
         int _previousMouseX;
         int _previousMouseY;
-        public FormSignalFusion(double[] samples, double magorFrequency, double samplingRate, String path)
+        public FormSignalFusion(double[] samples, double magorFrequency, double samplingRate, double quantizationStep, String path)
         {
             InitializeComponent();
 
@@ -37,6 +39,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             pathLabel.Text = path + "\\Fusion";
             _samples = samples;
             _samplingRate = samplingRate;
+            _quantizationStep = quantizationStep;
             // Get a period samples number
             _periodSampling = (int)(samplingRate / magorFrequency);
             // Set period duration in
@@ -92,7 +95,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             }
 
             // Load period inside periodsChart
-            Garage.loadSignalInChart(periodsChart, periodSamples, _samplingRate, offset, "FormSignalFusion");
+            Garage.loadSignalInChart(periodsChart, periodSamples, _samplingRate, _quantizationStep, offset, "FormSignalFusion");
         }
 
         private double[] getPeriodFromIndexAsDouble(int index, int offset, int periodSampling)
@@ -160,7 +163,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             }
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, additionSamples, _samplingRate, _offset / _samplingRate, "FormSignalFusion");
+            Garage.loadSignalInChart(fusionChart, additionSamples, _samplingRate, _quantizationStep, _offset / _samplingRate, "FormSignalFusion");
         }
 
         private void crossCorrelationFusion()
@@ -202,7 +205,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             }
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, intercorrelationAverage, _samplingRate, -_periodSampling / _samplingRate, "FormSignalFusion");
+            Garage.loadSignalInChart(fusionChart, intercorrelationAverage, _samplingRate, _quantizationStep, -_periodSampling / _samplingRate, "FormSignalFusion");
         }
 
         private void orthogonalizationFusion()
@@ -250,7 +253,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             /// Returns the states of each move in the signal
             /// as object [] {"state", its index}
             /// where the state could be up, down, or stable
-            List<object[]> states = Garage.scanPeaks(_samples, interval, 0.02, 1, Double.NaN, false);
+            List<State> states = Garage.scanPeaks(_samples, interval, 0.02, _quantizationStep, Double.NaN, false);
 
             // Scan for QRS peaks
             /// Returns QRS indexes as int[] {Q index, R index, S index}
@@ -634,7 +637,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         {
             // Load the fused signal in fusionChart
             if (orthogonalSignalsComboBox.SelectedIndex >= 0)
-                Garage.loadSignalInChart(fusionChart, _orthogonalizedSignals[orthogonalSignalsComboBox.SelectedIndex], _samplingRate, 0D, "FormSignalFusion");
+                Garage.loadSignalInChart(fusionChart, _orthogonalizedSignals[orthogonalSignalsComboBox.SelectedIndex], _samplingRate, _quantizationStep, 0D, "FormSignalFusion");
         }
 
         private void fuseOrthogonalizationButton_Click(object sender, EventArgs e)
@@ -648,7 +651,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                     additionSamples[j] += _orthogonalizedSignals[i][j] / countedOrthogonalizedSigs;
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, additionSamples, _samplingRate, _offset / _samplingRate, "FormSignalFusion");
+            Garage.loadSignalInChart(fusionChart, additionSamples, _samplingRate, _quantizationStep, _offset / _samplingRate, "FormSignalFusion");
         }
 
         private void centralizeCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -719,7 +722,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             for (int i = 0; i < samples.Length; i++)
                 samples[i] = senderChart.Series[0].Points[i].YValues[0];
 
-            EventHandlers.sendSignalTool(samples, _samplingRate, pathLabel.Text + "\\Collector");
+            EventHandlers.sendSignalTool(samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Collector");
         }
 
         private void analyseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -733,7 +736,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             for (int i = 0; i < samples.Length; i++)
                 samples[i] = senderChart.Series[0].Points[i].YValues[0];
 
-            EventHandlers.analyseSignalTool(samples, _samplingRate, pathLabel.Text + "\\Analyser");
+            EventHandlers.analyseSignalTool(samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Analyser");
         }
     }
 }

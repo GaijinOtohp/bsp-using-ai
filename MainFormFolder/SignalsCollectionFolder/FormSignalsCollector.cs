@@ -21,13 +21,13 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        public void insertSignal(double[] signal, double samplingRate, String path)
+        public void insertSignal(double[] signal, double samplingRate, double quantizationStep, String path)
         {
             // Check if the flow layout is open for new signals
             if (selectSignalCheckBox.Checked)
             {
                 // Create new UserControlSignalPower and insert it in signalsFlowLayoutPanel
-                UserControlSignalPower userControlSignalPower = new UserControlSignalPower(signal, samplingRate);
+                UserControlSignalPower userControlSignalPower = new UserControlSignalPower(signal, samplingRate, quantizationStep);
                 userControlSignalPower.pathLabel.Text = path;
                 if (signalsFlowLayoutPanel.Width > 900)
                 {

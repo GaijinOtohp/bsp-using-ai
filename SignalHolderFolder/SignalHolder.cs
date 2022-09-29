@@ -18,6 +18,7 @@ namespace BSP_Using_AI.SignalHolderFolder
     {
 
         public double _samplingRate = 0D;
+        public double _quantizationStep = 0D;
 
         public double _startingInSec = 0D;
 
@@ -78,7 +79,7 @@ namespace BSP_Using_AI.SignalHolderFolder
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            EventHandlers.sendSignalTool(_truncatedSamples, _samplingRate, pathLabel.Text + "\\Collector");
+            EventHandlers.sendSignalTool(_truncatedSamples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Collector");
         }
 
         private void signalExhibitor_MouseDown(object sender, MouseEventArgs e)
@@ -167,7 +168,7 @@ namespace BSP_Using_AI.SignalHolderFolder
             }
 
             // Insert signal values inside signal holder chart
-            Garage.loadSignalInChart((Chart)Controls.Find("signalExhibitor", false)[0], _truncatedSamples, _samplingRate, _startingInSec, "SignalHolderSignal");
+            Garage.loadSignalInChart((Chart)Controls.Find("signalExhibitor", false)[0], _truncatedSamples, _samplingRate, _quantizationStep, _startingInSec, "SignalHolderSignal");
             _filteredSamples = new double[_truncatedSamples.Length];
             for (int i = 0; i < _truncatedSamples.Length; i++)
                 _filteredSamples[i] = _truncatedSamples[i];

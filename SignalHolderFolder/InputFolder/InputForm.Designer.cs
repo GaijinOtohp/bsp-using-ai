@@ -36,25 +36,28 @@ namespace BSP_Using_AI.SignalHolderFolder.Input
             // 
             // titleLabel
             // 
-            this.titleLabel.Location = new System.Drawing.Point(12, 9);
+            this.titleLabel.Location = new System.Drawing.Point(9, 7);
+            this.titleLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.titleLabel.Name = "titleLabel";
-            this.titleLabel.Size = new System.Drawing.Size(353, 55);
+            this.titleLabel.Size = new System.Drawing.Size(265, 45);
             this.titleLabel.TabIndex = 0;
             this.titleLabel.Text = "Title";
             // 
             // inputFlowLayoutPanel
             // 
             this.inputFlowLayoutPanel.AutoScroll = true;
-            this.inputFlowLayoutPanel.Location = new System.Drawing.Point(12, 67);
+            this.inputFlowLayoutPanel.Location = new System.Drawing.Point(9, 54);
+            this.inputFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.inputFlowLayoutPanel.Name = "inputFlowLayoutPanel";
-            this.inputFlowLayoutPanel.Size = new System.Drawing.Size(353, 276);
+            this.inputFlowLayoutPanel.Size = new System.Drawing.Size(279, 224);
             this.inputFlowLayoutPanel.TabIndex = 1;
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(274, 349);
+            this.okButton.Location = new System.Drawing.Point(220, 282);
+            this.okButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.okButton.Name = "okButton";
-            this.okButton.Size = new System.Drawing.Size(90, 32);
+            this.okButton.Size = new System.Drawing.Size(68, 26);
             this.okButton.TabIndex = 2;
             this.okButton.Text = "OK";
             this.okButton.UseVisualStyleBackColor = true;
@@ -62,13 +65,14 @@ namespace BSP_Using_AI.SignalHolderFolder.Input
             // 
             // InputForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(377, 387);
+            this.ClientSize = new System.Drawing.Size(299, 314);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.inputFlowLayoutPanel);
             this.Controls.Add(this.titleLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "InputForm";

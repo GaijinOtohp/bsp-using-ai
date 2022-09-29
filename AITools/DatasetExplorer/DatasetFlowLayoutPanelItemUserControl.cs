@@ -28,7 +28,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         private void showSignalDetails(double[] signal, OrderedDictionary featuresOrderedDictionary)
         {
             // Open a new form
-            FormDetailsModify formDetailsModify = new FormDetailsModify(signal, double.Parse(samplingRateLabel.Text), signalNameLabel.Text + "\\Features details", double.Parse(startingIndexLabel.Text));
+            FormDetailsModify formDetailsModify = new FormDetailsModify(signal, double.Parse(samplingRateLabel.Text), double.Parse(quantizationStepLabel.Text), signalNameLabel.Text + "\\Features details", double.Parse(startingIndexLabel.Text));
             formDetailsModify._featuresOrderedDictionary = featuresOrderedDictionary;
 
             formDetailsModify.initializeAITools();

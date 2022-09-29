@@ -20,7 +20,9 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
         public double _dtwDistance;
 
         private double _sign1SamplingRate;
+        private double _sign1QuantizationStep;
         private double _sign2SamplingRate;
+        private double _sign2QuantizationStep;
 
         bool _mouseDown = false;
         int _previousMouseX;
@@ -33,7 +35,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        public void insertSignal(double[] signal, double samplingRate)
+        public void insertSignal(double[] signal, double samplingRate, double quantizationStep)
         {
             // Calculate normalization coefficient
             double normalizationCoef = 0D;
@@ -54,9 +56,10 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                         _signal1[i] = signal[i] / normalizationCoef;
 
                 _sign1SamplingRate = samplingRate;
+                _sign1QuantizationStep = quantizationStep;
 
                 // Insert signal values inside signal holder chart
-                Garage.loadSignalInChart((Chart)Controls.Find("firstSignalChart", false)[0], _signal1, samplingRate, 0, "FormSignalsComparison");
+                Garage.loadSignalInChart((Chart)Controls.Find("firstSignalChart", false)[0], _signal1, samplingRate, quantizationStep, 0, "FormSignalsComparison");
 
                 // Set signal power
                 foreach (double sample in _signal1)
@@ -76,9 +79,10 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                         _signal2[i] = signal[i] / normalizationCoef;
 
                 _sign2SamplingRate = samplingRate;
+                _sign2QuantizationStep = quantizationStep;
 
                 // Insert signal values inside signal holder chart
-                Garage.loadSignalInChart((Chart)Controls.Find("secondSignalChart", false)[0], _signal2, samplingRate, 0, "FormSignalsComparison");
+                Garage.loadSignalInChart((Chart)Controls.Find("secondSignalChart", false)[0], _signal2, samplingRate, quantizationStep, 0, "FormSignalsComparison");
 
                 // Set signal power
                 foreach (double sample in _signal2)
@@ -100,10 +104,10 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                 // Chekc which comparison should be done
                 if (crosscorrelationRadioButton.Checked)
                     // If yes then perform crosscorelation comparison
-                    Garage.loadSignalInChart(comparisonChart, Garage.crossCorrelation(_signal1, _signal2), (_sign1SamplingRate + _sign2SamplingRate) / 2, 0, "FormSignalsComparison");
+                    Garage.loadSignalInChart(comparisonChart, Garage.crossCorrelation(_signal1, _signal2), (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
                 if (minimumSubtractionRadioButton.Checked)
                     // If yes then perform minimum subtraction comparison
-                    Garage.loadSignalInChart(comparisonChart, Garage.minimumSubtraction(_signal1, _signal2), (_sign1SamplingRate + _sign2SamplingRate) / 2, 0, "FormSignalsComparison");
+                    Garage.loadSignalInChart(comparisonChart, Garage.minimumSubtraction(_signal1, _signal2), (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
                 if (dynamicTimeWrapingRadioButton.Checked)
                 {
                     // If yes then perform dynamic time wraping comparison
@@ -134,8 +138,8 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                         distanceValue[i] = (double)dtwDistancePath[0];
 
                     // Set the signals in their charts
-                    Garage.loadSignalInChart(comparisonChart, pathSignal, (_sign1SamplingRate + _sign2SamplingRate) / 2, 0, "FormSignalsComparison");
-                    Garage.loadSignalInChart(distanceValueChart, distanceValue, (_sign1SamplingRate + _sign2SamplingRate) / 2, 0, "FormSignalsComparison");
+                    Garage.loadSignalInChart(comparisonChart, pathSignal, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
+                    Garage.loadSignalInChart(distanceValueChart, distanceValue, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
                     Garage.loadXYInChart(pathChart, pathX, pathY, null, 0d, 0, "FormSignalsComparison");
                 }
 
@@ -229,7 +233,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             for (int i = 0; i < samples.Length; i++)
                 samples[i] = senderChart.Series[0].Points[i].YValues[0];
 
-            EventHandlers.sendSignalTool(samples, (_sign1SamplingRate + _sign2SamplingRate) / 2, "\\Comparator\\Collector");
+            EventHandlers.sendSignalTool(samples, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, "\\Comparator\\Collector");
         }
 
         private void analyseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -243,7 +247,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             for (int i = 0; i < samples.Length; i++)
                 samples[i] = senderChart.Series[0].Points[i].YValues[0];
 
-            EventHandlers.analyseSignalTool(samples, (_sign1SamplingRate + _sign2SamplingRate) / 2, "\\Comparator\\Analyser");
+            EventHandlers.analyseSignalTool(samples, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, "\\Comparator\\Analyser");
         }
     }
 }

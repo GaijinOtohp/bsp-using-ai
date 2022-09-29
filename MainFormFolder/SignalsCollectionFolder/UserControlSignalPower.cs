@@ -16,18 +16,20 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
         private double[] _samples;
 
         private double _samplingRate;
+        private double _quantizationStep;
 
         bool _mouseDown = false;
         int _previousMouseX;
         int _previousMouseY;
 
-        public UserControlSignalPower(double[] samples, double samplingRate)
+        public UserControlSignalPower(double[] samples, double samplingRate, double quantizationStep)
         {
             InitializeComponent();
 
             // Initialize variables
             _samples = samples;
             _samplingRate = samplingRate;
+            _quantizationStep = quantizationStep;
 
             // Calculate power and set it in signalPowerValueLabel
             double signalPower = 0D;
@@ -37,12 +39,12 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             signalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
 
             // Insert signal in chart
-            Garage.loadSignalInChart((Chart)Controls.Find("signalExhibitor", false)[0], _samples, _samplingRate, 0, "UserControlSignalPower");
+            Garage.loadSignalInChart((Chart)Controls.Find("signalExhibitor", false)[0], _samples, _samplingRate, _quantizationStep, 0, "UserControlSignalPower");
         }
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            EventHandlers.sendSignalTool(_samples, _samplingRate, pathLabel.Text + "\\Collector");
+            EventHandlers.sendSignalTool(_samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Collector");
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)

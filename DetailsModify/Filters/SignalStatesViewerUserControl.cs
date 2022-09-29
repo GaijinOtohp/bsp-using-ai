@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify.Filters
 {
@@ -75,19 +76,19 @@ namespace BSP_Using_AI.DetailsModify.Filters
             double interval = Garage.amplitudeInterval(samples);
 
             // Get states of the signal
-            List<object[]> states = Garage.scanPeaks(samples, interval, _thresholdRatio, _horThreshold, _tdtThresholdRatio, showDeviationCheckBox.Checked);
+            List<State> states = Garage.scanPeaks(samples, interval, _thresholdRatio, _formDetailsModify._quantizationStep, _tdtThresholdRatio, showDeviationCheckBox.Checked);
 
             // Set states in the chart
             List<int>[] tempStatesList = new List<int>[] { new List<int>(), new List<int>(), new List<int>(), new List<int>() }; // {list for up-peaks, down-peaks, stable, selection}
             int ups = 0;
             int downs = 0;
             int stables = 0;
-            foreach (object[] state in states)
-                if (((string)state[0]).Equals("up"))
+            foreach (State state in states)
+                if (state.Name.Equals("up"))
                     ups += 1;
-                else if (((string)state[0]).Equals("down"))
+                else if (state.Name.Equals("down"))
                     downs += 1;
-                else if (((string)state[0]).Equals("stable"))
+                else if (state.Name.Equals("stable"))
                     stables += 1;
 
             double[] xUps = new double[ups];
@@ -103,29 +104,29 @@ namespace BSP_Using_AI.DetailsModify.Filters
             ups = 0;
             downs = 0;
             stables = 0;
-            foreach (object[] state in states)
-                if (((string)state[0]).Equals("up"))
+            foreach (State state in states)
+                if (state.Name.Equals("up"))
                 {
-                    tempStatesList[0].Add((int)state[1]);
-                    xUps[ups] = (int)state[1] / samplingRate;
-                    yUps[ups] = samples[(int)state[1]];
-                    labelsUps[ups] = Math.Round((double)state[2], 2).ToString();
+                    tempStatesList[0].Add(state._index);
+                    xUps[ups] = state._index / samplingRate;
+                    yUps[ups] = state._value;
+                    labelsUps[ups] = Math.Round(state._deviantionAngle, 2).ToString();
                     ups += 1;
                 }
-                else if (((string)state[0]).Equals("down"))
+                else if (state.Name.Equals("down"))
                 {
-                    tempStatesList[1].Add((int)state[1]);
-                    xDowns[downs] = (int)state[1] / samplingRate;
-                    yDowns[downs] = samples[(int)state[1]];
-                    labelsDowns[downs] = Math.Round((double)state[2], 2).ToString();
+                    tempStatesList[1].Add(state._index);
+                    xDowns[downs] = state._index / samplingRate;
+                    yDowns[downs] = state._value;
+                    labelsDowns[downs] = Math.Round(state._deviantionAngle, 2).ToString();
                     downs += 1;
                 }
-                else if (((string)state[0]).Equals("stable"))
+                else if (state.Name.Equals("stable"))
                 {
-                    tempStatesList[2].Add((int)state[1]);
-                    xStables[stables] = (int)state[1] / samplingRate;
-                    yStables[stables] = samples[(int)state[1]];
-                    labelsStables[stables] = Math.Round((double)state[2], 2).ToString();
+                    tempStatesList[2].Add(state._index);
+                    xStables[stables] = state._index / samplingRate;
+                    yStables[stables] = state._value;
+                    labelsStables[stables] = Math.Round(state._deviantionAngle, 2).ToString();
                     stables += 1;
                 }
 

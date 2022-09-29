@@ -18,6 +18,7 @@ using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.SignalFusion;
 using BSP_Using_AI.DetailsModify.Transforms.DWT;
 using BSP_Using_AI.SignalHolderFolder;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify
 {
@@ -26,6 +27,7 @@ namespace BSP_Using_AI.DetailsModify
         public SignalHolder _signalHolder;
 
         public double _samplingRate;
+        public double _quantizationStep;
         public double _startingInSec;
 
         public double[] _samples;
@@ -47,7 +49,7 @@ namespace BSP_Using_AI.DetailsModify
         int _previousMouseY;
 
         public long _id;
-        public FormDetailsModify(double[] samples, double samplingRate, String path, double startingInSec)
+        public FormDetailsModify(double[] samples, double samplingRate, double quantizationStep, String path, double startingInSec)
         {
             InitializeComponent();
 
@@ -60,10 +62,11 @@ namespace BSP_Using_AI.DetailsModify
             _featuresOrderedDictionary = new OrderedDictionary();
             _samples = samples;
             _samplingRate = samplingRate;
+            _quantizationStep = quantizationStep;
             _startingInSec = startingInSec;
             pathLabel.Text = path;
             samplingRateTextBox.Text = samplingRate.ToString();
-            samplingRateTextBox.ForeColor = Color.Black;
+            quantizationStepTextBox.Text = quantizationStep.ToString();
 
             signalsPickerComboBox.Text = signalsPickerComboBox.Items[1].ToString();
             aiGoalComboBox.SelectedIndex = 0;
@@ -174,13 +177,13 @@ namespace BSP_Using_AI.DetailsModify
                 double[] fftMag = applyFFT(samples);
 
                 // Load signals inside charts
-                Garage.loadSignalInChart(signalChart, samples, samplingRate, startingInSec, "FormDetailsModifySignal");
+                Garage.loadSignalInChart(signalChart, samples, samplingRate, _quantizationStep, startingInSec, "FormDetailsModifySignal");
 
                 // Set the real frequency rate
                 // ftMag has only half of the spectrum (the real frequencies)
                 double hzRate = (fftMag.Length * 2) / samplingRate;
                 // Load fft inside its chart
-                Garage.loadSignalInChart(spectrumChart, fftMag, hzRate, 0, "FormDetailsModify");
+                Garage.loadSignalInChart(spectrumChart, fftMag, _quantizationStep, hzRate, 0, "FormDetailsModify");
             } catch (Exception e)
             {
                 //Console.WriteLine(e.ToString());
@@ -241,6 +244,7 @@ namespace BSP_Using_AI.DetailsModify
             {
                 // If yes then set the new sampling rate
                 _samplingRate = double.Parse(samplingRateTextBox.Text);
+                _quantizationStep = double.Parse(quantizationStepTextBox.Text);
 
                 // Set _filteredSamples as _samples
                 _filteredSamples = new double[signal.Length];
@@ -609,7 +613,7 @@ namespace BSP_Using_AI.DetailsModify
                 }
 
             // Create the new form
-            FormSignalFusion formSignalFusion = new FormSignalFusion(samples, magorFreuency, _samplingRate, pathLabel.Text);
+            FormSignalFusion formSignalFusion = new FormSignalFusion(samples, magorFreuency, _samplingRate, _quantizationStep, pathLabel.Text);
             formSignalFusion.Show();
         }
 
@@ -627,9 +631,9 @@ namespace BSP_Using_AI.DetailsModify
             // Check if the sender is spectrumChart
             if (senderChart.Name.Equals("spectrumChart"))
                 // If yes then set the sampling rate as hertz sampling rate
-                EventHandlers.sendSignalTool(samples, (samples.Length * 2) / _samplingRate, pathLabel.Text + "\\Collector");
+                EventHandlers.sendSignalTool(samples, (samples.Length * 2) / _samplingRate, _quantizationStep, pathLabel.Text + "\\Collector");
             else
-                EventHandlers.sendSignalTool(samples, _samplingRate, pathLabel.Text + "\\Collector");
+                EventHandlers.sendSignalTool(samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Collector");
         }
 
         private void analyseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -646,9 +650,9 @@ namespace BSP_Using_AI.DetailsModify
             // Check if the sender is spectrumChart
             if (senderChart.Name.Equals("spectrumChart"))
                 // If yes then set the sampling rate as hertz sampling rate
-                EventHandlers.analyseSignalTool(samples, (samples.Length * 2) / _samplingRate, pathLabel.Text + "\\Analyser");
+                EventHandlers.analyseSignalTool(samples, (samples.Length * 2) / _samplingRate, _quantizationStep, pathLabel.Text + "\\Analyser");
             else
-                EventHandlers.analyseSignalTool(samples, _samplingRate, pathLabel.Text + "\\Analyser");
+                EventHandlers.analyseSignalTool(samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Analyser");
         }
 
         private void predictButton_Click(object sender, EventArgs e)
@@ -922,10 +926,10 @@ namespace BSP_Using_AI.DetailsModify
                         OrderedDictionary qrsOrderedDictionary = new OrderedDictionary();
 
                         // Get the states of the normalized signal
-                        List<object[]> normalizedSignalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], signalStatesViewerUserControl.hThresholdScrollBar.Value, 45d, false);
+                        List<State> normalizedSignalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], _quantizationStep, 45d, false);
 
                         // Get the states of each of 3 levels of normalized absolute dwt
-                        List<object[]> absoluteDWTStates;
+                        List<State> absoluteDWTStates;
                         int lastSavedQRSIndx;
                         int interval;
                         for (int i = 0; i < 3; i++)
@@ -934,40 +938,40 @@ namespace BSP_Using_AI.DetailsModify
                             // Normalize the absolute values of levelSignal
                             normalizedSignal = Garage.normalizeSignal(Garage.absoluteSignal((double[])_dwtLevelsSamples[i]));
                             // Get its states
-                            absoluteDWTStates = Garage.scanPeaks(normalizedSignal, Garage.amplitudeInterval(normalizedSignal), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], signalStatesViewerUserControl.hThresholdScrollBar.Value, 45d, false);
+                            absoluteDWTStates = Garage.scanPeaks(normalizedSignal, Garage.amplitudeInterval(normalizedSignal), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], _quantizationStep, 45d, false);
 
                             // Iterate through each up state from absoluteDWTStates and compare it with states in normalizedSignalStates
                             // and save the nearest state of normalizedSignalStates to the up state of absoluteDWTStates in qrsList as R state
-                            foreach (object[] dwtState in absoluteDWTStates)
+                            foreach (State dwtState in absoluteDWTStates)
                             {
-                                if (!dwtState[0].Equals("up"))
+                                if (!dwtState.Name.Equals("up"))
                                     continue;
                                 // Start from the last saved qrs index in qrsList
                                 interval = int.MaxValue;
                                 for (int j = lastSavedQRSIndx; j < normalizedSignalStates.Count; j++)
                                 {
-                                    if (!normalizedSignalStates[j][0].Equals("up"))
+                                    if (!normalizedSignalStates[j].Name.Equals("up"))
                                         continue;
 
                                     // Check if the state is getting closer
-                                    if (interval >= Math.Abs(((int)dwtState[1] * (int)Math.Pow(2, i + 1)) - (int)normalizedSignalStates[j][1]))
+                                    if (interval >= Math.Abs(((int)dwtState._index * (int)Math.Pow(2, i + 1)) - (int)normalizedSignalStates[j]._index))
                                     {
                                         // Update the new interval and save the index of current state
-                                        interval = Math.Abs(((int)dwtState[1] * (int)Math.Pow(2, i + 1)) - (int)normalizedSignalStates[j][1]);
+                                        interval = Math.Abs(((int)dwtState._index * (int)Math.Pow(2, i + 1)) - (int)normalizedSignalStates[j]._index);
                                         lastSavedQRSIndx = j;
                                     } else
                                     {
                                         // If yes then the last state is the closest.
                                         // Then save the 6 states near it in qrsList if they didn't already exist
                                         for (int k = (lastSavedQRSIndx - 2 >= 0 ? lastSavedQRSIndx - 2 : 0); k < (lastSavedQRSIndx + 2 < normalizedSignalStates.Count ? lastSavedQRSIndx + 2 : normalizedSignalStates.Count); k++)
-                                        if (!qrsOrderedDictionary.Contains((int)normalizedSignalStates[k][1]) && normalizedSignalStates[k][0].Equals("up"))
-                                            qrsOrderedDictionary.Add((int)normalizedSignalStates[k][1], _filteredSamples[(int)normalizedSignalStates[k][1]]);
+                                        if (!qrsOrderedDictionary.Contains((int)normalizedSignalStates[k]._index) && normalizedSignalStates[k].Name.Equals("up"))
+                                            qrsOrderedDictionary.Add((int)normalizedSignalStates[k]._index, _filteredSamples[(int)normalizedSignalStates[k]._index]);
                                         break;
                                     }
                                 }
                                 // Save last state in qrsList if it didn't already exist
-                                if (!qrsOrderedDictionary.Contains((int)normalizedSignalStates[lastSavedQRSIndx][1]))
-                                    qrsOrderedDictionary.Add((int)normalizedSignalStates[lastSavedQRSIndx][1], _filteredSamples[(int)normalizedSignalStates[lastSavedQRSIndx][1]]);
+                                if (!qrsOrderedDictionary.Contains((int)normalizedSignalStates[lastSavedQRSIndx]._index))
+                                    qrsOrderedDictionary.Add((int)normalizedSignalStates[lastSavedQRSIndx]._index, _filteredSamples[(int)normalizedSignalStates[lastSavedQRSIndx]._index]);
                             }
                         }
 
@@ -1147,9 +1151,9 @@ namespace BSP_Using_AI.DetailsModify
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
                         // Set Q and S indexes of the beat
-                        List<object[]> signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), outputs[0], signalStatesViewerUserControl.hThresholdScrollBar.Value, 45d, false);
+                        List<State> signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), outputs[0], _quantizationStep, 45d, false);
                         for (int i = 0; i < signalStates.Count; i++)
-                            if ((int)signalStates[i][1] == (((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][4] - ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][0]))
+                            if ((int)signalStates[i]._index == (((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][4] - ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][0]))
                             {
                                 int qIndx = 0;
                                 int sIndx = signalStates.Count - 1;
@@ -1157,8 +1161,8 @@ namespace BSP_Using_AI.DetailsModify
                                     qIndx = i - 1;
                                 if (i < signalStates.Count - 1)
                                     sIndx = i + 1;
-                                ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][2] = (int)signalStates[qIndx][1] + ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][0];
-                                ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][5] = (int)signalStates[sIndx][1] + ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][0];
+                                ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][2] = (int)signalStates[qIndx]._index + ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][0];
+                                ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][5] = (int)signalStates[sIndx]._index + ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][0];
                             }
 
                         // Check if there exist next beat
@@ -1222,7 +1226,7 @@ namespace BSP_Using_AI.DetailsModify
                         int selectedBeatIndx = featuresItems.DropDownItems.Count;
 
                         // Get states of the selected beat
-                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, signalStatesViewerUserControl.hThresholdScrollBar.Value, 45d, false);
+                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, 45d, false);
                         // Iterate through each state and set its features
                         // starting from the second and ending by the one berfore last
                         flowLayoutItems01 = new ToolStripMenuItem("R" + selectedBeatIndx);
@@ -1237,15 +1241,15 @@ namespace BSP_Using_AI.DetailsModify
                             flowLayoutItems02 = new ToolStripMenuItem("St" + i);
                             // Set the inputs of the state
                             flowLayoutItems03 = new ToolStripMenuItem("Inputs");
-                            inputs[0] = _filteredSamples[(int)signalStates[i][1]];
+                            inputs[0] = _filteredSamples[(int)signalStates[i]._index];
                             flowLayoutItems03.DropDownItems.Add("St" + i + ": " + inputs[0]);
                             if (selectedBeatIndx == 0)
                             {
-                                inputs[1] = (double)((int)signalStates[i][1] + ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][0] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4]) / (double)(((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx + 1][4] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4]);
+                                inputs[1] = (double)((int)signalStates[i]._index + ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][0] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4]) / (double)(((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx + 1][4] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4]);
                                 flowLayoutItems03.DropDownItems.Add("St" + i + "-R" + selectedBeatIndx + "/R1-R" + selectedBeatIndx + ": " + (inputs[1]));
                             } else
                             {
-                                inputs[1] = (double)((int)signalStates[i][1] + ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][0] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4]) / (double)(((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx - 1][4]);
+                                inputs[1] = (double)((int)signalStates[i]._index + ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][0] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4]) / (double)(((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][4] - ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx - 1][4]);
                                 flowLayoutItems03.DropDownItems.Add("St" + i + "-R" + selectedBeatIndx + "/R" + selectedBeatIndx + "-R" + (selectedBeatIndx - 1) + ": " + (inputs[1]));
                             }
                             // Get next and previous state's index
@@ -1253,35 +1257,35 @@ namespace BSP_Using_AI.DetailsModify
                             nextStateIndx = i + 1;
                             for (int j = i + 1; j < signalStates.Count; j++)
                             {
-                                if (!signalStates[i][0].Equals("Stable"))
-                                    if (signalStates[j][0].Equals(signalStates[i][0]))
+                                if (!signalStates[i].Name.Equals("stable"))
+                                    if (signalStates[j].Name.Equals(signalStates[i].Name))
                                         break;
 
                                 nextStateIndx = j;
 
-                                if (j + 1 < signalStates.Count && signalStates[i][0].Equals("Stable"))
-                                    if (!signalStates[j + 1][0].Equals(signalStates[i + 1][0]))
+                                if (j + 1 < signalStates.Count && signalStates[i].Name.Equals("stable"))
+                                    if (!signalStates[j + 1].Name.Equals(signalStates[i + 1].Name))
                                         break;
                             }
                             for (int j = i - 1; j > -1; j--)
                             {
-                                if (!signalStates[i][0].Equals("Stable"))
-                                    if (signalStates[j][0].Equals(signalStates[i][0]))
+                                if (!signalStates[i].Name.Equals("stable"))
+                                    if (signalStates[j].Name.Equals(signalStates[i].Name))
                                         break;
 
                                 previousStateIndx = j;
 
-                                if (j - 1 > -1 && signalStates[i][0].Equals("Stable"))
-                                    if (!signalStates[j - 1][0].Equals(signalStates[i - 1][0]))
+                                if (j - 1 > -1 && signalStates[i].Name.Equals("stable"))
+                                    if (!signalStates[j - 1].Name.Equals(signalStates[i - 1].Name))
                                         break;
                             }
-                            inputs[2] = ((_filteredSamples[(int)signalStates[i][1]] * 2) - _filteredSamples[(int)signalStates[previousStateIndx][1]] - _filteredSamples[(int)signalStates[nextStateIndx][1]]) / 2;
+                            inputs[2] = ((_filteredSamples[(int)signalStates[i]._index] * 2) - _filteredSamples[(int)signalStates[previousStateIndx]._index] - _filteredSamples[(int)signalStates[nextStateIndx]._index]) / 2;
                             flowLayoutItems03.DropDownItems.Add("((ampSt" + i + " - ampSt" + (previousStateIndx) + ") + " + "(ampSt" + i + " - ampSt" + nextStateIndx + ")) / 2" + ": " + inputs[2]);
                             flowLayoutItems02.DropDownItems.Add(flowLayoutItems03);
 
                             // Set the ooutputs of the state
                             flowLayoutItems03 = new ToolStripMenuItem("Outputs");
-                            int stateIndx = (int)signalStates[i][1] + ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][0];
+                            int stateIndx = (int)signalStates[i]._index + ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][0];
                             // Check if outputs should be predicted
                             if (_predictionOn)
                             {
@@ -1553,21 +1557,21 @@ namespace BSP_Using_AI.DetailsModify
                             int end = (outputs[0] * 100000) + 5 < 100000 ? (int)((outputs[0] * 100000) + 5) : 100000;
                             for (int i = start; i < end; i++)
                             {
-                                signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, signalStatesViewerUserControl.hThresholdScrollBar.Value, i / 100000d, true);
+                                signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, i / 100000d, true);
                                 // Iterate through all states and take the one before R if existed
                                 int selectedSt = 0;
                                 for (int j = 0; j < signalStates.Count; j++)
-                                    if ((int)signalStates[j][1] + ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0] == ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][4])
+                                    if ((int)signalStates[j]._index + ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0] == ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][4])
                                     {
                                         if (j > 0)
                                             selectedSt = j - 1;
                                         break;
                                     }
                                 // Check if its just Q state
-                                if ((int)signalStates[selectedSt][1] + ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0] == ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][2])
+                                if ((int)signalStates[selectedSt]._index + ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0] == ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][2])
                                 {
                                     // If yes then select R state
-                                    selectedTdtVal[i - start] = (double)signalStates[selectedSt + 1][2];
+                                    selectedTdtVal[i - start] = (double)signalStates[selectedSt + 1]._deviantionAngle;
                                 }
                             }
                             // Now select the one with the highest deviation
@@ -1589,14 +1593,14 @@ namespace BSP_Using_AI.DetailsModify
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
                         // Set delta index of the beat
-                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, signalStatesViewerUserControl.hThresholdScrollBar.Value, signalStatesViewerUserControl._tdtThresholdRatio, true);
+                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, signalStatesViewerUserControl._tdtThresholdRatio, true);
                         for (int i = 0; i < signalStates.Count; i++)
                         {
                             int qStateIndx = ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][2] - ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0];
                             int rStateIndx = ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][4] - ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0];
                             //if ((stateIndx - 1) <= (int)signalStates[i][1] && (int)signalStates[i][1] <= (stateIndx + 1))
-                            if (qStateIndx <= (int)signalStates[i][1] && (int)signalStates[i][1] < rStateIndx)
-                                ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][3] = (int)signalStates[i][1] + ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0];
+                            if (qStateIndx <= (int)signalStates[i]._index && (int)signalStates[i]._index < rStateIndx)
+                                ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][3] = (int)signalStates[i]._index + ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0];
                         }
 
                         // Check if there exist next beat

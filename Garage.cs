@@ -35,7 +35,7 @@ namespace BSP_Using_AI
             chart.Series[selectedSeries] = series;
         }
 
-        public static void loadSignalInChart(Chart chart, double[] samples, double samplingRate, double startingIndex, String reference)
+        public static void loadSignalInChart(Chart chart, double[] samples, double samplingRate, double quantizationStep, double startingIndex, String reference)
         {
             Series series = chart.Series[0];
 
@@ -43,7 +43,7 @@ namespace BSP_Using_AI
 
             // Insert the signal in the chart
             for (int i = 0; i < samples.Length; i++)
-                series.Points.AddXY(startingIndex + (i / samplingRate), samples[i]);
+                series.Points.AddXY(startingIndex + (i / samplingRate), samples[i] / quantizationStep);
             chart.Series[0] = series;
         }
 
@@ -472,9 +472,13 @@ namespace BSP_Using_AI
         /// <param name="accThresholdRatio">minimum angle rotation between last state and next one</param>
         /// <param name="accelerationEnabled">calculate acceleration if enabled</param>
         /// <returns></returns>
-        public static List<State> scanPeaks(double[] samples, double interval, double thresholdRatio, int horThreshold, double tdtThresholdRatio, bool deviationtionEnabled)
+        public static List<State> scanPeaks(double[] samples, double interval, double thresholdRatio, double quantizationStep, double tdtThresholdRatio, bool deviationtionEnabled)
         {
             List<State> states = new List<State>();
+
+            interval *= quantizationStep;
+            for (int i = 0; i < samples.Length; i++)
+                samples[i] *= quantizationStep;
 
             // Add the first temporary state as a stable state
             states.Add(new State
@@ -688,6 +692,8 @@ namespace BSP_Using_AI
 
             }
 
+            for (int i = 0; i < states.Count; i++)
+                states[i]._value /= quantizationStep;
             return states;
         }
 

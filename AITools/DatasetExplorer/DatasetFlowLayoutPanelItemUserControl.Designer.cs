@@ -37,6 +37,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             this.selectionCheckBox = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.quantizationStepLabel = new System.Windows.Forms.Label();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,7 +57,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // startingIndexLabel
             // 
             this.startingIndexLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.startingIndexLabel.Location = new System.Drawing.Point(212, 3);
+            this.startingIndexLabel.Location = new System.Drawing.Point(216, 3);
             this.startingIndexLabel.Margin = new System.Windows.Forms.Padding(3);
             this.startingIndexLabel.Name = "startingIndexLabel";
             this.startingIndexLabel.Size = new System.Drawing.Size(108, 23);
@@ -67,7 +68,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // samplingRateLabel
             // 
             this.samplingRateLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.samplingRateLabel.Location = new System.Drawing.Point(326, 3);
+            this.samplingRateLabel.Location = new System.Drawing.Point(330, 3);
             this.samplingRateLabel.Margin = new System.Windows.Forms.Padding(3);
             this.samplingRateLabel.Name = "samplingRateLabel";
             this.samplingRateLabel.Size = new System.Drawing.Size(87, 23);
@@ -78,7 +79,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // featuresDetailsButton
             // 
             this.featuresDetailsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.featuresDetailsButton.Location = new System.Drawing.Point(418, 3);
+            this.featuresDetailsButton.Location = new System.Drawing.Point(530, 3);
             this.featuresDetailsButton.Margin = new System.Windows.Forms.Padding(2);
             this.featuresDetailsButton.Name = "featuresDetailsButton";
             this.featuresDetailsButton.Size = new System.Drawing.Size(114, 23);
@@ -91,7 +92,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // 
             this.selectionCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.selectionCheckBox.AutoSize = true;
-            this.selectionCheckBox.Location = new System.Drawing.Point(580, 8);
+            this.selectionCheckBox.Location = new System.Drawing.Point(692, 8);
             this.selectionCheckBox.Name = "selectionCheckBox";
             this.selectionCheckBox.Size = new System.Drawing.Size(15, 14);
             this.selectionCheckBox.TabIndex = 21;
@@ -113,18 +114,30 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
+            // quantizationStepLabel
+            // 
+            this.quantizationStepLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.quantizationStepLabel.Location = new System.Drawing.Point(423, 3);
+            this.quantizationStepLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.quantizationStepLabel.Name = "quantizationStepLabel";
+            this.quantizationStepLabel.Size = new System.Drawing.Size(102, 23);
+            this.quantizationStepLabel.TabIndex = 22;
+            this.quantizationStepLabel.Text = "Quantization step";
+            this.quantizationStepLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // DatasetFlowLayoutPanelItemUserControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ContextMenuStrip = this.contextMenuStrip1;
+            this.Controls.Add(this.quantizationStepLabel);
             this.Controls.Add(this.selectionCheckBox);
             this.Controls.Add(this.featuresDetailsButton);
             this.Controls.Add(this.samplingRateLabel);
             this.Controls.Add(this.startingIndexLabel);
             this.Controls.Add(this.signalNameLabel);
             this.Name = "DatasetFlowLayoutPanelItemUserControl";
-            this.Size = new System.Drawing.Size(605, 29);
+            this.Size = new System.Drawing.Size(717, 29);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -139,5 +152,6 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         public System.Windows.Forms.CheckBox selectionCheckBox;
+        public System.Windows.Forms.Label quantizationStepLabel;
     }
 }

@@ -126,7 +126,8 @@ namespace BSP_Using_AI
                         Application.OpenForms.OfType<InputForm>().First().Close();
 
                     List<String[]> requestedInput = new List<String[]>();
-                    requestedInput.Add(new String[] { "Sampling rate", "" });
+                    requestedInput.Add(new String[] { "Sampling rate (Hz)", "" });
+                    requestedInput.Add(new String[] { "Quantization step (adu/mV)", "" });
 
                     InputForm inputForm = new InputForm("Please insert the sampling rate of the chosen singal", requestedInput);
                     inputForm.Text = "Input values";
@@ -163,7 +164,7 @@ namespace BSP_Using_AI
                 samples = signalHolder._truncatedSamples;
 
             // Open a new form
-            FormDetailsModify formDetailsModify = new FormDetailsModify(samples, signalHolder._samplingRate, signalHolder.pathLabel.Text + "\\Modify", signalHolder._startingInSec);
+            FormDetailsModify formDetailsModify = new FormDetailsModify(samples, signalHolder._samplingRate, signalHolder._quantizationStep, signalHolder.pathLabel.Text + "\\Modify", signalHolder._startingInSec);
             formDetailsModify._targetsModelsHashtable = ((MainForm)(sender as Button).FindForm())._targetsModelsHashtable;
             formDetailsModify._tFBackThread = ((MainForm)(sender as Button).FindForm())._tFBackThread;
             formDetailsModify.initializeForm(signalHolder);
@@ -425,13 +426,15 @@ namespace BSP_Using_AI
             String filePath = ((InputForm)(sender as Button).FindForm())._filePath;
 
             // Get sampling rate
-            Double samplingRate;
+            double samplingRate;
+            double quantizationStep;
             try
             {
-                samplingRate = Double.Parse(((InputValueUserControl)(((FlowLayoutPanel)(((InputForm)(sender as Button).FindForm()).inputFlowLayoutPanel)).Controls[0])).inputTextBox.Text);
+                samplingRate = double.Parse(((InputValueUserControl)(((FlowLayoutPanel)(((InputForm)(sender as Button).FindForm()).inputFlowLayoutPanel)).Controls[0])).inputTextBox.Text);
+                quantizationStep = double.Parse(((InputValueUserControl)(((FlowLayoutPanel)(((InputForm)(sender as Button).FindForm()).inputFlowLayoutPanel)).Controls[1])).inputTextBox.Text);
             } catch (Exception exception)
             {
-                MessageBox.Show("Insert a valid sampling rate", "Error \"Unexpected data type\"", MessageBoxButtons.OK);
+                MessageBox.Show("Insert a valid sampling rate and quantizationStep", "Error \"Unexpected data type\"", MessageBoxButtons.OK);
                 return;
             }
 
@@ -455,6 +458,7 @@ namespace BSP_Using_AI
                     UInt16[,] buffer = reader[fieldName].Value as UInt16[,];
                     currentSignalHolder._samples = new Double[buffer.Length];
                     currentSignalHolder._samplingRate = samplingRate;
+                    currentSignalHolder._quantizationStep = quantizationStep;
                     for (int i = 0; i < buffer.Length; i++)
                     {
                         currentSignalHolder._samples[i] = buffer[i, 0];
@@ -511,6 +515,7 @@ namespace BSP_Using_AI
                     currentSignalHolder.pathLabel.Text = filePath.Substring(filePath.LastIndexOf("\\"));
                     currentSignalHolder._samples = new Double[bufferList.Count];
                     currentSignalHolder._samplingRate = samplingRate;
+                    currentSignalHolder._quantizationStep = quantizationStep;
                     for (int i = 0; i < bufferList.Count; i++)
                     {
                         currentSignalHolder._samples[i] = bufferList[i];
@@ -565,27 +570,27 @@ namespace BSP_Using_AI
         //*******************************************************************************************************//
         //******************************SIGNALS COMPARISON & SIGNALS COLLECTOR***********************************//
         //*******************************************************************************************************//
-        public static void sendSignalTool(double[] signal, double samplingRate, String path)
+        public static void sendSignalTool(double[] signal, double samplingRate, double quantizationStep, String path)
         {
             // Check if FormSignalsComparison is opened
             if (Application.OpenForms.OfType<FormSignalsComparison>().Count() == 1)
             {
                 // If yes then send the signal to the form
-                Application.OpenForms.OfType<FormSignalsComparison>().ElementAt(0).insertSignal(signal, samplingRate);
+                Application.OpenForms.OfType<FormSignalsComparison>().ElementAt(0).insertSignal(signal, samplingRate, quantizationStep);
             }
 
             // Check if there is FormSignalsCollector opened
             for (int i = 0; i < Application.OpenForms.OfType<FormSignalsCollector>().Count(); i++)
             {
                 // If yes then send the signal to the form
-                Application.OpenForms.OfType<FormSignalsCollector>().ElementAt(i).insertSignal(signal, samplingRate, path);
+                Application.OpenForms.OfType<FormSignalsCollector>().ElementAt(i).insertSignal(signal, samplingRate, quantizationStep, path);
             }
         }
 
-        public static void analyseSignalTool(double[] signal, double samplingRate, String path)
+        public static void analyseSignalTool(double[] signal, double samplingRate, double quantizationStep, String path)
         {
             // Open a new form
-            FormDetailsModify formDetailsModify = new FormDetailsModify(signal, samplingRate, path, 0);
+            FormDetailsModify formDetailsModify = new FormDetailsModify(signal, samplingRate, quantizationStep, path, 0);
 
             // Remove features selections options
             formDetailsModify.setFeaturesLabelsButton.Visible = false;

@@ -29,17 +29,17 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series7 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series8 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.signalChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.sendSignalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -70,6 +70,9 @@
             this.predictButton = new System.Windows.Forms.Button();
             this.modelTypeComboBox = new System.Windows.Forms.ComboBox();
             this.saveAsImageButton = new System.Windows.Forms.Button();
+            this.quantizationStepTextBox = new System.Windows.Forms.TextBox();
+            this.samplingRateLabel = new System.Windows.Forms.Label();
+            this.quantizationStepLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.signalChart)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spectrumChart)).BeginInit();
@@ -79,83 +82,83 @@
             // 
             this.signalChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea1.AxisX.LabelStyle.Format = "0.00";
-            chartArea1.AxisX.MajorGrid.Enabled = false;
-            chartArea1.AxisX.Title = "Time (s)";
-            chartArea1.AxisY.LabelStyle.Format = "0.00";
-            chartArea1.AxisY.MajorGrid.Enabled = false;
-            chartArea1.AxisY.Title = "Voltage (mV)";
-            chartArea1.Name = "ChartArea1";
-            this.signalChart.ChartAreas.Add(chartArea1);
+            chartArea3.AxisX.LabelStyle.Format = "0.00";
+            chartArea3.AxisX.MajorGrid.Enabled = false;
+            chartArea3.AxisX.Title = "Time (s)";
+            chartArea3.AxisY.LabelStyle.Format = "0.00";
+            chartArea3.AxisY.MajorGrid.Enabled = false;
+            chartArea3.AxisY.Title = "Voltage (mV)";
+            chartArea3.Name = "ChartArea1";
+            this.signalChart.ChartAreas.Add(chartArea3);
             this.signalChart.ContextMenuStrip = this.contextMenuStrip1;
-            legend1.IsTextAutoFit = false;
-            legend1.Name = "Legend1";
-            this.signalChart.Legends.Add(legend1);
+            legend3.IsTextAutoFit = false;
+            legend3.Name = "Legend1";
+            this.signalChart.Legends.Add(legend3);
             this.signalChart.Location = new System.Drawing.Point(9, 67);
             this.signalChart.Margin = new System.Windows.Forms.Padding(2);
             this.signalChart.Name = "signalChart";
             this.signalChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SemiTransparent;
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Color = System.Drawing.Color.Black;
-            series1.Legend = "Legend1";
-            series1.MarkerBorderColor = System.Drawing.Color.Black;
-            series1.Name = "Signal";
-            series1.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series1.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series2.Color = System.Drawing.Color.Blue;
-            series2.LabelForeColor = System.Drawing.Color.Transparent;
-            series2.Legend = "Legend1";
-            series2.MarkerSize = 6;
-            series2.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series2.Name = "Up peaks";
-            series2.SmartLabelStyle.Enabled = false;
-            series2.YValuesPerPoint = 2;
             series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series3.Color = System.Drawing.Color.Red;
-            series3.LabelForeColor = System.Drawing.Color.Transparent;
+            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series3.Color = System.Drawing.Color.Black;
             series3.Legend = "Legend1";
-            series3.MarkerSize = 6;
-            series3.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series3.Name = "Down peaks";
-            series3.SmartLabelStyle.Enabled = false;
+            series3.MarkerBorderColor = System.Drawing.Color.Black;
+            series3.Name = "Signal";
+            series3.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
+            series3.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
             series4.ChartArea = "ChartArea1";
             series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series4.Color = System.Drawing.Color.Black;
+            series4.Color = System.Drawing.Color.Blue;
             series4.LabelForeColor = System.Drawing.Color.Transparent;
             series4.Legend = "Legend1";
             series4.MarkerSize = 6;
             series4.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series4.Name = "Stable";
+            series4.Name = "Up peaks";
             series4.SmartLabelStyle.Enabled = false;
             series4.YValuesPerPoint = 2;
             series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Bubble;
+            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
             series5.Color = System.Drawing.Color.Red;
-            series5.EmptyPointStyle.MarkerSize = 8;
-            series5.EmptyPointStyle.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond;
+            series5.LabelForeColor = System.Drawing.Color.Transparent;
             series5.Legend = "Legend1";
-            series5.MarkerBorderWidth = 2;
-            series5.MarkerColor = System.Drawing.Color.Red;
-            series5.MarkerSize = 8;
-            series5.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond;
-            series5.Name = "Selection";
-            series5.YValuesPerPoint = 6;
+            series5.MarkerSize = 6;
+            series5.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
+            series5.Name = "Down peaks";
+            series5.SmartLabelStyle.Enabled = false;
             series6.ChartArea = "ChartArea1";
             series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series6.Color = System.Drawing.Color.Blue;
+            series6.Color = System.Drawing.Color.Black;
+            series6.LabelForeColor = System.Drawing.Color.Transparent;
             series6.Legend = "Legend1";
+            series6.MarkerSize = 6;
             series6.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series6.Name = "Labels";
-            this.signalChart.Series.Add(series1);
-            this.signalChart.Series.Add(series2);
+            series6.Name = "Stable";
+            series6.SmartLabelStyle.Enabled = false;
+            series6.YValuesPerPoint = 2;
+            series7.ChartArea = "ChartArea1";
+            series7.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Bubble;
+            series7.Color = System.Drawing.Color.Red;
+            series7.EmptyPointStyle.MarkerSize = 8;
+            series7.EmptyPointStyle.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond;
+            series7.Legend = "Legend1";
+            series7.MarkerBorderWidth = 2;
+            series7.MarkerColor = System.Drawing.Color.Red;
+            series7.MarkerSize = 8;
+            series7.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond;
+            series7.Name = "Selection";
+            series7.YValuesPerPoint = 6;
+            series8.ChartArea = "ChartArea1";
+            series8.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
+            series8.Color = System.Drawing.Color.Blue;
+            series8.Legend = "Legend1";
+            series8.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
+            series8.Name = "Labels";
             this.signalChart.Series.Add(series3);
             this.signalChart.Series.Add(series4);
             this.signalChart.Series.Add(series5);
             this.signalChart.Series.Add(series6);
+            this.signalChart.Series.Add(series7);
+            this.signalChart.Series.Add(series8);
             this.signalChart.Size = new System.Drawing.Size(626, 168);
             this.signalChart.TabIndex = 1;
             this.signalChart.Text = "Signal Chart";
@@ -192,25 +195,25 @@
             // 
             this.spectrumChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea2.AxisX.LabelStyle.Format = "0.00";
-            chartArea2.AxisY.LabelStyle.Format = "0.00";
-            chartArea2.Name = "ChartArea1";
-            this.spectrumChart.ChartAreas.Add(chartArea2);
+            chartArea1.AxisX.LabelStyle.Format = "0.00";
+            chartArea1.AxisY.LabelStyle.Format = "0.00";
+            chartArea1.Name = "ChartArea1";
+            this.spectrumChart.ChartAreas.Add(chartArea1);
             this.spectrumChart.ContextMenuStrip = this.contextMenuStrip1;
-            legend2.Name = "Legend1";
-            this.spectrumChart.Legends.Add(legend2);
+            legend1.Name = "Legend1";
+            this.spectrumChart.Legends.Add(legend1);
             this.spectrumChart.Location = new System.Drawing.Point(9, 295);
             this.spectrumChart.Margin = new System.Windows.Forms.Padding(2);
             this.spectrumChart.Name = "spectrumChart";
             this.spectrumChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SemiTransparent;
-            series7.ChartArea = "ChartArea1";
-            series7.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series7.Color = System.Drawing.Color.Blue;
-            series7.Legend = "Legend1";
-            series7.Name = "Spectrum";
-            series7.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series7.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            this.spectrumChart.Series.Add(series7);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series1.Color = System.Drawing.Color.Blue;
+            series1.Legend = "Legend1";
+            series1.Name = "Spectrum";
+            series1.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
+            series1.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
+            this.spectrumChart.Series.Add(series1);
             this.spectrumChart.Size = new System.Drawing.Size(626, 251);
             this.spectrumChart.TabIndex = 2;
             this.spectrumChart.Text = "Spectrum Exhibitor";
@@ -239,21 +242,19 @@
             // samplingRateTextBox
             // 
             this.samplingRateTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.samplingRateTextBox.ForeColor = System.Drawing.Color.Silver;
-            this.samplingRateTextBox.Location = new System.Drawing.Point(433, 42);
+            this.samplingRateTextBox.ForeColor = System.Drawing.Color.Black;
+            this.samplingRateTextBox.Location = new System.Drawing.Point(357, 41);
             this.samplingRateTextBox.Margin = new System.Windows.Forms.Padding(2);
             this.samplingRateTextBox.Name = "samplingRateTextBox";
             this.samplingRateTextBox.Size = new System.Drawing.Size(71, 20);
             this.samplingRateTextBox.TabIndex = 6;
             this.samplingRateTextBox.Text = "Sampling rate";
-            this.samplingRateTextBox.Enter += new System.EventHandler(this.samplingRateTextBox_Enter);
             this.samplingRateTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.samplingRateTextBox_KeyPress);
-            this.samplingRateTextBox.Leave += new System.EventHandler(this.samplingRateTextBox_Leave);
             // 
             // applyButton
             // 
             this.applyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.applyButton.Location = new System.Drawing.Point(372, 41);
+            this.applyButton.Location = new System.Drawing.Point(297, 42);
             this.applyButton.Margin = new System.Windows.Forms.Padding(2);
             this.applyButton.Name = "applyButton";
             this.applyButton.Size = new System.Drawing.Size(56, 20);
@@ -311,7 +312,7 @@
             this.autoApplyCheckBox.AutoSize = true;
             this.autoApplyCheckBox.Checked = true;
             this.autoApplyCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.autoApplyCheckBox.Location = new System.Drawing.Point(292, 43);
+            this.autoApplyCheckBox.Location = new System.Drawing.Point(217, 44);
             this.autoApplyCheckBox.Margin = new System.Windows.Forms.Padding(2);
             this.autoApplyCheckBox.Name = "autoApplyCheckBox";
             this.autoApplyCheckBox.Size = new System.Drawing.Size(76, 17);
@@ -540,11 +541,44 @@
             this.saveAsImageButton.UseVisualStyleBackColor = true;
             this.saveAsImageButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
+            // quantizationStepTextBox
+            // 
+            this.quantizationStepTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.quantizationStepTextBox.ForeColor = System.Drawing.Color.Black;
+            this.quantizationStepTextBox.Location = new System.Drawing.Point(432, 41);
+            this.quantizationStepTextBox.Margin = new System.Windows.Forms.Padding(2);
+            this.quantizationStepTextBox.Name = "quantizationStepTextBox";
+            this.quantizationStepTextBox.Size = new System.Drawing.Size(71, 20);
+            this.quantizationStepTextBox.TabIndex = 32;
+            this.quantizationStepTextBox.Text = "Quantization step";
+            this.quantizationStepTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.samplingRateTextBox_KeyPress);
+            // 
+            // samplingRateLabel
+            // 
+            this.samplingRateLabel.AutoSize = true;
+            this.samplingRateLabel.Location = new System.Drawing.Point(354, 26);
+            this.samplingRateLabel.Name = "samplingRateLabel";
+            this.samplingRateLabel.Size = new System.Drawing.Size(71, 13);
+            this.samplingRateLabel.TabIndex = 33;
+            this.samplingRateLabel.Text = "Sampling rate";
+            // 
+            // quantizationStepLabel
+            // 
+            this.quantizationStepLabel.AutoSize = true;
+            this.quantizationStepLabel.Location = new System.Drawing.Point(431, 26);
+            this.quantizationStepLabel.Name = "quantizationStepLabel";
+            this.quantizationStepLabel.Size = new System.Drawing.Size(89, 13);
+            this.quantizationStepLabel.TabIndex = 34;
+            this.quantizationStepLabel.Text = "Quantization step";
+            // 
             // FormDetailsModify
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(946, 740);
+            this.Controls.Add(this.quantizationStepLabel);
+            this.Controls.Add(this.samplingRateLabel);
+            this.Controls.Add(this.quantizationStepTextBox);
             this.Controls.Add(this.saveAsImageButton);
             this.Controls.Add(this.predictButton);
             this.Controls.Add(this.modelTypeComboBox);
@@ -616,5 +650,8 @@
         public System.Windows.Forms.ComboBox modelTypeComboBox;
         public System.Windows.Forms.Button fftButton;
         public System.Windows.Forms.Button saveAsImageButton;
+        public System.Windows.Forms.TextBox quantizationStepTextBox;
+        private System.Windows.Forms.Label samplingRateLabel;
+        private System.Windows.Forms.Label quantizationStepLabel;
     }
 }
