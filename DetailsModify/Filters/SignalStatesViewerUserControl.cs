@@ -76,7 +76,7 @@ namespace BSP_Using_AI.DetailsModify.Filters
             double interval = Garage.amplitudeInterval(samples);
 
             // Get states of the signal
-            List<State> states = Garage.scanPeaks(samples, interval, _thresholdRatio, _formDetailsModify._quantizationStep, _tdtThresholdRatio, showDeviationCheckBox.Checked);
+            List<State> states = Garage.scanPeaks(samples, interval, _thresholdRatio, _formDetailsModify._quantizationStep, _tdtThresholdRatio, showDeviationCheckBox.Checked, signalChart);
 
             // Set states in the chart
             List<int>[] tempStatesList = new List<int>[] { new List<int>(), new List<int>(), new List<int>(), new List<int>() }; // {list for up-peaks, down-peaks, stable, selection}

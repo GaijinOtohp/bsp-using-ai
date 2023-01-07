@@ -926,7 +926,7 @@ namespace BSP_Using_AI.DetailsModify
                         OrderedDictionary qrsOrderedDictionary = new OrderedDictionary();
 
                         // Get the states of the normalized signal
-                        List<State> normalizedSignalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], _quantizationStep, 45d, false);
+                        List<State> normalizedSignalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], _quantizationStep, 45d, false, null);
 
                         // Get the states of each of 3 levels of normalized absolute dwt
                         List<State> absoluteDWTStates;
@@ -938,7 +938,7 @@ namespace BSP_Using_AI.DetailsModify
                             // Normalize the absolute values of levelSignal
                             normalizedSignal = Garage.normalizeSignal(Garage.absoluteSignal((double[])_dwtLevelsSamples[i]));
                             // Get its states
-                            absoluteDWTStates = Garage.scanPeaks(normalizedSignal, Garage.amplitudeInterval(normalizedSignal), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], _quantizationStep, 45d, false);
+                            absoluteDWTStates = Garage.scanPeaks(normalizedSignal, Garage.amplitudeInterval(normalizedSignal), ((double[])((object[])_featuresOrderedDictionary[1])[1])[0], _quantizationStep, 45d, false, null);
 
                             // Iterate through each up state from absoluteDWTStates and compare it with states in normalizedSignalStates
                             // and save the nearest state of normalizedSignalStates to the up state of absoluteDWTStates in qrsList as R state
@@ -1151,7 +1151,7 @@ namespace BSP_Using_AI.DetailsModify
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
                         // Set Q and S indexes of the beat
-                        List<State> signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), outputs[0], _quantizationStep, 45d, false);
+                        List<State> signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), outputs[0], _quantizationStep, 45d, false, null);
                         for (int i = 0; i < signalStates.Count; i++)
                             if ((int)signalStates[i]._index == (((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][4] - ((List<int[]>)_featuresOrderedDictionary[0])[featuresItems.DropDownItems.Count - 1][0]))
                             {
@@ -1226,7 +1226,7 @@ namespace BSP_Using_AI.DetailsModify
                         int selectedBeatIndx = featuresItems.DropDownItems.Count;
 
                         // Get states of the selected beat
-                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, 45d, false);
+                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, 45d, false, null);
                         // Iterate through each state and set its features
                         // starting from the second and ending by the one berfore last
                         flowLayoutItems01 = new ToolStripMenuItem("R" + selectedBeatIndx);
@@ -1557,7 +1557,7 @@ namespace BSP_Using_AI.DetailsModify
                             int end = (outputs[0] * 100000) + 5 < 100000 ? (int)((outputs[0] * 100000) + 5) : 100000;
                             for (int i = start; i < end; i++)
                             {
-                                signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, i / 100000d, true);
+                                signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, i / 100000d, true, null);
                                 // Iterate through all states and take the one before R if existed
                                 int selectedSt = 0;
                                 for (int j = 0; j < signalStates.Count; j++)
@@ -1593,7 +1593,7 @@ namespace BSP_Using_AI.DetailsModify
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
                         // Set delta index of the beat
-                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, signalStatesViewerUserControl._tdtThresholdRatio, true);
+                        signalStates = Garage.scanPeaks(_filteredSamples, Garage.amplitudeInterval(_filteredSamples), signalStatesViewerUserControl._thresholdRatio, _quantizationStep, signalStatesViewerUserControl._tdtThresholdRatio, true, null);
                         for (int i = 0; i < signalStates.Count; i++)
                         {
                             int qStateIndx = ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][2] - ((List<int[]>)_featuresOrderedDictionary[0])[shortPRBeatIndx][0];

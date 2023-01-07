@@ -253,7 +253,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             /// Returns the states of each move in the signal
             /// as object [] {"state", its index}
             /// where the state could be up, down, or stable
-            List<State> states = Garage.scanPeaks(_samples, interval, 0.02, _quantizationStep, Double.NaN, false);
+            List<State> states = Garage.scanPeaks(_samples, interval, 0.02, _quantizationStep, Double.NaN, false, null);
 
             // Scan for QRS peaks
             /// Returns QRS indexes as int[] {Q index, R index, S index}

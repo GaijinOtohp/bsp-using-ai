@@ -19,6 +19,8 @@ namespace Biological_Signal_Processing_Using_AI
             public double _maxValue { get; set; }
             public int _stableIndex { get; set; }
             public double _stableValue { get; set; }
+            public int _initialIndex { get; set; }
+            public double _initialValue { get; set; }
             public double _meanFromLastState { get; set; }
             public double _tangentFromLastState { get; set; }
             public double _meanTangentFromLastState { get; set; }

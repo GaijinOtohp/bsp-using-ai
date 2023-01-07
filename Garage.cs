@@ -472,48 +472,19 @@ namespace BSP_Using_AI
         /// <param name="accThresholdRatio">minimum angle rotation between last state and next one</param>
         /// <param name="accelerationEnabled">calculate acceleration if enabled</param>
         /// <returns></returns>
-        public static List<State> scanPeaks(double[] samples, double interval, double thresholdRatio, double quantizationStep, double tdtThresholdRatio, bool deviationtionEnabled)
+        public static List<State> scanPeaks(double[] samples, double interval, double thresholdRatio, double quantizationStep, double tdtThresholdRatio, bool deviationtionEnabled, Chart chart)
         {
             List<State> states = new List<State>();
 
-            interval *= quantizationStep;
-            for (int i = 0; i < samples.Length; i++)
-                samples[i] *= quantizationStep;
+            //interval *= quantizationStep;
+            //for (int i = 0; i < samples.Length; i++)
+                //samples[i] *= quantizationStep;
 
             // Add the first temporary state as a stable state
-            states.Add(new State
-            {
-                Name = "stable",
-                _index = 0,
-                _value = samples[0],
-                _minIndex = 0,
-                _minValue = samples[0],
-                _maxIndex = 0,
-                _maxValue = samples[0],
-                _stableIndex = 0,
-                _stableValue = samples[0],
-                _deviantionAngle = 0d,
-                _meanFromLastState = samples[0],
-                _meanTangentFromLastState = double.MinValue,
-                _tangentFromLastState = double.MinValue
-            });
+            states.Add(createState("stable", 0, samples[0]));
 
             // Create a variable for a temporary new state
-            State tempNewState = new State
-            {
-                _index = 0,
-                _value = samples[0],
-                _minIndex = 0,
-                _minValue = samples[0],
-                _maxIndex = 0,
-                _maxValue = samples[0],
-                _stableIndex = 0,
-                _stableValue = samples[0],
-                _deviantionAngle = 0d,
-                _meanFromLastState = samples[0],
-                _meanTangentFromLastState = double.MinValue,
-                _tangentFromLastState = double.MinValue
-            };
+            State tempNewState = createState("", 0, samples[0]);
 
             // Create a variable for last recorded state
             State lastState;
@@ -528,7 +499,6 @@ namespace BSP_Using_AI
                 // Update the temporary new state
                 tempNewState._index = i;
                 tempNewState._value = samples[i];
-                tempNewState._meanFromLastState = (tempNewState._meanFromLastState * (tempNewState._index - states[states.Count - 1]._index) + samples[i]) / (tempNewState._index - states[states.Count - 1]._index + 1);
 
                 // Compute difference ratio between current sample and last state
                 differenceRatio = (samples[i] - lastState._value) / interval;
@@ -547,71 +517,76 @@ namespace BSP_Using_AI
                     tempNewState._maxValue = samples[i];
                     tempNewState._maxIndex = i;
                 }
-                if (differenceRatio < thresholdRatio)
+                if (oppositeRatio < thresholdRatio)
                 {
                     tempNewState._stableValue = samples[i];
                     tempNewState._stableIndex = i;
                 }
+                /*if (oppositeRatio < tempNewState._closeOppValue)
+                {
+                    tempNewState._closeOppValue = oppositeRatio;
+                    tempNewState._closeOppIndex = i;
+                }*/
 
                 // Check if opposite reaches thresholdRatio
-                if (oppositeRatio > thresholdRatio)
+                if (Math.Abs(oppositeRatio) > thresholdRatio)
                 {
+                    tempNewState._initialValue = tempNewState._value;
+                    tempNewState._initialIndex = tempNewState._index;
                     // Check if amplitude between current sample and last state is greater than thresholdRatio
-                    if (differenceRatio > 1.5 * thresholdRatio || (lastState.Name.Equals("up") && lastState._maxValue < tempNewState._maxValue))
+                    //if (differenceRatio > 1.5 * thresholdRatio || (lastState.Name.Equals("up") && lastState._maxValue < tempNewState._maxValue))
+                    if ((tempNewState._maxValue - lastState._maxValue) / interval > thresholdRatio)
                     {
                         // If yes then set the new state as Up
                         tempNewState.Name = "up";
                         tempNewState._value = tempNewState._maxValue;
                         tempNewState._index = tempNewState._maxIndex;
+                        if (lastState.Name.Equals("up"))
+                        {
+                            lastState.Name = "stable";
+                            lastState._value = lastState._initialValue;
+                            lastState._index = lastState._initialIndex;
+                        }
                     }
                     // Check if amplitude between current sample and last state is less than -thresholdRatio
-                    else if (differenceRatio < -1.5 * thresholdRatio || (lastState.Name.Equals("down") && lastState._maxValue > tempNewState._maxValue))
+                    //else if (differenceRatio < -1.5 * thresholdRatio || (lastState.Name.Equals("down") && lastState._maxValue > tempNewState._maxValue))
+                    else if ((tempNewState._minValue - lastState._minValue) / interval < thresholdRatio)
                     {
                         // If yes then set the new state as Up
                         tempNewState.Name = "down";
                         tempNewState._value = tempNewState._minValue;
                         tempNewState._index = tempNewState._minIndex;
+                        if (lastState.Name.Equals("down"))
+                        {
+                            lastState.Name = "stable";
+                            lastState._value = lastState._initialValue;
+                            lastState._index = lastState._initialIndex;
+                        }
                     }
                     else
                     {
                         // If yes then set the new state as Stable
                         tempNewState.Name = "stable";
-                        tempNewState._value = tempNewState._stableValue;
-                        tempNewState._index = tempNewState._stableIndex;
                     }
 
                     // Check if temporary new state has a name
-                    if (tempNewState.Name != null)
+                    if (!tempNewState.Name.Equals(""))
                     {
                         // Check if previous state is not the same as the new state
-                        if (lastState.Name != tempNewState.Name)
-                            // If yes then add a new state
-                            states.Add(tempNewState);
-                        else
+                        //if (lastState.Name != tempNewState.Name)
+                        // If yes then add a new state
+                        states.Add(tempNewState);
+                        //else
                             // Else just remplace it with the new state
-                            states[states.Count - 1] = tempNewState;
-
-                        // Reset i of iteration
-                        if (i < samples.Length - 1)
-                            i = tempNewState._index + 1;
+                            //states[states.Count - 1] = tempNewState;
 
                         // Refresh the temporary new state
-                        tempNewState = new State
-                        {
-                            _index = i,
-                            _value = samples[i],
-                            _minIndex = i,
-                            _minValue = samples[i],
-                            _maxIndex = i,
-                            _maxValue = samples[i],
-                            _stableIndex = i,
-                            _stableValue = samples[i],
-                            _deviantionAngle = 0d,
-                            _meanFromLastState = samples[i],
-                            _meanTangentFromLastState = double.MinValue,
-                            _tangentFromLastState = double.MinValue
-                        };
+                        tempNewState = createState("", i, samples[i]);
                     }
+
+                    // Reset i of iteration
+                    if (i < samples.Length - 1)
+                        i = states[states.Count - 1]._index + 1;
                 }
 
                 ///:::::::::::::::::::: FOT TANGENT DEVIATION TOLERANCE :::::::::::::::::::::///
@@ -627,56 +602,11 @@ namespace BSP_Using_AI
                         // If yes then new tangent deviation reached threshold
                         // Add new state for the new accelerated state
                         if (lastState.Name.Equals("up"))
-                            states.Add(new State
-                            {
-                                Name = "up",
-                                _index = i,
-                                _value = samples[i],
-                                _minIndex = i,
-                                _minValue = samples[i],
-                                _maxIndex = i,
-                                _maxValue = samples[i],
-                                _stableIndex = i,
-                                _stableValue = samples[i],
-                                _deviantionAngle = 0d,
-                                _meanFromLastState = samples[i],
-                                _meanTangentFromLastState = double.MinValue,
-                                _tangentFromLastState = double.MinValue
-                            });
+                            states.Add(createState("up", i, samples[i]));
                         else if (lastState.Name.Equals("down"))
-                            states.Add(new State
-                            {
-                                Name = "down",
-                                _index = i,
-                                _value = samples[i],
-                                _minIndex = i,
-                                _minValue = samples[i],
-                                _maxIndex = i,
-                                _maxValue = samples[i],
-                                _stableIndex = i,
-                                _stableValue = samples[i],
-                                _deviantionAngle = 0d,
-                                _meanFromLastState = samples[i],
-                                _meanTangentFromLastState = double.MinValue,
-                                _tangentFromLastState = double.MinValue
-                            });
+                            states.Add(createState("down", i, samples[i]));
                         else if (lastState.Name.Equals("stable"))
-                            states.Add(new State
-                            {
-                                Name = "stable",
-                                _index = i,
-                                _value = samples[i],
-                                _minIndex = i,
-                                _minValue = samples[i],
-                                _maxIndex = i,
-                                _maxValue = samples[i],
-                                _stableIndex = i,
-                                _stableValue = samples[i],
-                                _deviantionAngle = 0d,
-                                _meanFromLastState = samples[i],
-                                _meanTangentFromLastState = double.MinValue,
-                                _tangentFromLastState = double.MinValue
-                            });
+                            states.Add(createState("stable", i, samples[i]));
                     }
 
                     ///:::::::::::::::::::: STATE ROTAION :::::::::::::::::::::///
@@ -692,25 +622,47 @@ namespace BSP_Using_AI
 
             }
 
-            for (int i = 0; i < states.Count; i++)
-                states[i]._value /= quantizationStep;
+            //for (int i = 0; i < states.Count; i++)
+                //states[i]._value /= quantizationStep;
             return states;
+        }
+
+        private static State createState(string name, int index, double value)
+        {
+            return new State
+            {
+                Name = name,
+                _index = index,
+                _value = value,
+                _minIndex = index,
+                _minValue = value,
+                _maxIndex = index,
+                _maxValue = value,
+                _stableIndex = index,
+                _stableValue = value,
+                _deviantionAngle = 0d,
+                _meanFromLastState = value,
+                _meanTangentFromLastState = double.NegativeInfinity,
+                _tangentFromLastState = double.NegativeInfinity
+            };
         }
 
         private static double opposite(ref List<State> states, ref State tempNewState)
         {
             // Calculate tangent argument between last two states
-            tempNewState._tangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / (tempNewState._index - states[states.Count - 1]._index);
+            tempNewState._tangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / ((tempNewState._index - states[states.Count - 1]._index) / 360d);
             // Update mean_tangent
             if (double.IsNegativeInfinity(tempNewState._meanTangentFromLastState))
-                tempNewState._meanTangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / (tempNewState._index - states[states.Count - 1]._index);
+                tempNewState._meanTangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / ((tempNewState._index - states[states.Count - 1]._index) / 360d);
             else
-                tempNewState._meanTangentFromLastState = (tempNewState._meanTangentFromLastState * (tempNewState._index - states[states.Count - 1]._index) + (tempNewState._value - states[states.Count - 1]._value) / (tempNewState._index - states[states.Count - 1]._index)) / (tempNewState._index - states[states.Count - 1]._index + 1);
+                tempNewState._meanTangentFromLastState = (tempNewState._meanTangentFromLastState * (tempNewState._index - states[states.Count - 1]._index) + (tempNewState._value - states[states.Count - 1]._value) / ((tempNewState._index - states[states.Count - 1]._index) / 360d)) / (tempNewState._index - states[states.Count - 1]._index + 1);
 
             // Calculate deviation between last tangent and mean tangent in rad
-            double tangentedeviation = Math.Abs(Math.Atan(tempNewState._tangentFromLastState) - Math.Atan(tempNewState._meanTangentFromLastState));
+            //double tangentedeviation = Math.Abs(Math.Atan(tempNewState._tangentFromLastState) - Math.Atan(tempNewState._meanTangentFromLastState));
+            double tangentedeviation = Math.Atan(tempNewState._tangentFromLastState) - Math.Atan(tempNewState._meanTangentFromLastState);
             // Calculate this deviation in amplitude
-            double opposite = Math.Sin(tangentedeviation) * Math.Sqrt(Math.Pow(tempNewState._value - states[states.Count - 1]._value, 2) + Math.Pow(tempNewState._index - states[states.Count - 1]._index, 2));
+            double segment = Math.Sqrt(Math.Pow(tempNewState._value - states[states.Count - 1]._value, 2) + Math.Pow((tempNewState._index - states[states.Count - 1]._index) / 360d, 2));
+            double opposite = Math.Sin(tangentedeviation) * segment;
 
             return opposite;
         }
