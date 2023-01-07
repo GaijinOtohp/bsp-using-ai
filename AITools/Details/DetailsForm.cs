@@ -721,9 +721,9 @@ namespace BSP_Using_AI.AITools.Details
                                                     {
                                                         // This is for specificity
                                                         if (predictedValidOutputsList[k].Item1[l] == 0)
-                                                            specificity = (sensitivity * targetNegatives + 1) / (targetNegatives + 1);
+                                                            specificity = (specificity * targetNegatives + 1) / (targetNegatives + 1);
                                                         else
-                                                            specificity = (sensitivity * targetNegatives + 0) / (targetNegatives + 1);
+                                                            specificity = (specificity * targetNegatives + 0) / (targetNegatives + 1);
                                                         targetNegatives++;
                                                     }
                                                 }
