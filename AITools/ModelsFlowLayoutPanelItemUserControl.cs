@@ -32,12 +32,11 @@ namespace BSP_Using_AI.AITools
             // and remove datasetSizeLabel from it
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                         new String[] { "_id" },
                                         null,
                                         null,
-                                        "", "ModelsFlowLayoutPanelItemUserControl");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                        "", "ModelsFlowLayoutPanelItemUserControl"));
             dbStimulatorThread.Start();
         }
 
@@ -83,11 +82,10 @@ namespace BSP_Using_AI.AITools
 
                 // Remove it from models table
                 DbStimulator dbStimulator = new DbStimulator();
-                dbStimulator.initialize("models",
+                dbStimulator.Delete("models",
                                             "_id=?",
                                             new Object[] { _id },
                                             "ModelsFlowLayoutPanelItemUserControl");
-                dbStimulator.run();
 
                 // Remove it from the folder
                 if (Directory.Exists(_modelPath))
@@ -102,19 +100,19 @@ namespace BSP_Using_AI.AITools
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Equals("ModelsFlowLayoutPanelItemUserControl"))
                 return;
 
-            if (records.Count > 0)
+            if (dataTable.Rows.Count > 0)
             {
                 // Update unfittedDataLabel
                 while (true)
                 {
                     try
                     {
-                        this.Invoke(new MethodInvoker(delegate () { unfittedDataLabel.Text = (records.Count - int.Parse(datasetSizeLabel.Text)).ToString(); }));
+                        this.Invoke(new MethodInvoker(delegate () { unfittedDataLabel.Text = (dataTable.Rows.Count - int.Parse(datasetSizeLabel.Text)).ToString(); }));
                         break;
                     }
                     catch (Exception e)

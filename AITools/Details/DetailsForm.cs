@@ -42,23 +42,21 @@ namespace BSP_Using_AI.AITools.Details
             // Qurey for validation data from models
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("models",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("models",
                                         new String[] { "validation_data", "outputs_thresholds" },
                                         "_id=?",
                                         new Object[] { _modelId },
-                                        "", "DetailsFormForModels");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                        "", "DetailsFormForModels"));
             dbStimulatorThread.Start();
 
             // Query for all signals in dataset table
              dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                 new String[] { "_id", "sginal_name", "starting_index", "sampling_rate" },
                                 null,
                                 null,
-                                " ORDER BY sginal_name ASC", "DetailsFormForDataset");
-            dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                " ORDER BY sginal_name ASC", "DetailsFormForDataset"));
             dbStimulatorThread.Start();
         }
 
@@ -204,9 +202,8 @@ namespace BSP_Using_AI.AITools.Details
 
                 // Update validation data in models table
                 DbStimulator dbStimulator = new DbStimulator();
-                dbStimulator.initialize("models", new string[] { "validation_data" },
+                dbStimulator.Update("models", new string[] { "validation_data" },
                     new Object[] { Garage.ObjectToByteArray(_validationData) }, _modelId, "DetailsForm");
-                dbStimulator.run();
             }
             else
                 _timer.Change(TIME_INTERVAL_IN_MILLISECONDS, Timeout.Infinite);
@@ -246,12 +243,11 @@ namespace BSP_Using_AI.AITools.Details
 
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                         new String[] { "features" },
                                         selection,
                                         selectionArgs,
-                                        "", callingClassName);
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                        "", callingClassName));
             dbStimulatorThread.Start();
         }
 
@@ -273,23 +269,22 @@ namespace BSP_Using_AI.AITools.Details
             // Now save _outputThresholds in database
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("models",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models",
                                         new String[] { "outputs_thresholds" },
                                         new object[] { Garage.ObjectToByteArray(_outputThresholds) },
                                         _modelId,
-                                        "DetailsForm");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                        "DetailsForm"));
             dbStimulatorThread.Start();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Contains("DetailsForm"))
                 return;
 
-            if (records.Count > 0)
+            if (dataTable.Rows.Count > 0)
             {
                 // Check if this is for validation data query
                 if (callingClassName.Equals("DetailsFormForModels"))
@@ -297,8 +292,8 @@ namespace BSP_Using_AI.AITools.Details
                     // Show validation data
                     try
                     {
-                        _outputThresholds = (List<float[]>)Garage.ByteArrayToObject((byte[])records[0][1]);
-                        _validationData = (object[])Garage.ByteArrayToObject((byte[])records[0][0]);
+                        _outputThresholds = (List<float[]>)Garage.ByteArrayToObject(dataTable.Rows[0].Field<byte[]>("outputs_thresholds"));
+                        _validationData = (object[])Garage.ByteArrayToObject(dataTable.Rows[0].Field<byte[]>("validation_data"));
 
                         for (int i = 0; i < _validationData.Length - 1; i++)
                             refreshValidationData(i, false);
@@ -325,7 +320,7 @@ namespace BSP_Using_AI.AITools.Details
                     }
 
                     // Insert new items from records
-                    foreach (object[] record in records)
+                    foreach (DataRow row in dataTable.AsEnumerable())
                     {
                         // Check which update does this signal belong to
                         for (int i = 0; i < _trainingDetails.Count; i++)
@@ -333,13 +328,13 @@ namespace BSP_Using_AI.AITools.Details
                             List<long[]> training = _trainingDetails[i];
                             foreach (long[] datasetInterval in training)
                             {
-                                if ((long)record[0] >= datasetInterval[0] && (long)record[0] <= datasetInterval[1])
+                                if (row.Field<long>("_id") >= datasetInterval[0] && row.Field<long>("_id") <= datasetInterval[1])
                                 {
                                     // If yes then create an item of the model
                                     DatasetFlowLayoutPanelItemUserControl datasetFlowLayoutPanelItemUserControl = new DatasetFlowLayoutPanelItemUserControl();
-                                    datasetFlowLayoutPanelItemUserControl.signalNameLabel.Text = (string)record[1];
-                                    datasetFlowLayoutPanelItemUserControl.startingIndexLabel.Text = record[2].ToString();
-                                    datasetFlowLayoutPanelItemUserControl.samplingRateLabel.Text = ((int)record[3]).ToString();
+                                    datasetFlowLayoutPanelItemUserControl.signalNameLabel.Text = row.Field<string>("sginal_name");
+                                    datasetFlowLayoutPanelItemUserControl.startingIndexLabel.Text = row.Field<long>("starting_index").ToString();
+                                    datasetFlowLayoutPanelItemUserControl.samplingRateLabel.Text = row.Field<long>("sampling_rate").ToString();
 
                                     datasetFlowLayoutPanelItemUserControl.selectionCheckBox.Visible = false;
                                     datasetFlowLayoutPanelItemUserControl.featuresDetailsButton.Visible = false;
@@ -376,9 +371,9 @@ namespace BSP_Using_AI.AITools.Details
                             float[] ones = new float[_outputThresholds[i].Length];
                             float allPoss = 0f;
 
-                            foreach (object[] record in records)
+                            foreach (DataRow row in dataTable.AsEnumerable())
                             {
-                                OrderedDictionary orderedDictionaryBuff = (OrderedDictionary)Garage.ByteArrayToObject((byte[])record[0]);
+                                OrderedDictionary orderedDictionaryBuff = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
                                 object[] stepFeatures = null;
                                 if (orderedDictionaryBuff.Count > i + 1)
                                     stepFeatures = (object[])orderedDictionaryBuff[i + 1];
@@ -417,7 +412,7 @@ namespace BSP_Using_AI.AITools.Details
                 else if (callingClassName.Equals("DetailsFormForFeatures"))
                 {
                     // Shuffle all records first
-                    Garage.Shuffle<object[]>(records);
+                    Garage.Shuffle(dataTable);
 
                     // Initialize lists of features for each step
                     List<object[]> trainingFeatures;
@@ -429,7 +424,7 @@ namespace BSP_Using_AI.AITools.Details
                     int parts = 1;
                     int partFeaturesNmbr = 1;
                     for (int i = 4; i > 0; i--)
-                        if (records.Count / i > 0)
+                        if (dataTable.Rows.Count / i > 0)
                         {
                             parts = i;
                             break;
@@ -443,7 +438,7 @@ namespace BSP_Using_AI.AITools.Details
                         return;
                     }
 
-                    partFeaturesNmbr = records.Count / parts;
+                    partFeaturesNmbr = dataTable.Rows.Count / parts;
 
                     // Check if cross validation is activated
                     int validationPart = parts - 1;
@@ -474,10 +469,10 @@ namespace BSP_Using_AI.AITools.Details
                     for (int i = 1; i < (stepsNum + 1); i++)
                     {
                         for (int x = validationPart; x < parts; x++)
-                            for (int j = 0; j < records.Count; j++)
+                            for (int j = 0; j < dataTable.Rows.Count; j++)
                             {
-                                object[] record = records[j];
-                                OrderedDictionary orderedDictionaryBuff = (OrderedDictionary)Garage.ByteArrayToObject((byte[])record[0]);
+                                DataRow row = dataTable.Rows[j];
+                                OrderedDictionary orderedDictionaryBuff = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
                                 object[] stepFeatures = null;
                                 if (orderedDictionaryBuff.Count > i)
                                     stepFeatures = (object[])orderedDictionaryBuff[i];
@@ -524,10 +519,10 @@ namespace BSP_Using_AI.AITools.Details
                             List<int> selectedBeatLastState = new List<int>();
                             // and split them into 75% for training and 25% for validation in trainingFeatures and validationFeatures respectively
                             object[] stepFeatures = null;
-                            for (int j = 0; j < records.Count; j++)
+                            for (int j = 0; j < dataTable.Rows.Count; j++)
                             {
-                                object[] record = records[j];
-                                OrderedDictionary orderedDictionaryBuff = (OrderedDictionary)Garage.ByteArrayToObject((byte[])record[0]);
+                                DataRow row = dataTable.Rows[j];
+                                OrderedDictionary orderedDictionaryBuff = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
                                 List<int[]> signalBeatsSpecs = (List<int[]>)orderedDictionaryBuff[0];
                                 if (orderedDictionaryBuff.Count > i)
                                     stepFeatures = (object[])orderedDictionaryBuff[i];

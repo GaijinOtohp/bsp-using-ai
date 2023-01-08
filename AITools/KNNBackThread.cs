@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -71,12 +72,11 @@ namespace BSP_Using_AI.AITools
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
             if (trainingDetails.Count > 0)
-                dbStimulator.initialize("models", new string[] { "the_model", "dataset_size", "model_updates", "trainings_details" },
+                dbStimulator.Update("models", new string[] { "the_model", "dataset_size", "model_updates", "trainings_details" },
                     new Object[] { Garage.ObjectToByteArray(ks), datasetSize, trainingDetails.Count, Garage.ObjectToByteArray(trainingDetails) }, modelId, "TFBackThread");
             else
-                dbStimulator.initialize("models", new string[] { "the_model" },
+                dbStimulator.Update("models", new string[] { "the_model" },
                     new Object[] { Garage.ObjectToByteArray(ks) }, modelId, "TFBackThread");
-            dbStimulator.run();
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
@@ -163,9 +163,8 @@ namespace BSP_Using_AI.AITools
             int[] ks = new int[] { 3, 3, 3, 3, 3, 3, 3 };
             // Save models in models table
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.initialize("models", new string[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
+            dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
                 new Object[] { "K-Nearest neighbor", "WPW syndrome detection", Garage.ObjectToByteArray(ks), Garage.ObjectToByteArray(pcLoadingScores), Garage.ObjectToByteArray(outputsThresholds), "", 0, 0, Garage.ObjectToByteArray(new List<List<long[]>>()) }, "KNNBackThread");
-            dbStimulator.run();
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)
@@ -195,12 +194,11 @@ namespace BSP_Using_AI.AITools
             // Query for all fitted signals in this model in dataset table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            dbStimulator.Query("dataset",
                                 new String[] { "features" },
                                 "_id<=?",
                                 new Object[] { lastSignalId },
                                 "", "KNNBackThread");
-            dbStimulator.run();
         }
 
         private static int getOptimalK(List<object[]> features, List<double[]> pcLoadingScores)
@@ -271,16 +269,16 @@ namespace BSP_Using_AI.AITools
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Contains("KNNBackThread"))
                 return;
 
             // Iterate through each signal features and sort them in featuresLists
             OrderedDictionary signalFeatures = null;
-            foreach (object[] record in records)
+            foreach (DataRow row in dataTable.AsEnumerable())
             {
-                signalFeatures = (OrderedDictionary)Garage.ByteArrayToObject((byte[])record[0]);
+                signalFeatures = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
                 // The first item is just beats states
                 for (int i = 1; i < signalFeatures.Count; i++)
                 {

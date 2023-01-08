@@ -2,6 +2,7 @@
 using BSP_Using_AI.Database;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -109,9 +110,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
             // Update model in models table with the new eigenvectors
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.initialize("models", new string[] { "selected_variables" },
+            dbStimulator.Update("models", new string[] { "selected_variables" },
                 new Object[] { Garage.ObjectToByteArray(_pcLoadingScoresArray) }, _modelId, "PCADataVis");
-            dbStimulator.run();
 
             // Update the model
             // Initialize features lists
@@ -132,12 +132,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 // Get the selected model path
                 dbStimulator = new DbStimulator();
                 dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-                dbStimulator.initialize("models",
+                Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("models",
                                     new String[] { "model_path" },
                                     "_id=?",
                                     new object[] { _modelId },
-                                    "", "PCADataVis");
-                Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                    "", "PCADataVis"));
                 dbStimulatorThread.Start();
             }
             else if (_modelName.Contains("K-Nearest neighbor"))
@@ -393,7 +392,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Equals("PCADataVis"))
                 return;
@@ -409,7 +408,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             if (Application.OpenForms.OfType<AIToolsForm>().Count() == 1)
                 aIToolsForm = Application.OpenForms.OfType<AIToolsForm>().First();
 
-            aIToolsForm._tFBackThread._queue.Enqueue(new object[] { "fit", _modelName, featuresLists, (string)records[0][0], -1, _modelId, new List<List<long[]>>(), _stepIndx });
+            aIToolsForm._tFBackThread._queue.Enqueue(new object[] { "fit", _modelName, featuresLists, dataTable.Rows[0].Field<string>("model_path"), -1, _modelId, new List<List<long[]>>(), _stepIndx });
             aIToolsForm._tFBackThread._signal.Set();
         }
     }

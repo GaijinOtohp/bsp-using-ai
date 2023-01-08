@@ -42,12 +42,11 @@ namespace BSP_Using_AI
             // Query for all models in models table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("models",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("models",
                                 new String[] { "_id", "type_name", "model_target", "model_path", "dataset_size", "model_updates", "trainings_details" },
                                 null,
                                 null,
-                                "", "AIToolsForm");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                "", "AIToolsForm"));
             dbStimulatorThread.Start();
         }
 
@@ -120,7 +119,7 @@ namespace BSP_Using_AI
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Equals("AIToolsForm"))
                 return;
@@ -130,21 +129,21 @@ namespace BSP_Using_AI
                 this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Clear(); }));
 
             // Insert new items from records
-            foreach (object[] record in records)
+            foreach (DataRow row in dataTable.AsEnumerable())
             {
                 // Create an item of the model
                 ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl();
                 int modelIndx = 0;
-                while (modelsFlowLayoutPanel.Controls.ContainsKey(record[1] + " for " + record[2] + modelIndx))
+                while (modelsFlowLayoutPanel.Controls.ContainsKey(row.Field<string>("type_name") + " for " + row.Field<string>("model_target") + modelIndx))
                     modelIndx++;
-                modelsFlowLayoutPanelItemUserControl.Name = record[1] + " for " + record[2] + modelIndx;
+                modelsFlowLayoutPanelItemUserControl.Name = row.Field<string>("type_name") + " for " + row.Field<string>("model_target") + modelIndx;
                 modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = modelsFlowLayoutPanelItemUserControl.Name;
-                modelsFlowLayoutPanelItemUserControl.datasetSizeLabel.Text = ((int)record[4]).ToString();
-                modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = ((int)record[5]).ToString();
+                modelsFlowLayoutPanelItemUserControl.datasetSizeLabel.Text = row.Field<long>("dataset_size").ToString();
+                modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = row.Field<long>("model_updates").ToString();
                 modelsFlowLayoutPanelItemUserControl.unfittedDataLabel.Text = "0";
-                modelsFlowLayoutPanelItemUserControl._id = (long)record[0];
-                modelsFlowLayoutPanelItemUserControl._modelPath = (string)record[3];
-                modelsFlowLayoutPanelItemUserControl._trainingDetails = (List<List<long[]>>)Garage.ByteArrayToObject((byte[])record[6]);
+                modelsFlowLayoutPanelItemUserControl._id = row.Field<long>("_id");
+                modelsFlowLayoutPanelItemUserControl._modelPath = row.Field<string>("model_path");
+                modelsFlowLayoutPanelItemUserControl._trainingDetails = (List<List<long[]>>)Garage.ByteArrayToObject(row.Field<byte[]>("trainings_details"));
 
                 this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Add(modelsFlowLayoutPanelItemUserControl); }));
             }

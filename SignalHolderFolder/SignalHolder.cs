@@ -66,9 +66,8 @@ namespace BSP_Using_AI.SignalHolderFolder
         {
             // Save the signal with its features in dataset
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.initialize("dataset", new string[] { "sginal_name", "starting_index", "signal", "sampling_rate", "features" },
-                new Object[] { pathLabel.Text, _startingInSec, Garage.ObjectToByteArray(_truncatedSamples), _samplingRate, Garage.ObjectToByteArray(_featuresOrderedDictionary) }, "SignalHolder");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Insert("dataset", new string[] { "sginal_name", "starting_index", "signal", "sampling_rate", "features" },
+                new Object[] { pathLabel.Text, _startingInSec, Garage.ObjectToByteArray(_truncatedSamples), _samplingRate, Garage.ObjectToByteArray(_featuresOrderedDictionary) }, "SignalHolder"));
             dbStimulatorThread.Start();
 
             // Update the notification badge for unfitted signals

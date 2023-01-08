@@ -77,12 +77,11 @@ namespace BSP_Using_AI.AITools
                 modelsOnlyList.Add((NaiveBayesModel)modelBuff[0]);
             DbStimulator dbStimulator = new DbStimulator();
             if (trainingDetails.Count > 0)
-                dbStimulator.initialize("models", new string[] { "the_model", "dataset_size", "model_updates", "trainings_details" },
+                dbStimulator.Update("models", new string[] { "the_model", "dataset_size", "model_updates", "trainings_details" },
                     new Object[] { Garage.ObjectToByteArray(modelsOnlyList), datasetSize, trainingDetails.Count, Garage.ObjectToByteArray(trainingDetails) }, modelId, "TFBackThread");
             else
-                dbStimulator.initialize("models", new string[] { "the_model" },
+                dbStimulator.Update("models", new string[] { "the_model" },
                     new Object[] { Garage.ObjectToByteArray(modelsOnlyList) }, modelId, "TFBackThread");
-            dbStimulator.run();
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
@@ -163,9 +162,8 @@ namespace BSP_Using_AI.AITools
             foreach (object[] modelBuff in modelsList)
                 modelsOnlyList.Add((NaiveBayesModel)modelBuff[0]);
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.initialize("models", new string[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
+            dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
                 new Object[] { "Naive bayes", "WPW syndrome detection", Garage.ObjectToByteArray(modelsOnlyList), Garage.ObjectToByteArray(pcLoadingScores), Garage.ObjectToByteArray(outputsThresholds), "", 0, 0, Garage.ObjectToByteArray(new List<List<long[]>>()) }, "NBBackThread");
-            dbStimulator.run();
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)

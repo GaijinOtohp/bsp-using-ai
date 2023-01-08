@@ -55,18 +55,17 @@ namespace BSP_Using_AI.AITools.Details
 
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                         new String[] { "features" },
                                         selection,
                                         selectionArgs,
-                                        "", "ValidationFlowLayoutPanelUserControl");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                        "", "ValidationFlowLayoutPanelUserControl"));
             dbStimulatorThread.Start();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Equals("ValidationFlowLayoutPanelUserControl"))
                 return;
@@ -79,9 +78,9 @@ namespace BSP_Using_AI.AITools.Details
 
             // Iterate through each signal features and sort them in featuresLists
             OrderedDictionary signalFeaturesOrderedDictionary = null;
-            foreach (object[] record in records)
+            foreach (DataRow row in dataTable.AsEnumerable())
             {
-                signalFeaturesOrderedDictionary = (OrderedDictionary)Garage.ByteArrayToObject((byte[])record[0]);
+                signalFeaturesOrderedDictionary = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
                 object[] stepFeatures = null;
                 if (signalFeaturesOrderedDictionary.Count > step)
                     stepFeatures = (object[])signalFeaturesOrderedDictionary[step];

@@ -60,12 +60,11 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // Query for the signal and its features
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                 new String[] { "signal", "features" },
                                 "_id=?",
                                 new Object[] { _id },
-                                "", "DatasetFlowLayoutPanelItemUserControl");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                "", "DatasetFlowLayoutPanelItemUserControl"));
             dbStimulatorThread.Start();
         }
 
@@ -85,11 +84,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             {
                 // Remove it from models table
                 DbStimulator dbStimulator = new DbStimulator();
-                dbStimulator.initialize("dataset",
+                dbStimulator.Delete("dataset",
                                             "_id=?",
                                             new Object[] { _id },
                                             "DatasetFlowLayoutPanelItemUserControl");
-                dbStimulator.run();
 
                 // Reset badge number of MainForm
                 ((DatasetExplorerForm)this.FindForm())._mainForm.resetBadge();
@@ -127,17 +125,20 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Equals("DatasetFlowLayoutPanelItemUserControl"))
                 return;
 
             // Get signal and features
-            double[] signal = (double[])Garage.ByteArrayToObject((byte[])records[0][0]);
-            OrderedDictionary featuresOrderedDictionary = (OrderedDictionary)Garage.ByteArrayToObject((byte[])records[0][1]);
+            foreach (DataRow row in dataTable.Rows)
+            {
+                double[] signal = (double[])Garage.ByteArrayToObject(row.Field<byte[]>("signal"));
+                OrderedDictionary featuresOrderedDictionary = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
 
-            // Show signal with features
-            this.Invoke(new MethodInvoker(delegate () { showSignalDetails(signal, featuresOrderedDictionary); }));
+                // Show signal with features
+                this.Invoke(new MethodInvoker(delegate () { showSignalDetails(signal, featuresOrderedDictionary); }));
+            }
         }
     }
 }

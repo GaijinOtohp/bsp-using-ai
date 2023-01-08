@@ -116,10 +116,11 @@ namespace BSP_Using_AI.AITools
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
             if (trainingDetails.Count > 0)
-                dbStimulator.initialize("models", new string[] { "dataset_size", "model_updates", "trainings_details" },
-                    new Object[] { datasetSize, trainingDetails.Count, Garage.ObjectToByteArray(trainingDetails) }, modelId, "TFBackThread");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
-            dbStimulatorThread.Start();
+            {
+                Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models", new string[] { "dataset_size", "model_updates", "trainings_details" },
+                    new Object[] { datasetSize, trainingDetails.Count, Garage.ObjectToByteArray(trainingDetails) }, modelId, "TFBackThread"));
+                dbStimulatorThread.Start();
+            }
 
             // Send report about fitting is finished and models table should be updated
             if (_tFBackThreadReportHolderForAIToolsForm != null)
@@ -202,9 +203,8 @@ namespace BSP_Using_AI.AITools
 
             // Save path in models table
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.initialize("models", new string[] { "type_name", "model_target", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
+            dbStimulator.Insert("models", new string[] { "type_name", "model_target", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
                 new Object[] { "Neural network", "WPW syndrome detection", Garage.ObjectToByteArray(pcLoadingScores), Garage.ObjectToByteArray(outputsThresholds), modelPath, 0, 0, Garage.ObjectToByteArray(new List<List<long[]>>()) }, "AIToolsForm");
-            dbStimulator.run();
 
             // Refresh modelsFlowLayoutPanel
             if (_tFBackThreadReportHolderForAIToolsForm != null)

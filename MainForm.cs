@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading;
 using System.Windows.Forms;
 using BSP_Using_AI.AITools;
@@ -44,13 +45,12 @@ namespace BSP_Using_AI
             // Query for last signal id from the most trained model
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("models",
-                                new String[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size"},
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("models",
+                                new String[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size" },
                                 null,
                                 null,
                                 //" ORDER BY dataset_size DESC LIMIT 1", "MainFormForModels");
-                                "", "MainFormForModels");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                "", "MainFormForModels"));
             dbStimulatorThread.Start();
 
             SignalHolder SignalHolder = new SignalHolder();
@@ -75,12 +75,11 @@ namespace BSP_Using_AI
             // Query for last signal id from the most trained model
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                 new String[] { "_id" },
                                 null,
                                 null,
-                                "", "MainFormForDataset");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                "", "MainFormForDataset"));
             dbStimulatorThread.Start();
         }
        
@@ -141,42 +140,42 @@ namespace BSP_Using_AI
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Equals("MainFormForModels") && !callingClassName.Equals("MainFormForDataset"))
                 return;
 
-            if (records.Count > 0)
+            if (dataTable.Rows.Count > 0)
             {
                 // Check if this report is from model table
                 if (callingClassName.Equals("MainFormForModels"))
                 {
                     // Set models ready and get last_signal_id of the highest model size
-                    foreach (object[] record in records)
+                    foreach (DataRow row in dataTable.AsEnumerable())
                     {
-                        // Check which model for which terget is this record
-                        if ((long)record[6] > _largestDatasetSize)
-                            _largestDatasetSize = (long)record[6];
+                        // Check which model for which terget is this record "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size"
+                        if (row.Field<long>("dataset_size") > _largestDatasetSize)
+                            _largestDatasetSize = row.Field<long>("dataset_size");
                         // Add modelsList in _targetsModelsHashtable
-                        if (record[0].Equals("Neural network") && record[1].Equals("WPW syndrome detection"))
+                        if (row.Field<string>("type_name").Equals("Neural network") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
-                            _tFBackThread._queue.Enqueue(new object[] { "initializeNeuralNetworkModelsForWPW", "MainForm", record[0] + " for " + record[1], (string)record[5],
-                                                                        (List<double[]>[])Garage.ByteArrayToObject((byte[])record[3]), (List<float[]>)Garage.ByteArrayToObject((byte[])record[4]) });
+                            _tFBackThread._queue.Enqueue(new object[] { "initializeNeuralNetworkModelsForWPW", "MainForm", row.Field<string>("type_name") + " for " + row.Field<string>("model_target"), row.Field<string>("model_path"),
+                                                                        (List<double[]>[])Garage.ByteArrayToObject(row.Field<byte[]>("selected_variables")), (List<float[]>)Garage.ByteArrayToObject(row.Field<byte[]>("outputs_thresholds")) });
                             _tFBackThread._signal.Set();
-                        } else if (record[0].Equals("K-Nearest neighbor") && record[1].Equals("WPW syndrome detection"))
+                        } else if (row.Field<string>("type_name").Equals("K-Nearest neighbor") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for KNN
                             KNNBackThread kNNBackThread = new KNNBackThread(_targetsModelsHashtable, null);
-                            Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW((long)record[6], (int[])Garage.ByteArrayToObject((byte[])record[2]),
-                                                                              (List<double[]>[])Garage.ByteArrayToObject((byte[])record[3]), (List<float[]>)Garage.ByteArrayToObject((byte[])record[4])));
+                            Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW(row.Field<long>("dataset_size"), (int[])Garage.ByteArrayToObject(row.Field<byte[]>("the_model")),
+                                                                              (List<double[]>[])Garage.ByteArrayToObject(row.Field<byte[]>("selected_variables")), (List<float[]>)Garage.ByteArrayToObject(row.Field<byte[]>("outputs_thresholds"))));
                             knnThread.Start();
                         }
-                        else if (record[0].Equals("Naive bayes") && record[1].Equals("WPW syndrome detection"))
+                        else if (row.Field<string>("type_name").Equals("Naive bayes") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for naive bayes
                             NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_targetsModelsHashtable, null);
-                            Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW((byte[])record[2],
-                                                                                    (List<double[]>[])Garage.ByteArrayToObject((byte[])record[3]), (List<float[]>)Garage.ByteArrayToObject((byte[])record[4])));
+                            Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW(row.Field<byte[]>("the_model"),
+                                                                                    (List<double[]>[])Garage.ByteArrayToObject(row.Field<byte[]>("selected_variables")), (List<float[]>)Garage.ByteArrayToObject(row.Field<byte[]>("outputs_thresholds"))));
                             nbThread.Start();
                         }
                     }
@@ -191,7 +190,7 @@ namespace BSP_Using_AI
                     {
                         try
                         {
-                            long unfittedData = records.Count - _largestDatasetSize;
+                            long unfittedData = dataTable.Rows.Count - _largestDatasetSize;
                             if (unfittedData == 0)
                                 this.Invoke(new MethodInvoker(delegate () { badge.Visible = false; }));
                             else

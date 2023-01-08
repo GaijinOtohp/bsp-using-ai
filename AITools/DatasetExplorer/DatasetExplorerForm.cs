@@ -39,12 +39,11 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // Query for all signals in dataset table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                 new String[] { "_id", "sginal_name", "starting_index", "sampling_rate" },
                                 null,
                                 null,
-                                " ORDER BY sginal_name ASC", "DatasetExplorerFormForDataset");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                " ORDER BY sginal_name ASC", "DatasetExplorerFormForDataset"));
             dbStimulatorThread.Start();
         }
 
@@ -73,12 +72,11 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.initialize("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                         new String[] { "features" },
                                         selection,
                                         selectionArgs,
-                                        "", "DatasetExplorerFormForFeatures");
-            Thread dbStimulatorThread = new Thread(new ThreadStart(dbStimulator.run));
+                                        "", "DatasetExplorerFormForFeatures"));
             dbStimulatorThread.Start();
         }
 
@@ -98,11 +96,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                         // If selected then remove it from table
                         // Remove it from models table
                         DbStimulator dbStimulator = new DbStimulator();
-                        dbStimulator.initialize("dataset",
+                        dbStimulator.Delete("dataset",
                                                     "_id=?",
                                                     new Object[] { item._id },
                                                     "DatasetExplorerForm");
-                        dbStimulator.run();
                     }
                 // Reset badge number of MainForm
                 _mainForm.resetBadge();
@@ -202,7 +199,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(List<object[]> records, string callingClassName)
+        public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
             if (!callingClassName.Contains("DatasetExplorerForm"))
                 return;
@@ -215,14 +212,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Clear(); }));
 
                 // Insert new items from records
-                foreach (object[] record in records)
+                foreach (DataRow row in dataTable.AsEnumerable())
                 {
                     // Create an item of the model
                     DatasetFlowLayoutPanelItemUserControl datasetFlowLayoutPanelItemUserControl = new DatasetFlowLayoutPanelItemUserControl();
-                    datasetFlowLayoutPanelItemUserControl.signalNameLabel.Text = (string)record[1];
-                    datasetFlowLayoutPanelItemUserControl.startingIndexLabel.Text = record[2].ToString();
-                    datasetFlowLayoutPanelItemUserControl.samplingRateLabel.Text = ((int)record[3]).ToString();
-                    datasetFlowLayoutPanelItemUserControl._id = (long)record[0];
+                    datasetFlowLayoutPanelItemUserControl.signalNameLabel.Text = row.Field<string>("sginal_name");
+                    datasetFlowLayoutPanelItemUserControl.startingIndexLabel.Text = row.Field<long>("starting_index").ToString();
+                    datasetFlowLayoutPanelItemUserControl.samplingRateLabel.Text = row.Field<long>("sampling_rate").ToString();
+                    datasetFlowLayoutPanelItemUserControl._id = row.Field<long>("_id");
 
                     // Check if this form is for "Training dataset explorer"
                     if (this.Text.Equals("Training dataset explorer"))
@@ -234,7 +231,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                         // Check if its _id is included in _trainingDetails
                         foreach (List<long[]> training in _trainingDetails)
                             foreach (long[] datasetInterval in training)
-                                if ((long)record[0] >= datasetInterval[0] && (long)record[0] <= datasetInterval[1])
+                                if (row.Field<long>("_id") >= datasetInterval[0] && row.Field<long>("_id") <= datasetInterval[1])
                                     // If yes then disable the UserControl 
                                     datasetFlowLayoutPanelItemUserControl.Enabled = false;
                     }
@@ -252,9 +249,9 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
                 // Iterate through each signal features and sort them in featuresLists
                 OrderedDictionary signalFeatures = null;
-                foreach (object[] record in records)
+                foreach (DataRow row in dataTable.AsEnumerable())
                 {
-                    signalFeatures = (OrderedDictionary)Garage.ByteArrayToObject((byte[])record[0]);
+                    signalFeatures = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
                     // The first item is just beats states
                     for (int i = 1; i < signalFeatures.Count; i++)
                     {
@@ -272,7 +269,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 }
                 // Send features for fitting
                 // Check which model is selected
-                long datasetSize = _datasetSize + records.Count;
+                long datasetSize = _datasetSize + dataTable.Rows.Count;
                 if (_modelName.Contains("Neural network"))
                 {
                     // This is for neural network

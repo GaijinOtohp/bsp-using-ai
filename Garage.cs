@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -1037,6 +1038,22 @@ namespace BSP_Using_AI
                 T temp = array[n];
                 array[n] = array[k];
                 array[k] = temp;
+            }
+        }
+
+        public static void Shuffle(DataTable dataTable)
+        {
+            Random rng = new Random();
+            int n = dataTable.Rows.Count;
+            while (n > 1)
+            {
+                int k = rng.Next(n--);
+                DataRow temp = dataTable.Rows[n];
+                foreach (DataColumn column in temp.Table.Columns)
+                {
+                    dataTable.Rows[n][column.ColumnName] = dataTable.Rows[k][column.ColumnName];
+                    dataTable.Rows[k][column.ColumnName] = temp[column.ColumnName];
+                }
             }
         }
 
