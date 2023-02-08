@@ -1,180 +1,180 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.DetailsModify.Filters
 {
     public partial class SignalStatesViewerUserControl : UserControl
     {
-        FormDetailsModify _formDetailsModify;
+        PeaksAnalyzer _peaksAnalyzer;
 
-        public double _thresholdRatio = 0.02d;
-        public double _tdtThresholdRatio = 0.1d;
-        public int _horThreshold = 1;
-
-        public SignalStatesViewerUserControl(FormDetailsModify formDetailsModify)
+        public SignalStatesViewerUserControl(PeaksAnalyzer peaksAnalyzer)
         {
             InitializeComponent();
 
-            _formDetailsModify = formDetailsModify;
+            _peaksAnalyzer = peaksAnalyzer;
 
             // Set the hThresholdScrollBar Maximum and change its value to 1
-            if (_formDetailsModify._samples != null)
-            {
-                hThresholdScrollBar.Maximum = _formDetailsModify._samples.Length + hThresholdScrollBar.LargeChange - 1;
-                hThresholdScrollBar.Value = 1;
-            }
+            if (_peaksAnalyzer._ParentFilteringTools._FilteredSamples.Length > 0)
+                hThresholdScrollBar.SetMax(_peaksAnalyzer._ParentFilteringTools._FilteredSamples.Length);
         }
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        public List<int>[] showSignalStates()
+        public Dictionary<string, List<State>> showSignalStates(Dictionary<string, List<State>> statesDIc)
         {
-            ///------------------------------------------------------------------------------------------///
-            ///--------------------------------------Set new values--------------------------------------///
-            // Change the threshold value
-            _thresholdRatio = (double)(1000 - amplitudeThresholdScrollBar.Value) / 1000d;
-
-            // Set the new value in thresholdRatioLabel
-            thresholdRatioLabel.Text = "Threshold ratio: " + Math.Round(_thresholdRatio, 3).ToString();
-
-            // Change the horizontal threshold value
-            _horThreshold = hThresholdScrollBar.Value;
-
-            // Set the new value in thresholdRatioLabel
-            hThresholdLabel.Text = "Hor Threshold: " + Math.Round((double)_horThreshold / _formDetailsModify._samplingRate, 3).ToString() + " sec";
-
-            // Change the tangent deviation tolerance threshold value
-            _tdtThresholdRatio = (double)tdtThresholdScrollBar.Value / 100000d;
-
-            // Set the new value in thresholdRatioLabel
-            tdtThresholdLabel.Text = "Acc Threshold: " + Math.Round(_tdtThresholdRatio * 100, 3).ToString() + "%";
-            ///------------------------------------------------------------------------------------------///
-            ///------------------------------------------------------------------------------------------///
-
-            // Get signal from chart
             Chart signalChart = ((FormDetailsModify)FindForm()).signalChart;
-            if (signalChart.Series[0].Points.Count < 1)
-                return null;
-            // Get samplingRate
-            double samplingRate = ((FormDetailsModify)FindForm())._samplingRate;
+            double samplingRate = _peaksAnalyzer._ParentFilteringTools._samplingRate;
 
-            // Get samples from signal chart
-            double[] samples = new double[signalChart.Series[0].Points.Count];
-            for (int i = 0; i < samples.Length; i++)
-                samples[i] = signalChart.Series[0].Points[i].YValues[0];
+            double[] xUps = statesDIc[SANamings.UpPeaks].Select(x => x._index / samplingRate).ToArray();
+            double[] yUps = statesDIc[SANamings.UpPeaks].Select(x => x._value).ToArray();
+            string[] labelsUps = statesDIc[SANamings.UpPeaks].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
+            double[] xDowns = statesDIc[SANamings.DownPeaks].Select(x => x._index / samplingRate).ToArray();
+            double[] yDowns = statesDIc[SANamings.DownPeaks].Select(x => x._value).ToArray();
+            string[] labelsDowns = statesDIc[SANamings.DownPeaks].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
+            double[] xStables = statesDIc[SANamings.StableStates].Select(x => x._index / samplingRate).ToArray();
+            double[] yStables = statesDIc[SANamings.StableStates].Select(x => x._value).ToArray();
+            string[] labelsStables = statesDIc[SANamings.StableStates].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
 
-            // Get y values interval
-            double interval = Garage.amplitudeInterval(samples);
+            Garage.loadXYInChart(signalChart, xUps, yUps, labelsUps, _peaksAnalyzer._ParentFilteringTools._startingInSec, 1, "SignalStatesViewerUserControl");
+            Garage.loadXYInChart(signalChart, xDowns, yDowns, labelsDowns, _peaksAnalyzer._ParentFilteringTools._startingInSec, 2, "SignalStatesViewerUserControl");
+            Garage.loadXYInChart(signalChart, xStables, yStables, labelsStables, _peaksAnalyzer._ParentFilteringTools._startingInSec, 3, "SignalStatesViewerUserControl");
 
-            // Get states of the signal
-            List<State> states = Garage.scanPeaks(samples, interval, _thresholdRatio, _formDetailsModify._quantizationStep, _tdtThresholdRatio, showDeviationCheckBox.Checked, signalChart);
-
-            // Set states in the chart
-            List<int>[] tempStatesList = new List<int>[] { new List<int>(), new List<int>(), new List<int>(), new List<int>() }; // {list for up-peaks, down-peaks, stable, selection}
-            int ups = 0;
-            int downs = 0;
-            int stables = 0;
-            foreach (State state in states)
-                if (state.Name.Equals("up"))
-                    ups += 1;
-                else if (state.Name.Equals("down"))
-                    downs += 1;
-                else if (state.Name.Equals("stable"))
-                    stables += 1;
-
-            double[] xUps = new double[ups];
-            double[] yUps = new double[ups];
-            string[] labelsUps = new string[ups];
-            double[] xDowns = new double[downs];
-            double[] yDowns = new double[downs];
-            string[] labelsDowns = new string[downs];
-            double[] xStables = new double[stables];
-            double[] yStables = new double[stables];
-            string[] labelsStables = new string[stables];
-
-            ups = 0;
-            downs = 0;
-            stables = 0;
-            foreach (State state in states)
-                if (state.Name.Equals("up"))
-                {
-                    tempStatesList[0].Add(state._index);
-                    xUps[ups] = state._index / samplingRate;
-                    yUps[ups] = state._value;
-                    labelsUps[ups] = Math.Round(state._deviantionAngle, 2).ToString();
-                    ups += 1;
-                }
-                else if (state.Name.Equals("down"))
-                {
-                    tempStatesList[1].Add(state._index);
-                    xDowns[downs] = state._index / samplingRate;
-                    yDowns[downs] = state._value;
-                    labelsDowns[downs] = Math.Round(state._deviantionAngle, 2).ToString();
-                    downs += 1;
-                }
-                else if (state.Name.Equals("stable"))
-                {
-                    tempStatesList[2].Add(state._index);
-                    xStables[stables] = state._index / samplingRate;
-                    yStables[stables] = state._value;
-                    labelsStables[stables] = Math.Round(state._deviantionAngle, 2).ToString();
-                    stables += 1;
-                }
-
-            Garage.loadXYInChart(signalChart, xUps, yUps, labelsUps, _formDetailsModify._startingInSec, 1, "SignalStatesViewerUserControl");
-            Garage.loadXYInChart(signalChart, xDowns, yDowns, labelsDowns, _formDetailsModify._startingInSec, 2, "SignalStatesViewerUserControl");
-            Garage.loadXYInChart(signalChart, xStables, yStables, labelsStables, _formDetailsModify._startingInSec, 3, "SignalStatesViewerUserControl");
-
-            return tempStatesList;
+            return statesDIc;
         }
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
-        private void amplitudeThresholdScrollBar_Scroll(object sender, ScrollEventArgs e)
+        private void artValueTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Check if show and auto apply is checked
-            if (showStatesCheckBox.Checked && autoApplyCheckBox.Checked)
+            EventHandlers.textBoxNumberOnly(sender, e);
+        }
+
+        private void amplitudeThresholdScrollBar_ValueChanged(object sender, EventArgs e)
+        {
+            // Update artValueTextBox
+            if (!_peaksAnalyzer._ignoreEvent)
             {
-                // If yes then show signal states
-                showSignalStates();
+                _peaksAnalyzer._ignoreEvent = true;
+                // Change the threshold value
+                _peaksAnalyzer.SetART((amplitudeThresholdScrollBar.GetMax() - amplitudeThresholdScrollBar.Value) / (double)amplitudeThresholdScrollBar.GetMax());
+                // Set the new value in artValueTextBox
+                artValueTextBox.Text = Math.Round(_peaksAnalyzer._art, 3).ToString();
+                _peaksAnalyzer._ignoreEvent = false;
+            }
+        }
+        private void artValueTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!_peaksAnalyzer._ignoreEvent)
+            {
+                _peaksAnalyzer._ignoreEvent = true;
+                // Get ART from the textbox
+                double art = 0;
+                if (artValueTextBox.Text.Length > 0)
+                    art = double.Parse(artValueTextBox.Text);
+                // Check if it crosses the max of amplitudeThresholdScrollBar
+                if (amplitudeThresholdScrollBar.GetMax() - (art * amplitudeThresholdScrollBar.GetMax()) < 0)
+                {
+                    // If yes then set it as the max of amplitudeThresholdScrollBar
+                    art = (amplitudeThresholdScrollBar.GetMax() - 0) / (double)amplitudeThresholdScrollBar.GetMax();
+                    artValueTextBox.Text = Math.Round(art, 4).ToString();
+                }
+                // Change the threshold value
+                _peaksAnalyzer.SetART(art);
+                // Update the scrollbar
+                amplitudeThresholdScrollBar.Value = (int)(amplitudeThresholdScrollBar.GetMax() - (art * amplitudeThresholdScrollBar.GetMax()));
+                _peaksAnalyzer._ignoreEvent = false;
             }
         }
 
-        private void hThresholdScrollBar_Scroll(object sender, ScrollEventArgs e)
+        private void hThresholdScrollBar_ValueChanged(object sender, EventArgs e)
         {
-            if (_formDetailsModify._samplingRate == 0)
+            if (_peaksAnalyzer._ParentFilteringTools._samplingRate == 0)
                 return;
 
-            // Check if show and auto apply is checked
-            if (showStatesCheckBox.Checked && autoApplyCheckBox.Checked)
+            // Update htValueTextBox
+            if (!_peaksAnalyzer._ignoreEvent)
             {
-                // If yes then show signal states
-                showSignalStates();
+                _peaksAnalyzer._ignoreEvent = true;
+                // Change the horizontal threshold value
+                _peaksAnalyzer.SetHT(hThresholdScrollBar.Value / (double)hThresholdScrollBar.GetMax());
+                // Set the new value in htValueTextBox
+                htValueTextBox.Text = Math.Round(_peaksAnalyzer._ht * (double)hThresholdScrollBar.GetMax() / (double)_peaksAnalyzer._ParentFilteringTools._samplingRate, 3).ToString();
+                _peaksAnalyzer._ignoreEvent = false;
+            }
+        }
+        private void htValueTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!_peaksAnalyzer._ignoreEvent)
+            {
+                _peaksAnalyzer._ignoreEvent = true;
+                // Get HT from the textbox
+                int ht = 0;
+                if (htValueTextBox.Text.Length > 0)
+                    ht = (int)(double.Parse(htValueTextBox.Text) * _peaksAnalyzer._ParentFilteringTools._samplingRate);
+                // Check if it crosses the max of hThresholdScrollBar
+                if (ht > hThresholdScrollBar.GetMax())
+                {
+                    // If yes then set it as the max of hThresholdScrollBar
+                    ht = hThresholdScrollBar.GetMax();
+                    htValueTextBox.Text = ht.ToString();
+                }
+                // Change the horizontal threshold value
+                _peaksAnalyzer.SetHT(ht / (double)hThresholdScrollBar.GetMax());
+                // Update the scrollbar
+                hThresholdScrollBar.Value = ht;
+                _peaksAnalyzer._ignoreEvent = false;
             }
         }
 
-        private void accelerationThresholdScrollBar_Scroll(object sender, ScrollEventArgs e)
+        private void tdtThresholdScrollBar_ValueChanged(object sender, EventArgs e)
         {
-            // Check if show and auto apply is checked
-            if (showStatesCheckBox.Checked && autoApplyCheckBox.Checked)
+            // Update tdtValueTextBox
+            if (!_peaksAnalyzer._ignoreEvent)
             {
-                // If yes then show signal states
-                showSignalStates();
+                _peaksAnalyzer._ignoreEvent = true;
+                // Change the tangent deviation tolerance threshold value
+                _peaksAnalyzer.SetTDT(tdtThresholdScrollBar.Value / (double)tdtThresholdScrollBar.GetMax());
+                // Set the new value in thresholdRatioLabel
+                tdtValueTextBox.Text = Math.Round(_peaksAnalyzer._tdt * 100, 3).ToString();
+                _peaksAnalyzer._ignoreEvent = false;
+            }
+        }
+        private void tdtValueTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!_peaksAnalyzer._ignoreEvent)
+            {
+                _peaksAnalyzer._ignoreEvent = true;
+                // Get TDT from the textbox
+                double tdt = 0;
+                if (tdtValueTextBox.Text.Length > 0)
+                    tdt = double.Parse(tdtValueTextBox.Text) / 100d;
+                // Check if it crosses the max of tdtThresholdScrollBar
+                if (tdt > 1)
+                {
+                    // If yes then set it as the max of tdtThresholdScrollBar
+                    tdt = 1;
+                    tdtValueTextBox.Text = Math.Round(tdt * 100, 3).ToString();
+                }
+                // Change the tangent deviation tolerance threshold value
+                _peaksAnalyzer.SetTDT(tdt);
+                // Update the scrollbar
+                tdtThresholdScrollBar.Value = (int)(tdt * tdtThresholdScrollBar.GetMax());
+                _peaksAnalyzer._ignoreEvent = false;
             }
         }
 
         private void applyButton_Click(object sender, EventArgs e)
         {
-            showSignalStates();
+            double[] filteredSamples = _peaksAnalyzer._ParentFilteringTools._FilteredSamples;
+            if (filteredSamples != null)
+                _peaksAnalyzer.ScanPeaks(filteredSamples);
         }
 
         private void showCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -188,6 +188,24 @@ namespace BSP_Using_AI.DetailsModify.Filters
             else
                 for (int i = 1; i < 6; i++)
                     signalChart.Series[i].Enabled = false;
+            // Update _peaksAnalyzer
+            if (!_peaksAnalyzer._ignoreEvent)
+            {
+                _peaksAnalyzer._ignoreEvent = true;
+                _peaksAnalyzer.ActivateGenerally(showStatesCheckBox.Checked);
+                _peaksAnalyzer._ignoreEvent = false;
+            }
+        }
+
+        private void autoApplyCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            // Update _peaksAnalyzer
+            if (!_peaksAnalyzer._ignoreEvent)
+            {
+                _peaksAnalyzer._ignoreEvent = true;
+                _peaksAnalyzer.ActivateAutoApply(autoApplyCheckBox.Checked);
+                _peaksAnalyzer._ignoreEvent = false;
+            }
         }
 
         private void showAccelerationCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -198,16 +216,21 @@ namespace BSP_Using_AI.DetailsModify.Filters
             // If not then hide accelerations
             for (int i = 1; i < 4; i++)
             {
-                signalChart.Series[i].LabelForeColor = showDeviationCheckBox.Checked ? Color.Black: Color.Transparent;
-                //signalChart.Series[i].SmartLabelStyle.CalloutLineColor = showAccelerationCheckBox.Checked ? Color.Black : Color.Transparent;
+                signalChart.Series[i].LabelForeColor = showDeviationCheckBox.Checked ? Color.Black : Color.Transparent;
             }
 
-            showSignalStates();
+            // Update _peaksAnalyzer
+            if (!_peaksAnalyzer._ignoreEvent)
+            {
+                _peaksAnalyzer._ignoreEvent = true;
+                _peaksAnalyzer.ActivateTDT(showDeviationCheckBox.Checked);
+                _peaksAnalyzer._ignoreEvent = false;
+            }
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            EventHandlers.deleteToolStripMenuItem_Click(this);
+            _peaksAnalyzer.RemoveFilter();
         }
     }
 }

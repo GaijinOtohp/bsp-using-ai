@@ -1,50 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
 {
     public partial class UserControlSignalPower : UserControl
     {
-        private double[] _samples;
-
-        private double _samplingRate;
-        private double _quantizationStep;
+        FilteringTools _FilteringTools;
 
         bool _mouseDown = false;
         int _previousMouseX;
         int _previousMouseY;
 
-        public UserControlSignalPower(double[] samples, double samplingRate, double quantizationStep)
+        public UserControlSignalPower(FilteringTools filteringTools)
         {
             InitializeComponent();
 
             // Initialize variables
-            _samples = samples;
-            _samplingRate = samplingRate;
-            _quantizationStep = quantizationStep;
+            _FilteringTools = filteringTools;
 
             // Calculate power and set it in signalPowerValueLabel
             double signalPower = 0D;
-            foreach (double sample in _samples)
-                signalPower += Math.Abs(sample * sample) / _samples.Length;
+            foreach (double sample in filteringTools._FilteredSamples)
+                signalPower += Math.Pow(sample / filteringTools._quantizationStep, 2) / filteringTools._FilteredSamples.Length;
 
             signalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
 
             // Insert signal in chart
-            Garage.loadSignalInChart((Chart)Controls.Find("signalExhibitor", false)[0], _samples, _samplingRate, _quantizationStep, 0, "UserControlSignalPower");
+            Garage.loadSignalInChart((Chart)Controls.Find("signalExhibitor", false)[0], filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "UserControlSignalPower");
         }
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            EventHandlers.sendSignalTool(_samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Collector");
+            EventHandlers.sendSignalTool(_FilteringTools, pathLabel.Text + "\\Collector");
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)

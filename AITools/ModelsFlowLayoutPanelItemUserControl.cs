@@ -2,26 +2,18 @@
 using BSP_Using_AI.AITools.Details;
 using BSP_Using_AI.Database;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 
 namespace BSP_Using_AI.AITools
 {
     public partial class ModelsFlowLayoutPanelItemUserControl : UserControl, DbStimulatorReportHolder
     {
         public long _id;
-        public string _modelPath;
-        public List<List<long[]>> _trainingDetails;
+        public ARTHTModels _aRTHTModels;
 
         public ModelsFlowLayoutPanelItemUserControl()
         {
@@ -45,8 +37,9 @@ namespace BSP_Using_AI.AITools
         private void detailsButton_Click(object sender, EventArgs e)
         {
             // Show details form and insert update details in trainingsDetailsListBox
-            DetailsForm detailsForm = new DetailsForm(_id, this.Name, _trainingDetails, ((AIToolsForm)this.FindForm())._tFBackThread);
+            DetailsForm detailsForm = new DetailsForm(_id, _aRTHTModels, ((AIToolsForm)this.FindForm())._tFBackThread);
             detailsForm.Show();
+            detailsForm.initializeForm();
         }
 
         private void fitButton_Click(object sender, EventArgs e)
@@ -54,11 +47,9 @@ namespace BSP_Using_AI.AITools
             // Open DatasetExplorerForm for selecting training dataset
             DatasetExplorerForm datasetExplorerForm = new DatasetExplorerForm();
             datasetExplorerForm._id = _id;
-            datasetExplorerForm._modelPath = _modelPath;
+            datasetExplorerForm._aRTHTModels = _aRTHTModels;
             datasetExplorerForm._datasetSize = long.Parse(datasetSizeLabel.Text);
             datasetExplorerForm._updatesNum = int.Parse(updatesLabel.Text);
-            datasetExplorerForm._trainingDetails = _trainingDetails;
-            datasetExplorerForm._modelName = this.Name;
             datasetExplorerForm._aIToolsForm = (AIToolsForm)this.FindForm();
 
             datasetExplorerForm.Text = "Training dataset explorer";
@@ -78,7 +69,7 @@ namespace BSP_Using_AI.AITools
             if (dialogResult == DialogResult.Yes)
             {
                 // Remove model from _targetsModelsHashtable
-                ((AIToolsForm)this.FindForm())._targetsModelsHashtable.Remove(this.Name);
+                ((AIToolsForm)this.FindForm())._arthtModelsDic.Remove(this.Name);
 
                 // Remove it from models table
                 DbStimulator dbStimulator = new DbStimulator();
@@ -87,11 +78,16 @@ namespace BSP_Using_AI.AITools
                                             new Object[] { _id },
                                             "ModelsFlowLayoutPanelItemUserControl");
 
-                // Remove it from the folder
-                if (Directory.Exists(_modelPath))
-                {
-                    Directory.Delete(_modelPath, true);
-                }
+                // Check if this is Neural Network model
+                foreach (CustomBaseModel model in _aRTHTModels.ARTHTModelsDic.Values)
+                    if (model is NeuralNetworkModel)
+                    {
+                        // Get the folder of the collected steps models
+                        string modelsPath = (model as NeuralNetworkModel).ModelPath.Substring(0, (model as NeuralNetworkModel).ModelPath.LastIndexOf("/"));
+                        // Remove the folder
+                        if (Directory.Exists(modelsPath))
+                            Directory.Delete(modelsPath, true);
+                    }
 
                 // Refresh modelsFlowLayoutPanel
                 ((AIToolsForm)this.FindForm()).queryForModels();

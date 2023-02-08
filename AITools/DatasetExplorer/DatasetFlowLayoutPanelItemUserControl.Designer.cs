@@ -44,12 +44,12 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // signalNameLabel
             // 
             this.signalNameLabel.AutoSize = true;
-            this.signalNameLabel.Location = new System.Drawing.Point(3, 3);
-            this.signalNameLabel.Margin = new System.Windows.Forms.Padding(3);
-            this.signalNameLabel.MaximumSize = new System.Drawing.Size(163, 0);
-            this.signalNameLabel.MinimumSize = new System.Drawing.Size(163, 23);
+            this.signalNameLabel.Location = new System.Drawing.Point(4, 4);
+            this.signalNameLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.signalNameLabel.MaximumSize = new System.Drawing.Size(217, 0);
+            this.signalNameLabel.MinimumSize = new System.Drawing.Size(217, 28);
             this.signalNameLabel.Name = "signalNameLabel";
-            this.signalNameLabel.Size = new System.Drawing.Size(163, 23);
+            this.signalNameLabel.Size = new System.Drawing.Size(217, 28);
             this.signalNameLabel.TabIndex = 3;
             this.signalNameLabel.Text = "Signal name";
             this.signalNameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -57,10 +57,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // startingIndexLabel
             // 
             this.startingIndexLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.startingIndexLabel.Location = new System.Drawing.Point(216, 3);
-            this.startingIndexLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.startingIndexLabel.Location = new System.Drawing.Point(234, 4);
+            this.startingIndexLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.startingIndexLabel.Name = "startingIndexLabel";
-            this.startingIndexLabel.Size = new System.Drawing.Size(108, 23);
+            this.startingIndexLabel.Size = new System.Drawing.Size(144, 28);
             this.startingIndexLabel.TabIndex = 4;
             this.startingIndexLabel.Text = "Starting index (sec)";
             this.startingIndexLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -68,10 +68,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // samplingRateLabel
             // 
             this.samplingRateLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.samplingRateLabel.Location = new System.Drawing.Point(330, 3);
-            this.samplingRateLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.samplingRateLabel.Location = new System.Drawing.Point(386, 4);
+            this.samplingRateLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.samplingRateLabel.Name = "samplingRateLabel";
-            this.samplingRateLabel.Size = new System.Drawing.Size(87, 23);
+            this.samplingRateLabel.Size = new System.Drawing.Size(116, 28);
             this.samplingRateLabel.TabIndex = 5;
             this.samplingRateLabel.Text = "Sampling rate";
             this.samplingRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -79,10 +79,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // featuresDetailsButton
             // 
             this.featuresDetailsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.featuresDetailsButton.Location = new System.Drawing.Point(530, 3);
-            this.featuresDetailsButton.Margin = new System.Windows.Forms.Padding(2);
+            this.featuresDetailsButton.Location = new System.Drawing.Point(653, 4);
+            this.featuresDetailsButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.featuresDetailsButton.Name = "featuresDetailsButton";
-            this.featuresDetailsButton.Size = new System.Drawing.Size(114, 23);
+            this.featuresDetailsButton.Size = new System.Drawing.Size(152, 28);
             this.featuresDetailsButton.TabIndex = 20;
             this.featuresDetailsButton.Text = "Features details";
             this.featuresDetailsButton.UseVisualStyleBackColor = true;
@@ -92,7 +92,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // 
             this.selectionCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.selectionCheckBox.AutoSize = true;
-            this.selectionCheckBox.Location = new System.Drawing.Point(692, 8);
+            this.selectionCheckBox.Location = new System.Drawing.Point(874, 10);
+            this.selectionCheckBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.selectionCheckBox.Name = "selectionCheckBox";
             this.selectionCheckBox.Size = new System.Drawing.Size(15, 14);
             this.selectionCheckBox.TabIndex = 21;
@@ -117,17 +118,17 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // quantizationStepLabel
             // 
             this.quantizationStepLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.quantizationStepLabel.Location = new System.Drawing.Point(423, 3);
-            this.quantizationStepLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.quantizationStepLabel.Location = new System.Drawing.Point(510, 4);
+            this.quantizationStepLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.quantizationStepLabel.Name = "quantizationStepLabel";
-            this.quantizationStepLabel.Size = new System.Drawing.Size(102, 23);
+            this.quantizationStepLabel.Size = new System.Drawing.Size(136, 28);
             this.quantizationStepLabel.TabIndex = 22;
             this.quantizationStepLabel.Text = "Quantization step";
             this.quantizationStepLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // DatasetFlowLayoutPanelItemUserControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ContextMenuStrip = this.contextMenuStrip1;
             this.Controls.Add(this.quantizationStepLabel);
@@ -136,8 +137,9 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             this.Controls.Add(this.samplingRateLabel);
             this.Controls.Add(this.startingIndexLabel);
             this.Controls.Add(this.signalNameLabel);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "DatasetFlowLayoutPanelItemUserControl";
-            this.Size = new System.Drawing.Size(717, 29);
+            this.Size = new System.Drawing.Size(902, 36);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();

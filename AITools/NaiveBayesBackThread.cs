@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections;
+﻿using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools
 {
@@ -11,101 +10,81 @@ namespace BSP_Using_AI.AITools
     {
         private AIBackThreadReportHolder _aiBackThreadReportHolderForAIToolsForm;
 
-        private Hashtable _targetsModelsHashtable = null;
+        private Dictionary<string, ARTHTModels> _arthtModelsDic = null;
 
-        [Serializable]
-        public struct NaiveBayesModel
-        {
-            public bool regression;
-            public List<Partition[]> outputsProbaList; // ( one_partition { value, partition_size, frequency, proba, gausParamsInputGivenOutput[] } )
-        }
-
-        [Serializable]
-        public struct Partition
-        {
-            public double value, partitionSize, frequency, proba;
-            public gausParamsInputGivenOutput[] gausParamsInputsGivenOutput;
-        }
-
-        [Serializable]
-        public struct gausParamsInputGivenOutput
-        {
-            public double mean, variance;
-            public List<double> valuesList;
-        }
-
-        private struct outputProbaGivenInput
+        private class outputProbaGivenInput
         {
             public double proba;
             public double output;
         }
 
-        public NaiveBayesBackThread(Hashtable targetsModelsHashtable, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
+        public NaiveBayesBackThread(Dictionary<string, ARTHTModels> arthtModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
-            _targetsModelsHashtable = targetsModelsHashtable;
+            _arthtModelsDic = arthtModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        public void fit(string modelsName, List<object[]>[] featuresLists, long datasetSize, long modelId, List<List<long[]>> trainingDetails, int stepIndx)
+        public void fit(string modelsName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
         {
             // Iterate through models from the selected ones in _targetsModelsHashtable
             int fitProgress = 0;
-            int tolatFitProgress = featuresLists.Length;
+            int tolatFitProgress = dataLists.Count;
 
-            if (stepIndx > -1)
-            {
-                ((List<object[]>)_targetsModelsHashtable[modelsName])[stepIndx][0] = fit((NaiveBayesModel)((List<object[]>)_targetsModelsHashtable[modelsName])[stepIndx][0], featuresLists[stepIndx],
-                                                                                      (List<double[]>)((List<object[]>)_targetsModelsHashtable[modelsName])[stepIndx][1]);
-            }
+            // Iterate through models from the selected ones in _arthtModelsDic
+            ARTHTModels arthtModels = _arthtModelsDic[modelsName];
+
+            if (!stepName.Equals(""))
+                fit((NaiveBayesModel)arthtModels.ARTHTModelsDic[stepName],
+                                                      dataLists[stepName]);
             else
-                for (int i = 0; i < ((List<object[]>)_targetsModelsHashtable[modelsName]).Count; i++)
+                foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
                 {
                     // Set the new features probabilities in the model
-                    ((List<object[]>)_targetsModelsHashtable[modelsName])[i][0] = fit((NaiveBayesModel)((List<object[]>)_targetsModelsHashtable[modelsName])[i][0], featuresLists[i],
-                                                                                      (List<double[]>)((List<object[]>)_targetsModelsHashtable[modelsName])[i][1]);
+                    fit((NaiveBayesModel)arthtModels.ARTHTModelsDic[stepNa],
+                                                          dataLists[stepNa]);
 
                     // Update fitProgressBar
                     fitProgress++;
                     if (_aiBackThreadReportHolderForAIToolsForm != null)
                         _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "progress", modelsName, fitProgress, tolatFitProgress }, "AIToolsForm");
                 }
+
             // Update model in models table
-            List<NaiveBayesModel> modelsOnlyList = new List<NaiveBayesModel>();
-            foreach (object[] modelBuff in (List<object[]>)_targetsModelsHashtable[modelsName])
-                modelsOnlyList.Add((NaiveBayesModel)modelBuff[0]);
             DbStimulator dbStimulator = new DbStimulator();
-            if (trainingDetails.Count > 0)
-                dbStimulator.Update("models", new string[] { "the_model", "dataset_size", "model_updates", "trainings_details" },
-                    new Object[] { Garage.ObjectToByteArray(modelsOnlyList), datasetSize, trainingDetails.Count, Garage.ObjectToByteArray(trainingDetails) }, modelId, "TFBackThread");
+            if (arthtModels.DataIdsIntervalsList.Count > 0)
+                dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
+                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()), datasetSize }, modelId, "TFBackThread");
             else
                 dbStimulator.Update("models", new string[] { "the_model" },
-                    new Object[] { Garage.ObjectToByteArray(modelsOnlyList) }, modelId, "TFBackThread");
+                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()) }, modelId, "TFBackThread");
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
                 _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "fitting_complete", modelsName, datasetSize }, "AIToolsForm");
         }
 
-        public static NaiveBayesModel fit(NaiveBayesModel model, List<object[]> featuresList, List<double[]> pcLoadingScores)
+        public static NaiveBayesModel fit(NaiveBayesModel model, List<Sample> dataList)
         {
-            featuresList = Garage.rearrangeFeaturesInput(featuresList, pcLoadingScores);
+            if (model._pcaActive)
+                dataList = Garage.rearrangeFeaturesInput(dataList, model.PCA);
+
             // Set the new features probabilities in the model
-            bool forRegression = model.regression;
-            model = new NaiveBayesModel { regression = forRegression, outputsProbaList = partitionOutputs(featuresList, forRegression, model.outputsProbaList) };
+            model.OutputsProbaList = partitionOutputs(dataList, model._regression, model.OutputsProbaList);
 
             return model;
         }
 
-        public static double[] predict(double[] input, NaiveBayesModel naiveBayesModel, List<double[]> pcLoadingScores)
+        public static double[] predict(double[] features, NaiveBayesModel naiveBayesModel)
         {
             // Initialize input
-            input = Garage.rearrangeInput(input, pcLoadingScores);
+            if (naiveBayesModel._pcaActive)
+                features = Garage.rearrangeInput(features, naiveBayesModel.PCA);
             // Predict the input
-            // Get gausParamsInputsGivenOutput for each class
+            // Get GausParamsInputsGivenOutput for each class
             // and calculate the probabilities for each val of input
-            List<Partition[]> outputsProbaList = naiveBayesModel.outputsProbaList;
+            List<Partition[]> outputsProbaList = naiveBayesModel.OutputsProbaList;
             object[] outputProbaGivenInput = new object[outputsProbaList.Count];
             for (int i = 0; i < outputsProbaList.Count; i++)
             {
@@ -114,11 +93,11 @@ namespace BSP_Using_AI.AITools
                 for (int j = 0; j < partitions.Length; j++)
                 {
                     Partition partition = partitions[j];
-                    double proba = partition.proba;
-                    for (int k = 0; k < partition.gausParamsInputsGivenOutput.Length; k++)
-                        proba *= gaussian(partition.gausParamsInputsGivenOutput[k].mean, partition.gausParamsInputsGivenOutput[k].variance, input[k]);
+                    double proba = partition._proba;
+                    for (int k = 0; k < partition.GausParamsInputsGivenOutput.Length; k++)
+                        proba *= gaussian(partition.GausParamsInputsGivenOutput[k]._mean, partition.GausParamsInputsGivenOutput[k]._variance, features[k]);
 
-                    ((List<outputProbaGivenInput>)outputProbaGivenInput[i]).Add(new outputProbaGivenInput { proba = proba, output = partition.value });
+                    ((List<outputProbaGivenInput>)outputProbaGivenInput[i]).Add(new outputProbaGivenInput { proba = proba, output = partition._value });
                 }
             }
             // Sort outputs according to probabilities
@@ -134,81 +113,92 @@ namespace BSP_Using_AI.AITools
             return output;
         }
 
-        public void createNBModelForWPW(List<double[]>[] pcLoadingScores, List<float[]> outputsThresholds)
+        public void createNBModelForWPW()
         {
             // Create neural network models for WPW syndrome detection
             // Create 7 models for { 2 for QRS detection (Threshold_ratio & Hor_threshold, remove_miss_selected_R),
             // 2 for P_T detection (Threshold_ratio & Hor_threshold, P & T states),
             // 1 for short PR detection,
             // 2 for delta deteciton (Acceleration threshold, delta existence) }
-            List<object[]> modelsList = new List<object[]> ();
+            ARTHTModels arthtModels = new ARTHTModels();
             // Create a KNN models structure with the initial optimum K, which is "3"
-            modelsList.Add(new object[] { new NaiveBayesModel { regression = true, outputsProbaList = new List<Partition[]>() }, pcLoadingScores[0], outputsThresholds[0] }); // (15, 2) For R peaks detection
-            modelsList.Add(new object[] { new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }, pcLoadingScores[1], outputsThresholds[1] }); // (2, 1) For R selection
-            modelsList.Add(new object[] { new NaiveBayesModel { regression = true, outputsProbaList = new List<Partition[]>() }, pcLoadingScores[2], outputsThresholds[2] }); // (5, 2) For beat peaks detection
-            modelsList.Add(new object[] { new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }, pcLoadingScores[3], outputsThresholds[3] }); // (3, 2) For P and T detection
-            modelsList.Add(new object[] { new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }, pcLoadingScores[4], outputsThresholds[4] }); // (1, 1) For short PR detection
-            modelsList.Add(new object[] { new NaiveBayesModel { regression = true, outputsProbaList = new List<Partition[]>() }, pcLoadingScores[5], outputsThresholds[5] }); // (6, 1) For delta detection
-            modelsList.Add(new object[] { new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }, pcLoadingScores[6], outputsThresholds[6] }); // (6, 1) For WPW syndrome declaration
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createNBModel(ARTHTNamings.Step1RPeaksScanData, true, 2); // (15, 2) For R peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createNBModel(ARTHTNamings.Step2RPeaksSelectionData, false, 1); // (2, 1) For R selection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createNBModel(ARTHTNamings.Step3BeatPeaksScanData, true, 2); // (5, 2) For beat peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createNBModel(ARTHTNamings.Step4PTSelectionData, false, 2); // (3, 2) For P and T detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createNBModel(ARTHTNamings.Step5ShortPRScanData, false, 1); // (1, 1) For short PR detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createNBModel(ARTHTNamings.Step6UpstrokesScanData, true, 1); // (6, 1) For delta detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createNBModel(ARTHTNamings.Step7DeltaExaminationData, false, 1); // (6, 1) For WPW syndrome declaration
 
             // Insert models in _targetsModelsHashtable
             int modelIndx = 0;
-            while (_targetsModelsHashtable.ContainsKey("Naive bayes for WPW syndrome detection" + modelIndx))
+            while (_arthtModelsDic.ContainsKey("Naive bayes for WPW syndrome detection" + modelIndx))
                 modelIndx++;
-            _targetsModelsHashtable.Add("Naive bayes for WPW syndrome detection" + modelIndx, modelsList);
+            arthtModels.Name = "Naive bayes for WPW syndrome detection" + modelIndx;
+            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
 
             // Save models in models table
-            List<NaiveBayesModel> modelsOnlyList = new List<NaiveBayesModel>();
-            foreach (object[] modelBuff in modelsList)
-                modelsOnlyList.Add((NaiveBayesModel)modelBuff[0]);
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
-                new Object[] { "Naive bayes", "WPW syndrome detection", Garage.ObjectToByteArray(modelsOnlyList), Garage.ObjectToByteArray(pcLoadingScores), Garage.ObjectToByteArray(outputsThresholds), "", 0, 0, Garage.ObjectToByteArray(new List<List<long[]>>()) }, "NBBackThread");
+            dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "dataset_size" },
+                new Object[] { "Naive bayes", "WPW syndrome detection", Garage.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)
                 _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "createModel" }, "AIToolsForm");
         }
 
-        public static NaiveBayesModel createNBModel(int step)
+        public static NaiveBayesModel createNBModel(string stepName, List<Sample> dataList, bool pcaActive)
         {
-            if (step == 1)
-                return new NaiveBayesModel { regression = true, outputsProbaList = new List<Partition[]>() }; // (15, 2) For R peaks detection
-            else if (step == 2)
-                return new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }; // (2, 1) For R selection
-            else if (step == 3)
-                return new NaiveBayesModel { regression = true, outputsProbaList = new List<Partition[]>() }; // (5, 2) For beat peaks detection
-            else if (step == 4)
-                return new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }; // (3, 2) For P and T selection
-            else if (step == 5)
-                return new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }; // (1, 1) For short PR detection
-            else if (step == 6)
-                return new NaiveBayesModel { regression = true, outputsProbaList = new List<Partition[]>() }; // (6, 1) For delta detection
+            // Compute PCA loading scores if PCA is active
+            List<PCAitem> pca = new List<PCAitem>();
+            if (pcaActive)
+                // If yes then compute PCA loading scores
+                pca = DataVisualisationForm.getPCA(dataList);
+            bool regression = false;
+            int output;
+
+            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                regression = true;
+
+            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step4PTSelectionData))
+                output = 2;
             else
-                return new NaiveBayesModel { regression = false, outputsProbaList = new List<Partition[]>() }; // (6, 1) For WPW syndrome declaration
+                output = 1;
+
+            NaiveBayesModel tempModel = createNBModel(stepName, regression, output);
+            tempModel._pcaActive = pcaActive;
+            tempModel.PCA = pca;
+
+            return tempModel;
         }
 
-        public void initializeNeuralNetworkModelsForWPW(byte[] modelsListBytes, List<double[]>[] pcLoadingScores, List<float[]> outputsThresholds)
+        public static NaiveBayesModel createNBModel(string name, bool regression, int outputNumber)
         {
-            // Insert models in _targetsModelsHashtable
-            List<NaiveBayesModel> modelsOnlyList = (List<NaiveBayesModel>)Garage.ByteArrayToObject(modelsListBytes);
-            if (modelsOnlyList == null) return;
+            // Create a KNN model structure with the initial optimum K
+            NaiveBayesModel model = new NaiveBayesModel { Name = name, _regression = regression };
+            // Set initial thresholds for output decisions
+            model.OutputsThresholds = new float[outputNumber];
+            for (int i = 0; i < outputNumber; i++)
+                model.OutputsThresholds[i] = 0.5f;
 
-            List<object[]> modelsList = new List<object[]>();
-            for (int i = 0; i < modelsOnlyList.Count; i++)
-                modelsList.Add(new object[] { modelsOnlyList[i], pcLoadingScores[i], outputsThresholds[i] });
-            int modelIndx = 0;
-            while (_targetsModelsHashtable.ContainsKey("Naive bayes for WPW syndrome detection" + modelIndx))
-                modelIndx++;
-            _targetsModelsHashtable.Add("Naive bayes for WPW syndrome detection" + modelIndx, modelsList);
+            return model;
+        }
+
+        public void initializeNeuralNetworkModelsForWPW(ARTHTModels arthtModels)
+        {
+            // Insert models in _arthtModelsDic
+            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
         }
 
         //*******************************************************************************************************//
         //*******************************************NAIVE BAYES TOOLS*******************************************//
-        private static List<Partition[]> partitionOutputs(List<object[]> featuresList, bool forRegression, List<Partition[]> outputsProbaList)
+        private static List<Partition[]> partitionOutputs(List<Sample> dataList, bool forRegression, List<Partition[]> outputsProbaList)
         {
-            if (featuresList.Count == 0)
+            if (dataList.Count == 0)
                 return new List<Partition[]>();
+
+            int numberOfFeatures = dataList[0].getFeatures().Length;
+            int numberOfOutputs = dataList[0].getOutputs().Length;
 
             if (outputsProbaList.Count == 0)
             {
@@ -218,13 +208,13 @@ namespace BSP_Using_AI.AITools
                 {
                     // This is for regression partitionning
                     // Create output arrays from featuresList
-                    object[] outputsVals = new object[((double[])featuresList[0][1]).Length];
-                    for (int i = 0; i < outputsVals.Length; i++)
-                        outputsVals[i] = new double[featuresList.Count];
-                    for (int i = 0; i < featuresList.Count; i++)
+                    object[] outputsVals = new object[numberOfOutputs];
+                    for (int j = 0; j < numberOfOutputs; j++)
+                        outputsVals[j] = new double[dataList.Count];
+                    for (int i = 0; i < dataList.Count; i++)
                     {
-                        for (int j = 0; j < outputsVals.Length; j++)
-                            ((double[])outputsVals[j])[i] = ((double[])featuresList[i][1])[j];
+                        for (int j = 0; j < numberOfOutputs; j++)
+                            ((double[])outputsVals[j])[i] = dataList[i].getOutputs()[j];
                     }
                     // Create partitions for each output according to if the model is for regression
                     foreach (double[] outputVals in outputsVals)
@@ -238,56 +228,58 @@ namespace BSP_Using_AI.AITools
                             if (val > max)
                                 max = val;
                         }
-                        outputsProbaList.Add(partitionContinuedVals(min, max, outputVals.Length, ((double[])featuresList[0][0]).Length));
+                        outputsProbaList.Add(partitionContinuedVals(min, max, outputVals.Length, numberOfFeatures));
                     }
                 }
                 else
                     // This is for classification
-                    for (int i = 0; i < ((double[])featuresList[0][1]).Length; i++)
+                    for (int i = 0; i < numberOfOutputs; i++)
                     {
-                        outputsProbaList.Add(new Partition[] { createPartition(((double[])featuresList[0][0]).Length, 0, 1), createPartition(((double[])featuresList[0][0]).Length, 1, 1) });
+                        outputsProbaList.Add(new Partition[] { createPartition(numberOfFeatures, 0, 1), createPartition(numberOfFeatures, 1, 1) });
                     }
             }
 
             // Set proba properties
             int classIndx;
-            foreach (object[] feature in featuresList)
+            foreach (Sample sample in dataList)
             {
+                double[] features = sample.getFeatures();
+                double[] outputs = sample.getOutputs();
                 // Iterate through each output from current feature
-                for (int i = 0; i < ((double[])feature[1]).Length; i++)
+                for (int i = 0; i < numberOfOutputs; i++)
                 {
                     // Get corresponding class of this feature output
                     // classInd = (output_val - first_partition_val) / partitions_size
-                    classIndx = (int)((((double[])feature[1])[i] - outputsProbaList[i][0].value) / outputsProbaList[i][0].partitionSize);
-                    if ((((double[])feature[1])[i] - outputsProbaList[i][0].value == outputsProbaList[i][0].partitionSize) && forRegression)
+                    classIndx = (int)((outputs[i] - outputsProbaList[i][0]._value) / outputsProbaList[i][0]._partitionSize);
+                    if ((outputs[i] - outputsProbaList[i][0]._value == outputsProbaList[i][0]._partitionSize) && forRegression)
                         classIndx--;
                     classIndx = classIndx >= 0 ? classIndx : 0;
                     classIndx = classIndx < outputsProbaList[i].Length ? classIndx : outputsProbaList[i].Length - 1;
                     // Update frequency and proba of the correspoding class of current feature
-                    outputsProbaList[i][classIndx].frequency++;
-                    outputsProbaList[i][classIndx].proba = outputsProbaList[i][classIndx].frequency / featuresList.Count;
+                    outputsProbaList[i][classIndx]._frequency++;
+                    outputsProbaList[i][classIndx]._proba = outputsProbaList[i][classIndx]._frequency / dataList.Count;
                     // Add input values in this class partition
-                    for (int j = 0; j < ((double[])feature[0]).Length; j++)
-                        outputsProbaList[i][classIndx].gausParamsInputsGivenOutput[j].valuesList.Add(((double[])feature[0])[j]);
+                    for (int j = 0; j < numberOfFeatures; j++)
+                        outputsProbaList[i][classIndx].GausParamsInputsGivenOutput[j].ValuesList.Add(features[j]);
                 }
             }
-            // Set gausParamsInputsGivenOutput for each class
-            for (int i = 0; i < outputsProbaList.Count; i++)
+            // Set GausParamsInputsGivenOutput for each class
+            for (int i = 0; i < numberOfOutputs; i++)
             {
                 Partition[] partitions = outputsProbaList[i];
                 for (int j = 0; j < partitions.Length; j++)
                 {
                     Partition partition = partitions[j];
-                    for (int k = 0; k < partition.gausParamsInputsGivenOutput.Length; k++)
+                    for (int k = 0; k < partition.GausParamsInputsGivenOutput.Length; k++)
                     {
-                        gausParamsInputGivenOutput gausParamsInputsGivenOutput = partition.gausParamsInputsGivenOutput[k];
-                        double[] inputVals = new double[gausParamsInputsGivenOutput.valuesList.Count];
+                        gausParamsInputGivenOutput gausParamsInputsGivenOutput = partition.GausParamsInputsGivenOutput[k];
+                        double[] inputVals = new double[gausParamsInputsGivenOutput.ValuesList.Count];
                         for (int l = 0; l < inputVals.Length; l++)
-                            inputVals[l] = gausParamsInputsGivenOutput.valuesList[l];
-                        outputsProbaList[i][j].gausParamsInputsGivenOutput[k].mean = (gausParamsInputsGivenOutput.mean + mean(inputVals)) / 2;
-                        outputsProbaList[i][j].gausParamsInputsGivenOutput[k].variance = (gausParamsInputsGivenOutput.variance + variance(gausParamsInputsGivenOutput.mean, inputVals)) / 2;
+                            inputVals[l] = gausParamsInputsGivenOutput.ValuesList[l];
+                        outputsProbaList[i][j].GausParamsInputsGivenOutput[k]._mean = (gausParamsInputsGivenOutput._mean + mean(inputVals)) / 2;
+                        outputsProbaList[i][j].GausParamsInputsGivenOutput[k]._variance = (gausParamsInputsGivenOutput._variance + variance(gausParamsInputsGivenOutput._mean, inputVals)) / 2;
 
-                        outputsProbaList[i][j].gausParamsInputsGivenOutput[k].valuesList = null;
+                        outputsProbaList[i][j].GausParamsInputsGivenOutput[k].ValuesList = null;
                     }
                 }
             }
@@ -299,7 +291,7 @@ namespace BSP_Using_AI.AITools
         {
             // Get partitions number starting from 10 partitions
             int partitions = 1;
-            for(int i = 10; i > 0; i--)
+            for (int i = 10; i > 0; i--)
             {
                 partitions = collectionSize / i;
                 if (partitions > 0)
@@ -315,10 +307,10 @@ namespace BSP_Using_AI.AITools
 
         private static Partition createPartition(int inputSize, double partitionValue, double partitionSize)
         {
-            Partition partition = new Partition { value = partitionValue, partitionSize = partitionSize };
-            partition.gausParamsInputsGivenOutput = new gausParamsInputGivenOutput[inputSize];
-            for (int i = 0; i < partition.gausParamsInputsGivenOutput.Length; i++)
-                partition.gausParamsInputsGivenOutput[i].valuesList = new List<double>();
+            Partition partition = new Partition { _value = partitionValue, _partitionSize = partitionSize };
+            partition.GausParamsInputsGivenOutput = new gausParamsInputGivenOutput[inputSize];
+            for (int i = 0; i < partition.GausParamsInputsGivenOutput.Length; i++)
+                partition.GausParamsInputsGivenOutput[i] = new gausParamsInputGivenOutput() { ValuesList = new List<double>() };
             return partition;
         }
 

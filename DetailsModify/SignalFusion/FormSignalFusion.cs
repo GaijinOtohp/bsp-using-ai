@@ -1,23 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.DetailsModify.SignalFusion
 {
     public partial class FormSignalFusion : Form
     {
-        double[] _samples;
+        FilteringTools _FilteringTools;
 
-        double _samplingRate;
-        double _quantizationStep;
         double _offset;
 
         List<int[]> _qrsPeaks;
@@ -31,19 +25,16 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         bool _mouseDown = false;
         int _previousMouseX;
         int _previousMouseY;
-        public FormSignalFusion(double[] samples, double magorFrequency, double samplingRate, double quantizationStep, String path)
+        public FormSignalFusion(FilteringTools filteringTools, double magorFrequency, string path)
         {
             InitializeComponent();
 
-            // Set the samples and sampling rate
+            _FilteringTools = filteringTools;
             pathLabel.Text = path + "\\Fusion";
-            _samples = samples;
-            _samplingRate = samplingRate;
-            _quantizationStep = quantizationStep;
             // Get a period samples number
-            _periodSampling = (int)(samplingRate / magorFrequency);
+            _periodSampling = (int)(_FilteringTools._samplingRate / magorFrequency);
             // Set period duration in
-            periodDurationTextBox.Text = Math.Round(_periodSampling / _samplingRate, 2).ToString();
+            periodDurationTextBox.Text = Math.Round(_periodSampling / (double)_FilteringTools._samplingRate, 2).ToString();
 
             setPeriods();
         }
@@ -53,7 +44,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         private void setPeriods()
         {
             // Get how many periods we can make from samples using periodSampling
-            int periodsNumber = _samples.Length / _periodSampling;
+            int periodsNumber = _FilteringTools._FilteredSamples.Length / _periodSampling;
 
             // Insert periods numbers in periodPickerComboBox
             periodPickerComboBox.DataSource = null;
@@ -75,7 +66,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
 
             loadPeriod();
         }
-        private void loadPeriod ()
+        private void loadPeriod()
         {
             // Show the selected period in periodsChart
             double[] periodSamples;
@@ -86,16 +77,17 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                 if (periodPickerComboBox.SelectedIndex < 0)
                     return;
                 periodSamples = _synchronizedSamples[periodPickerComboBox.SelectedIndex];
-                offset = _synchronizedSamplesOffsets[periodPickerComboBox.SelectedIndex] / _samplingRate;
-            } else
+                offset = _synchronizedSamplesOffsets[periodPickerComboBox.SelectedIndex] / _FilteringTools._samplingRate;
+            }
+            else
             {
                 // If yes then load period from _samples directly
                 periodSamples = getPeriodFromIndexAsDouble(periodPickerComboBox.SelectedIndex, (int)_offset, _periodSampling);
-                offset = (_offset + periodPickerComboBox.SelectedIndex * _periodSampling) / _samplingRate;
+                offset = (_offset + periodPickerComboBox.SelectedIndex * _periodSampling) / _FilteringTools._samplingRate;
             }
 
             // Load period inside periodsChart
-            Garage.loadSignalInChart(periodsChart, periodSamples, _samplingRate, _quantizationStep, offset, "FormSignalFusion");
+            Garage.loadSignalInChart(periodsChart, periodSamples, _FilteringTools._samplingRate, offset, "FormSignalFusion");
         }
 
         private double[] getPeriodFromIndexAsDouble(int index, int offset, int periodSampling)
@@ -106,9 +98,9 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             {
                 // Check if offset is moving the negative values or is crossing the end of the signal
                 int sampleIndex = i + offset + (index * periodSampling);
-                if (sampleIndex >= 0 && sampleIndex < _samples.Length)
+                if (sampleIndex >= 0 && sampleIndex < _FilteringTools._FilteredSamples.Length)
                     // If yes then add the sample from _samples
-                    periodSamples[i] = _samples[sampleIndex];
+                    periodSamples[i] = _FilteringTools._FilteredSamples[sampleIndex];
             }
             return periodSamples;
         }
@@ -120,9 +112,9 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             {
                 // Check if offset is moving the negative values or is crossing the end of the signal
                 int sampleIndex = i + offset + (index * periodSampling);
-                if (sampleIndex >= 0 && sampleIndex < _samples.Length)
+                if (sampleIndex >= 0 && sampleIndex < _FilteringTools._FilteredSamples.Length)
                     // If yes then add the sample from _samples
-                    periodSamples[i] = (float)_samples[sampleIndex];
+                    periodSamples[i] = (float)_FilteringTools._FilteredSamples[sampleIndex];
             }
             return periodSamples;
         }
@@ -145,25 +137,26 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                             additionSamples[j] += _synchronizedSamples[i][j];
                         if (multiplication)
                             additionSamples[j] *= 1 + _synchronizedSamples[i][j];
-                    } else
+                    }
+                    else
                     {
                         // Check if offset is moving the negative values or is crossing the end of the signal
                         int sampleIndex = j + (int)_offset + (i * _periodSampling);
-                        if (sampleIndex >= 0 && sampleIndex < _samples.Length)
+                        if (sampleIndex >= 0 && sampleIndex < _FilteringTools._FilteredSamples.Length)
                         {
                             if (addition)
                                 // If yes then add the sample from _samples
-                                additionSamples[j] += _samples[sampleIndex] / countedPeriods;
+                                additionSamples[j] += _FilteringTools._FilteredSamples[sampleIndex] / countedPeriods;
                             if (multiplication)
                                 // If yes then multiply by the sample from _samples
-                                additionSamples[j] *= 1 + _samples[sampleIndex] / countedPeriods;
+                                additionSamples[j] *= 1 + _FilteringTools._FilteredSamples[sampleIndex] / countedPeriods;
                         }
                     }
                 }
             }
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, additionSamples, _samplingRate, _quantizationStep, _offset / _samplingRate, "FormSignalFusion");
+            Garage.loadSignalInChart(fusionChart, additionSamples, _FilteringTools._samplingRate, _offset / _FilteringTools._samplingRate, "FormSignalFusion");
         }
 
         private void crossCorrelationFusion()
@@ -205,7 +198,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             }
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, intercorrelationAverage, _samplingRate, _quantizationStep, -_periodSampling / _samplingRate, "FormSignalFusion");
+            Garage.loadSignalInChart(fusionChart, intercorrelationAverage, _FilteringTools._samplingRate, -_periodSampling / _FilteringTools._samplingRate, "FormSignalFusion");
         }
 
         private void orthogonalizationFusion()
@@ -237,28 +230,16 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
 
         private void centralizePeriods()
         {
-            // Get y values interval
-            double min = _samples[0];
-            double max = _samples[0];
-            double interval = 0D;
-            foreach (double sample in _samples)
-                if (sample < min)
-                    min = sample;
-                else if (sample > max)
-                    max = sample;
-
-            interval = max - min;
-
             // Scan all peaks and stable states
             /// Returns the states of each move in the signal
             /// as object [] {"state", its index}
             /// where the state could be up, down, or stable
-            List<State> states = Garage.scanPeaks(_samples, interval, 0.02, _quantizationStep, Double.NaN, false, null);
+            List<State> states = Garage.scanPeaks(_FilteringTools._FilteredSamples, 0.02, 1, Double.NaN, _FilteringTools._samplingRate, false)[SANamings.AllPeaks];
 
             // Scan for QRS peaks
             /// Returns QRS indexes as int[] {Q index, R index, S index}
             /// where the energy of the QRS should be at least 60% higher than interval
-            _qrsPeaks = Garage.scanQRS(_samples, interval, states);
+            _qrsPeaks = Garage.scanQRS(_FilteringTools._FilteredSamples, states);
             _synchronizedQRSPeaks = new List<int[]>(_qrsPeaks.Count);
 
             // Insert centralized periods from _samples in _synchronizedSamples according to qrsPeaks R indexes
@@ -275,7 +256,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                 if (i + 1 < _qrsPeaks.Count)
                     periodSampling = (_qrsPeaks[i + 1][1] + _qrsPeaks[i][1]) / 2 - periodStartingIndex;
                 else
-                    periodSampling = _samples.Length - periodStartingIndex;
+                    periodSampling = _FilteringTools._FilteredSamples.Length - periodStartingIndex;
 
                 if (periodSampling > _periodSampling)
                     periodSampling = _periodSampling;
@@ -292,9 +273,9 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                 {
                     // Check if offset is moving the negative values or is crossing the end of the signal
                     sampleIndex = j + originalSignalOffset;
-                    if (sampleIndex >= 0 && sampleIndex < _samples.Length)
+                    if (sampleIndex >= 0 && sampleIndex < _FilteringTools._FilteredSamples.Length)
                         // If yes then add the sample from _samples
-                        period[j + periodOffset] = _samples[sampleIndex];
+                        period[j + periodOffset] = _FilteringTools._FilteredSamples[sampleIndex];
                 }
 
                 // Add the new centralized period in _synchronizedSamples
@@ -310,7 +291,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             // Synchronize all qrs peaks to as the duration between Q peak and S peak should be 0.07 secs
 
             // Set the number of samples of 0.07 sec according to samplingRate
-            int syncSamples = (int)(0.07D * _samplingRate);
+            int syncSamples = (int)(0.07D * _FilteringTools._samplingRate);
 
             // Iterate through every beat in _synchronizedSamples
             double[] newSynchronizedSamples;
@@ -353,7 +334,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                 if (0 < difference)
                 {
                     // If yes then beat should be expanded leaving the R peak in the center
-                    
+
                     // Iterate through each trunc
                     for (int j = 0; j < processesNum; j++)
                     {
@@ -555,13 +536,14 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         {
             // Set the new _periodSampling if periodDurationTextBox had a valid number
             if (!(periodDurationTextBox.Text.Equals("") || periodDurationTextBox.Text.Equals(".")))
-                _periodSampling = (int)(double.Parse(periodDurationTextBox.Text) * _samplingRate);
+                _periodSampling = (int)(double.Parse(periodDurationTextBox.Text) * _FilteringTools._samplingRate);
 
             // Check if centration is checked
             if (centralizeCheckBox.Checked)
             {
                 // If yes then centralize periods according to the new _periodSampling
-            } else
+            }
+            else
             {
                 // If yes then reload the selected period
                 setPeriods();
@@ -578,7 +560,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             // Set the new offset
             _offset = 0D + (offsetScrollBar.Value - _periodSampling);
 
-            offsetLabel.Text = "Offset: " + Math.Round(_offset / _samplingRate, 2).ToString() + " secs";
+            offsetLabel.Text = "Offset: " + Math.Round(_offset / _FilteringTools._samplingRate, 2).ToString() + " secs";
 
             loadPeriod();
         }
@@ -637,7 +619,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         {
             // Load the fused signal in fusionChart
             if (orthogonalSignalsComboBox.SelectedIndex >= 0)
-                Garage.loadSignalInChart(fusionChart, _orthogonalizedSignals[orthogonalSignalsComboBox.SelectedIndex], _samplingRate, _quantizationStep, 0D, "FormSignalFusion");
+                Garage.loadSignalInChart(fusionChart, _orthogonalizedSignals[orthogonalSignalsComboBox.SelectedIndex], _FilteringTools._samplingRate, 0D, "FormSignalFusion");
         }
 
         private void fuseOrthogonalizationButton_Click(object sender, EventArgs e)
@@ -651,7 +633,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                     additionSamples[j] += _orthogonalizedSignals[i][j] / countedOrthogonalizedSigs;
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, additionSamples, _samplingRate, _quantizationStep, _offset / _samplingRate, "FormSignalFusion");
+            Garage.loadSignalInChart(fusionChart, additionSamples, _FilteringTools._samplingRate, _offset / _FilteringTools._samplingRate, "FormSignalFusion");
         }
 
         private void centralizeCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -676,13 +658,13 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             {
                 // If yes then enable offsetScrollBar and set the offset
                 offsetScrollBar.Enabled = true;
-                offsetLabel.Text = "Offset: " + Math.Round(_offset / _samplingRate, 2).ToString() + " secs";
+                offsetLabel.Text = "Offset: " + Math.Round(_offset / _FilteringTools._samplingRate, 2).ToString() + " secs";
                 // Uncheck and disable synchronizePeriodsCheckBox
                 synchronizePeriodsCheckBox.Checked = false;
                 synchronizePeriodsCheckBox.Enabled = false;
 
                 // Calculate periods number
-                periodsNumber = _samples.Length / _periodSampling;
+                periodsNumber = _FilteringTools._FilteredSamples.Length / _periodSampling;
 
                 loadPeriod();
             }
@@ -702,7 +684,8 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             {
                 // If yes then synchronize periods
                 synchronizePeriods();
-            } else
+            }
+            else
             {
                 // If yes then centralize periods
                 centralizePeriods();
@@ -721,8 +704,11 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             double[] samples = new double[senderChart.Series[0].Points.Count];
             for (int i = 0; i < samples.Length; i++)
                 samples[i] = senderChart.Series[0].Points[i].YValues[0];
+            // Clone _FilteringTools
+            FilteringTools filteringTools = _FilteringTools.Clone();
+            filteringTools.SetOriginalSamples(samples);
 
-            EventHandlers.sendSignalTool(samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Collector");
+            EventHandlers.sendSignalTool(filteringTools, pathLabel.Text + "\\Collector");
         }
 
         private void analyseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -731,12 +717,17 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             if (senderChart.Series[0].Points.Count < 1)
                 return;
 
+            // Clone _FilteringTools
+            FilteringTools filteringTools = _FilteringTools.Clone();
+            // Remove filters
+            filteringTools.RemoveAllFilters();
             // Get samples from signal chart
             double[] samples = new double[senderChart.Series[0].Points.Count];
             for (int i = 0; i < samples.Length; i++)
-                samples[i] = senderChart.Series[0].Points[i].YValues[0];
+                samples[i] = senderChart.Series[0].Points[i].YValues[0] * _FilteringTools._quantizationStep;
+            filteringTools.SetOriginalSamples(samples);
 
-            EventHandlers.analyseSignalTool(samples, _samplingRate, _quantizationStep, pathLabel.Text + "\\Analyser");
+            EventHandlers.analyseSignalTool(filteringTools, pathLabel.Text + "\\Analyser");
         }
     }
 }

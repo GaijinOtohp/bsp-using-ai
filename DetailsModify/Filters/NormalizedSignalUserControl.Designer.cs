@@ -30,30 +30,18 @@ namespace BSP_Using_AI.DetailsModify.Filters
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.applyAfterTransformCheckBox = new System.Windows.Forms.CheckBox();
             this.normalizeSignalCheckBox = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // applyAfterTransformCheckBox
-            // 
-            this.applyAfterTransformCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.applyAfterTransformCheckBox.AutoSize = true;
-            this.applyAfterTransformCheckBox.Location = new System.Drawing.Point(22, 37);
-            this.applyAfterTransformCheckBox.Margin = new System.Windows.Forms.Padding(2);
-            this.applyAfterTransformCheckBox.Name = "applyAfterTransformCheckBox";
-            this.applyAfterTransformCheckBox.Size = new System.Drawing.Size(122, 17);
-            this.applyAfterTransformCheckBox.TabIndex = 21;
-            this.applyAfterTransformCheckBox.Text = "Apply after transform";
-            this.applyAfterTransformCheckBox.UseVisualStyleBackColor = true;
-            this.applyAfterTransformCheckBox.CheckStateChanged += new System.EventHandler(this.applyAfterTransformCheckBox_CheckStateChanged);
-            // 
             // normalizeSignalCheckBox
             // 
             this.normalizeSignalCheckBox.AutoSize = true;
-            this.normalizeSignalCheckBox.Location = new System.Drawing.Point(22, 16);
+            this.normalizeSignalCheckBox.Checked = true;
+            this.normalizeSignalCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.normalizeSignalCheckBox.Location = new System.Drawing.Point(22, 8);
             this.normalizeSignalCheckBox.Margin = new System.Windows.Forms.Padding(2);
             this.normalizeSignalCheckBox.Name = "normalizeSignalCheckBox";
             this.normalizeSignalCheckBox.Size = new System.Drawing.Size(102, 17);
@@ -82,10 +70,9 @@ namespace BSP_Using_AI.DetailsModify.Filters
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ContextMenuStrip = this.contextMenuStrip1;
-            this.Controls.Add(this.applyAfterTransformCheckBox);
             this.Controls.Add(this.normalizeSignalCheckBox);
             this.Name = "NormalizedSignalUserControl";
-            this.Size = new System.Drawing.Size(284, 67);
+            this.Size = new System.Drawing.Size(284, 33);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -93,8 +80,6 @@ namespace BSP_Using_AI.DetailsModify.Filters
         }
 
         #endregion
-
-        public System.Windows.Forms.CheckBox applyAfterTransformCheckBox;
         public System.Windows.Forms.CheckBox normalizeSignalCheckBox;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;

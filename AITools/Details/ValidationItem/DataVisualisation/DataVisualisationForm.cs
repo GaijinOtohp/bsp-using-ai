@@ -1,27 +1,22 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     public partial class DataVisualisationForm : Form
     {
-        private List<double[]>[] _pcLoadingScoresArray;
-        private Hashtable _targetsModelsHashtable = null;
+        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
 
         string _modelName;
         long _modelId;
-        int _stepIndx;
+        string _stepName;
 
-        private List<object[]> _featuresList;
+        private List<Sample> DataList;
 
         bool _mouseDown = false;
         int _previousMouseX;
@@ -29,19 +24,15 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         int _firstMouseX;
         int _firstMouseY;
 
-        public DataVisualisationForm(Hashtable targetsModelsHashtable, string modelName, long modelId, int stepIndx, List<object[]> featuresList)
+        public DataVisualisationForm(Dictionary<string, ARTHTModels> arthtModelsDic, string modelName, long modelId, string stepName, List<Sample> dataList)
         {
             InitializeComponent();
 
-            _targetsModelsHashtable = targetsModelsHashtable;
+            _arthtModelsDic = arthtModelsDic;
             _modelName = modelName;
             _modelId = modelId;
-            _stepIndx = stepIndx;
-            _featuresList = featuresList;
-
-            _pcLoadingScoresArray = new List<double[]>[7];
-            for (int i = 0; i < ((List<object[]>)_targetsModelsHashtable[_modelName]).Count; i++)
-                _pcLoadingScoresArray[i] = (List<double[]>)((List<object[]>)_targetsModelsHashtable[_modelName])[i][1];
+            _stepName = stepName;
+            DataList = dataList;
 
             setRawVisTab();
             setPCAVisTab();
@@ -60,22 +51,19 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             chart.Series[chart.Series.Count - 1].MarkerBorderColor = secondaryColor;
         }
 
-        //*******************************************************************************************************//
-        //********************************************EVENT HANDLERS*********************************************//
-        private void yInputCheckedListBox_SelectedIndexChanged(object sender, EventArgs e)
+        public static CheckBox createCheckBox(string text, object tag, EventHandler eventHandler)
         {
-            // Uncheck other items
-            foreach (int indx in yInputCheckedListBox.CheckedIndices)
-                if (yInputCheckedListBox.Items[indx] != yInputCheckedListBox.SelectedItem)
-                    yInputCheckedListBox.SetItemChecked(indx, false);
-            foreach (int indx in xInputCheckedListBox.CheckedIndices)
-                if (xInputCheckedListBox.Items[indx] != xInputCheckedListBox.SelectedItem)
-                    xInputCheckedListBox.SetItemChecked(indx, false);
+            CheckBox checkBox = new CheckBox() { Text = text };
+            checkBox.MinimumSize = new Size(147, 25);
+            checkBox.AutoSize = true;
+            checkBox.Tag = tag;
+            checkBox.CheckedChanged += new EventHandler(eventHandler);
 
-            // Refresh chart
-            refreshRawChart();
+            return checkBox;
         }
 
+        //*******************************************************************************************************//
+        //********************************************EVENT HANDLERS*********************************************//
         private void rawChart_MouseDown(object sender, MouseEventArgs e)
         {
             _mouseDown = true;

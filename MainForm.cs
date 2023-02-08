@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
+﻿using BSP_Using_AI.AITools;
+using BSP_Using_AI.Database;
+using BSP_Using_AI.SignalHolderFolder;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Windows.Forms;
-using BSP_Using_AI.AITools;
-using BSP_Using_AI.Database;
-using BSP_Using_AI.SignalHolderFolder;
-using Keras;
-using Keras.Layers;
-using Keras.Models;
-using Numpy;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 
 namespace BSP_Using_AI
 {
@@ -19,7 +14,7 @@ namespace BSP_Using_AI
     {
         public long _largestDatasetSize = 0;
 
-        public Hashtable _targetsModelsHashtable = null;
+        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
 
         public bool scrollAllowed = true;
 
@@ -30,13 +25,13 @@ namespace BSP_Using_AI
             InitializeComponent();
 
             // Set models reader to ready
-            _targetsModelsHashtable = new Hashtable();
+            _arthtModelsDic = new Dictionary<string, ARTHTModels>();
 
             // Set the notification badge over "aiToolsButton" ready
             MainFormFolder.BadgeControl.AddBadgeTo(aiToolsButton, "0");
 
             _tFBackThread = new TFBackThread();
-            _tFBackThread._targetsModelsHashtable = _targetsModelsHashtable;
+            _tFBackThread._arthtModelsDic = _arthtModelsDic;
             Thread TFThread = new Thread(() => _tFBackThread.ThreadServer());
             TFThread.IsBackground = true;
             TFThread.Start();
@@ -46,7 +41,7 @@ namespace BSP_Using_AI
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("models",
-                                new String[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size" },
+                                new String[] { "type_name", "model_target", "the_model", "dataset_size" },
                                 null,
                                 null,
                                 //" ORDER BY dataset_size DESC LIMIT 1", "MainFormForModels");
@@ -65,7 +60,6 @@ namespace BSP_Using_AI
                 signalsFlowLayout.VerticalScroll.LargeChange = signalsFlowLayout.Height;
                 signalsFlowLayout.VerticalScroll.Maximum = SignalHolder.Height * signalsFlowLayout.Controls.Count;
             }
-            
         }
 
         //*******************************************************************************************************//
@@ -82,7 +76,7 @@ namespace BSP_Using_AI
                                 "", "MainFormForDataset"));
             dbStimulatorThread.Start();
         }
-       
+
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
@@ -159,29 +153,33 @@ namespace BSP_Using_AI
                         // Add modelsList in _targetsModelsHashtable
                         if (row.Field<string>("type_name").Equals("Neural network") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
-                            _tFBackThread._queue.Enqueue(new object[] { "initializeNeuralNetworkModelsForWPW", "MainForm", row.Field<string>("type_name") + " for " + row.Field<string>("model_target"), row.Field<string>("model_path"),
-                                                                        (List<double[]>[])Garage.ByteArrayToObject(row.Field<byte[]>("selected_variables")), (List<float[]>)Garage.ByteArrayToObject(row.Field<byte[]>("outputs_thresholds")) });
+                            _tFBackThread._queue.Enqueue(new QueueSignalInfo()
+                            {
+                                TargetFunc = "initializeNeuralNetworkModelsForWPW",
+                                CallingClass = "MainForm",
+                                aRTHTModels = (ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"))
+                            });
                             _tFBackThread._signal.Set();
-                        } else if (row.Field<string>("type_name").Equals("K-Nearest neighbor") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
+                        }
+                        else if (row.Field<string>("type_name").Equals("K-Nearest neighbor") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for KNN
-                            KNNBackThread kNNBackThread = new KNNBackThread(_targetsModelsHashtable, null);
-                            Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW(row.Field<long>("dataset_size"), (int[])Garage.ByteArrayToObject(row.Field<byte[]>("the_model")),
-                                                                              (List<double[]>[])Garage.ByteArrayToObject(row.Field<byte[]>("selected_variables")), (List<float[]>)Garage.ByteArrayToObject(row.Field<byte[]>("outputs_thresholds"))));
+                            KNNBackThread kNNBackThread = new KNNBackThread(_arthtModelsDic, null);
+                            Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW((ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"))));
                             knnThread.Start();
                         }
                         else if (row.Field<string>("type_name").Equals("Naive bayes") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for naive bayes
-                            NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_targetsModelsHashtable, null);
-                            Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW(row.Field<byte[]>("the_model"),
-                                                                                    (List<double[]>[])Garage.ByteArrayToObject(row.Field<byte[]>("selected_variables")), (List<float[]>)Garage.ByteArrayToObject(row.Field<byte[]>("outputs_thresholds"))));
+                            NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, null);
+                            Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW((ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"))));
                             nbThread.Start();
                         }
                     }
                     // If yes then query for last signal id from the most trained model
                     resetBadge();
-                } else
+                }
+                else
                 {
                     // If yes then this report is from dataset
                     // Update the notification badge for unfitted signals

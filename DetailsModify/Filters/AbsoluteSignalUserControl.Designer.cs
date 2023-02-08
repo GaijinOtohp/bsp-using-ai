@@ -30,30 +30,18 @@ namespace BSP_Using_AI.DetailsModify.Filters
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.applyAfterTransformCheckBox = new System.Windows.Forms.CheckBox();
             this.absoluteSignalCheckBox = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // applyAfterTransformCheckBox
-            // 
-            this.applyAfterTransformCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.applyAfterTransformCheckBox.AutoSize = true;
-            this.applyAfterTransformCheckBox.Location = new System.Drawing.Point(22, 37);
-            this.applyAfterTransformCheckBox.Margin = new System.Windows.Forms.Padding(2);
-            this.applyAfterTransformCheckBox.Name = "applyAfterTransformCheckBox";
-            this.applyAfterTransformCheckBox.Size = new System.Drawing.Size(122, 17);
-            this.applyAfterTransformCheckBox.TabIndex = 23;
-            this.applyAfterTransformCheckBox.Text = "Apply after transform";
-            this.applyAfterTransformCheckBox.UseVisualStyleBackColor = true;
-            this.applyAfterTransformCheckBox.CheckStateChanged += new System.EventHandler(this.applyAfterTransformCheckBox_CheckStateChanged);
-            // 
             // absoluteSignalCheckBox
             // 
             this.absoluteSignalCheckBox.AutoSize = true;
-            this.absoluteSignalCheckBox.Location = new System.Drawing.Point(22, 16);
+            this.absoluteSignalCheckBox.Checked = true;
+            this.absoluteSignalCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.absoluteSignalCheckBox.Location = new System.Drawing.Point(22, 8);
             this.absoluteSignalCheckBox.Margin = new System.Windows.Forms.Padding(2);
             this.absoluteSignalCheckBox.Name = "absoluteSignalCheckBox";
             this.absoluteSignalCheckBox.Size = new System.Drawing.Size(97, 17);
@@ -82,10 +70,9 @@ namespace BSP_Using_AI.DetailsModify.Filters
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ContextMenuStrip = this.contextMenuStrip1;
-            this.Controls.Add(this.applyAfterTransformCheckBox);
             this.Controls.Add(this.absoluteSignalCheckBox);
             this.Name = "AbsoluteSignalUserControl";
-            this.Size = new System.Drawing.Size(284, 67);
+            this.Size = new System.Drawing.Size(284, 33);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -93,8 +80,6 @@ namespace BSP_Using_AI.DetailsModify.Filters
         }
 
         #endregion
-
-        public System.Windows.Forms.CheckBox applyAfterTransformCheckBox;
         public System.Windows.Forms.CheckBox absoluteSignalCheckBox;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;

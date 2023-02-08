@@ -1,70 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms.DataVisualization.Charting;
+using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     partial class DataVisualisationForm
     {
+        private bool _ignoreEvent = false;
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
         private void setRawVisTab()
         {
-            if (_featuresList.Count == 0)
+            if (DataList.Count == 0)
                 return;
 
             Random rand = new Random();
             // Set list boxes with model variables and outputes
-            for (int i = 0; i < ((double[])_featuresList[0][0]).Length; i++)
+            foreach (string featureName in DataList[0].DataParent.FeaturesLabelsIndx.Keys)
             {
-                yInputCheckedListBox.Items.Add("input " + (i + 1));
-                xInputCheckedListBox.Items.Add("input " + (i + 1));
+                yInputFlowLayoutPanel.Controls.Add(createCheckBox("Feature: " + featureName, featureName, rawDataVisCheckBox_CheckedChanged));
+                xInputFlowLayoutPanel.Controls.Add(createCheckBox("Feature: " + featureName, featureName, rawDataVisCheckBox_CheckedChanged));
             }
-            for (int i = 0; i < ((double[])_featuresList[0][1]).Length; i++)
+            foreach (string outputName in DataList[0].DataParent.OutputsLabelsIndx.Keys)
             {
-                yInputCheckedListBox.Items.Add("output " + (i + 1));
-                xInputCheckedListBox.Items.Add("output " + (i + 1));
+                yInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
+                xInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
 
                 // If the selected model is for classification
-                if (_stepIndx == 1 || _stepIndx == 3 || _stepIndx == 4 || _stepIndx == 6)
+                if (_stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData) || _stepName.Equals(ARTHTNamings.Step4PTSelectionData) ||
+                    _stepName.Equals(ARTHTNamings.Step5ShortPRScanData) || _stepName.Equals(ARTHTNamings.Step7DeltaExaminationData))
                     for (int j = 0; j < 2; j++)
                     {
-                        RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl((i + 1) + " (" + j + ")");
-                        // Check if there is more than one output
-                        if (i > 0 || j > 0)
-                        {
-                            // If yes then pick a different color number
-                            Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));
-                            rawVisItemUserControl.primaryColorButton.BackColor = color;
-                            rawVisItemUserControl.secondaryColorButton.BackColor = Color.FromArgb(color.R - 60 > 0 ? color.R - 60 : 0, color.G - 60 > 0 ? color.G - 60 : 0, color.B - 60 > 0 ? color.B - 60 : 0);
-                        }
+                        RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName + " (" + j + ")");
+                        rawVisItemUserControl.Name = outputName;
+                        rawVisItemUserControl.Tag = j;
+
+                        // If yes then pick a different color number
+                        Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));
+                        rawVisItemUserControl.primaryColorButton.BackColor = color;
+                        rawVisItemUserControl.secondaryColorButton.BackColor = Color.FromArgb(color.R - 60 > 0 ? color.R - 60 : 0, color.G - 60 > 0 ? color.G - 60 : 0, color.B - 60 > 0 ? color.B - 60 : 0);
                         outputFlowLayoutPanel.Controls.Add(rawVisItemUserControl);
                     }
                 // If the selected model is for regression
                 else
                 {
-                    RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl((i + 1).ToString());
-                    // Check if there is more than one output
-                    if (i > 0)
-                    {
-                        // If yes then pick a different color number
-                        Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));
-                        rawVisItemUserControl.primaryColorButton.BackColor = color;
-                        rawVisItemUserControl.secondaryColorButton.BackColor = Color.FromArgb(color.R - 60 > 0 ? color.R - 60 : 0, color.G - 60 > 0 ? color.G - 60 : 0, color.B - 60 > 0 ? color.B - 60 : 0);
-                    }
+                    RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName);
+                    rawVisItemUserControl.Name = outputName;
+
+                    // If yes then pick a different color number
+                    Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));
+                    rawVisItemUserControl.primaryColorButton.BackColor = color;
+                    rawVisItemUserControl.secondaryColorButton.BackColor = Color.FromArgb(color.R - 60 > 0 ? color.R - 60 : 0, color.G - 60 > 0 ? color.G - 60 : 0, color.B - 60 > 0 ? color.B - 60 : 0);
                     outputFlowLayoutPanel.Controls.Add(rawVisItemUserControl);
                 }
             }
         }
 
+        private void rawDataVisCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (_ignoreEvent)
+                return;
+
+            _ignoreEvent = true;
+            CheckBox rawDataVisCheckBox = (sender as CheckBox);
+            FlowLayoutPanel parentFlowLayout = (FlowLayoutPanel)rawDataVisCheckBox.Parent;
+            // Uncheck other items
+            foreach (CheckBox otherCheckBox in parentFlowLayout.Controls)
+                if (otherCheckBox.Checked && otherCheckBox != rawDataVisCheckBox)
+                    otherCheckBox.Checked = false;
+            _ignoreEvent = false;
+
+            // Refresh chart
+            refreshRawChart();
+        }
+
         public void refreshRawChart()
         {
-            double[] yAxisVals = new double[_featuresList.Count];
-            double[] xAxisVals = new double[_featuresList.Count];
+            double[] yAxisVals = new double[DataList.Count];
+            double[] xAxisVals = new double[DataList.Count];
+            float[] colorVals = new float[DataList.Count];
 
             // Remove all series from the chart
             rawChart.Series.Clear();
@@ -72,27 +88,35 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             outputFlowLayoutPanel.Enabled = true;
 
             // Get the selected item in yInputCheckedListBox
-            int yValsIndx = -1;
-            if (yInputCheckedListBox.CheckedIndices.Count > 0)
-                yValsIndx = yInputCheckedListBox.CheckedIndices[0];
+            CheckBox yInputSelectedCheckBox = new CheckBox();
+            foreach (CheckBox checkBox in yInputFlowLayoutPanel.Controls)
+                if (checkBox.Checked)
+                {
+                    yInputSelectedCheckBox = checkBox;
+                    break;
+                }
             // Check if output is selected in Y axis
             bool yOutputSelected = false;
-            if ((yValsIndx + 1) - ((double[])_featuresList[0][0]).Length > 0)
+            if (yInputSelectedCheckBox.Text.Contains("Output"))
                 // If yes then output is selected
                 yOutputSelected = true;
 
             // Get the selected item in xInputCheckedListBox
-            int xValsIndx = -1;
-            if (xInputCheckedListBox.CheckedIndices.Count > 0)
-                xValsIndx = xInputCheckedListBox.CheckedIndices[0];
+            CheckBox xInputSelectedCheckBox = new CheckBox();
+            foreach (CheckBox checkBox in xInputFlowLayoutPanel.Controls)
+                if (checkBox.Checked)
+                {
+                    xInputSelectedCheckBox = checkBox;
+                    break;
+                }
             // Check if output is selected in Y axis
             bool xOutputSelected = false;
-            if ((xValsIndx + 1) - ((double[])_featuresList[0][0]).Length > 0)
+            if (xInputSelectedCheckBox.Text.Contains("Output"))
                 // If yes then output is selected
                 xOutputSelected = true;
 
             // Check if there is no selected item
-            if (yValsIndx + xValsIndx < -1)
+            if (!yInputSelectedCheckBox.Checked && !xInputSelectedCheckBox.Checked)
                 // If yes then just return
                 return;
 
@@ -101,76 +125,59 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 outputFlowLayoutPanel.Enabled = false;
             // Set the new series in the chart
             // Check if output is selected in both axis
-            if (yOutputSelected && xOutputSelected)
+            if (yOutputSelected || xOutputSelected)
             {
                 // If yes then there will be only one series with "output" as label
-                addNewSeries(rawChart, "output", Color.FromArgb(0, 0, 0), Color.FromArgb(0, 0, 0));
+                addNewSeries(rawChart, xInputSelectedCheckBox.Tag + " -> " + yInputSelectedCheckBox.Tag, Color.FromArgb(0, 0, 0), Color.FromArgb(0, 0, 0));
                 // Copy values to yAxisVals and xAxisVals
-                yValsIndx = yValsIndx - ((double[])_featuresList[0][0]).Length;
-                xValsIndx = xValsIndx - ((double[])_featuresList[0][0]).Length;
-                for (int i = 0; i < yAxisVals.Length; i++)
-                {
-                    yAxisVals[i] = ((double[])_featuresList[i][1])[yValsIndx];
-                    xAxisVals[i] = ((double[])_featuresList[i][1])[xValsIndx];
-                }
-                // Insert values in chart
-                Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, null, 0, 0, "DataVisualisationForm");
-            }
-            // Check if one output is selected in Y axis
-            else if (yOutputSelected)
-            {
-                // If yes then there will be only one series with the selected output name
-                yValsIndx = yValsIndx - ((double[])_featuresList[0][0]).Length;
-                addNewSeries(rawChart, "output " + (yValsIndx + 1), Color.FromArgb(0, 0, 0), Color.FromArgb(0, 0, 0));
-                // Copy values to yAxisVals and xAxisVals
-                for (int i = 0; i < yAxisVals.Length; i++)
-                {
-                    if (yValsIndx != -1) yAxisVals[i] = ((double[])_featuresList[i][1])[yValsIndx];
-                    if (xValsIndx != -1) xAxisVals[i] = ((double[])_featuresList[i][0])[xValsIndx];
-                }
-                // Insert values in chart
-                Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, null, 0, 0, "DataVisualisationForm");
-            }
-            // Check if one output is selected in X axis
-            else if (xOutputSelected)
-            {
-                // If yes then there will be only one series with the selected output name
-                xValsIndx = xValsIndx - ((double[])_featuresList[0][0]).Length;
-                addNewSeries(rawChart, "output " + (xValsIndx + 1), Color.FromArgb(0, 0, 0), Color.FromArgb(0, 0, 0));
-                // Copy values to yAxisVals and xAxisVals
-                for (int i = 0; i < yAxisVals.Length; i++)
-                {
-                    if (yValsIndx != -1) yAxisVals[i] = ((double[])_featuresList[i][0])[yValsIndx];
-                    if (xValsIndx != -1) xAxisVals[i] = ((double[])_featuresList[i][1])[xValsIndx];
-                }
+                if (yOutputSelected && xOutputSelected)
+                    for (int i = 0; i < yAxisVals.Length; i++)
+                    {
+                        yAxisVals[i] = DataList[i].getOutputByLabel((string)yInputSelectedCheckBox.Tag);
+                        xAxisVals[i] = DataList[i].getOutputByLabel((string)xInputSelectedCheckBox.Tag);
+                    }
+                else if (yOutputSelected)
+                    for (int i = 0; i < yAxisVals.Length; i++)
+                    {
+                        yAxisVals[i] = DataList[i].getOutputByLabel((string)yInputSelectedCheckBox.Tag);
+                        xAxisVals[i] = DataList[i].getFeatureByLabel((string)xInputSelectedCheckBox.Tag);
+                    }
+                else if (xOutputSelected)
+                    for (int i = 0; i < yAxisVals.Length; i++)
+                    {
+                        yAxisVals[i] = DataList[i].getFeatureByLabel((string)yInputSelectedCheckBox.Tag);
+                        xAxisVals[i] = DataList[i].getOutputByLabel((string)xInputSelectedCheckBox.Tag);
+                    }
                 // Insert values in chart
                 Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, null, 0, 0, "DataVisualisationForm");
             }
             else
             {
                 // Check if the selected model is for classification
-                if (_stepIndx == 1 || _stepIndx == 3 || _stepIndx == 4 || _stepIndx == 6)
+                if (_stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData) || _stepName.Equals(ARTHTNamings.Step4PTSelectionData) ||
+                    _stepName.Equals(ARTHTNamings.Step5ShortPRScanData) || _stepName.Equals(ARTHTNamings.Step7DeltaExaminationData))
                 {
                     // If yes then create yAxisVals and xAxisVals of each selected output
-                    for (int i = 0; i < outputFlowLayoutPanel.Controls.Count; i++)
-                        if (((RawVisItemUserControl)outputFlowLayoutPanel.Controls[i]).outputCheckBox.Checked)
+                    foreach (RawVisItemUserControl rawVisItemUserControl in outputFlowLayoutPanel.Controls)
+                        if (rawVisItemUserControl.outputCheckBox.Checked)
                         {
-                            List<int> selectedIndxs = new List<int>();
-                            for (int j = 0; j < _featuresList.Count; j++)
-                                if (((double[])_featuresList[j][1])[i / 2] == i % 2)
-                                    // If yes insert selected index in selectedIndxs
-                                    selectedIndxs.Add(j);
+                            List<Sample> selectedSamples = new List<Sample>();
+                            foreach (Sample sample in DataList)
+                                // Check if the selected sample's output is of same value as rawVisItemUserControl1.Tag (0 for 0s and 1 for 1s)
+                                if (sample.getOutputByLabel(rawVisItemUserControl.Name) == (int)rawVisItemUserControl.Tag)
+                                    // If yes then insert the sample in selectedSamples
+                                    selectedSamples.Add(sample);
+
                             // Now copy the selected input values
-                            yAxisVals = new double[selectedIndxs.Count];
-                            xAxisVals = new double[selectedIndxs.Count];
-                            for (int j = 0; j < selectedIndxs.Count; j++)
+                            yAxisVals = new double[selectedSamples.Count];
+                            xAxisVals = new double[selectedSamples.Count];
+                            for (int i = 0; i < selectedSamples.Count; i++)
                             {
-                                if (yValsIndx != -1) yAxisVals[j] = ((double[])_featuresList[selectedIndxs[j]][0])[yValsIndx];
-                                if (xValsIndx != -1) xAxisVals[j] = ((double[])_featuresList[selectedIndxs[j]][0])[xValsIndx];
+                                yAxisVals[i] = selectedSamples[i].getFeatureByLabel((string)yInputSelectedCheckBox.Tag);
+                                xAxisVals[i] = selectedSamples[i].getFeatureByLabel((string)xInputSelectedCheckBox.Tag);
                             }
 
                             // Set the new series of the selected output
-                            RawVisItemUserControl rawVisItemUserControl = (RawVisItemUserControl)outputFlowLayoutPanel.Controls[i];
                             addNewSeries(rawChart, rawVisItemUserControl.outputCheckBox.Text, rawVisItemUserControl.primaryColorButton.BackColor, rawVisItemUserControl.secondaryColorButton.BackColor);
                             // Insert values in chart
                             Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, null, 0, rawChart.Series.Count - 1, "DataVisualisationForm");
@@ -179,21 +186,27 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 else
                 {
                     // If yes then create yAxisVals and xAxisVals of each selected output
-                    for (int i = 0; i < outputFlowLayoutPanel.Controls.Count; i++)
-                        if (((RawVisItemUserControl)outputFlowLayoutPanel.Controls[i]).outputCheckBox.Checked)
+                    foreach (RawVisItemUserControl rawVisItemUserControl in outputFlowLayoutPanel.Controls)
+                        if (rawVisItemUserControl.outputCheckBox.Checked)
                         {
                             // If yes then copy all of the selected input values
-                            for (int j = 0; j < _featuresList.Count; j++)
+                            for (int i = 0; i < DataList.Count; i++)
                             {
-                                if (yValsIndx != -1) yAxisVals[j] = ((double[])_featuresList[j][0])[yValsIndx];
-                                if (xValsIndx != -1) xAxisVals[j] = ((double[])_featuresList[j][0])[xValsIndx];
+                                yAxisVals[i] = DataList[i].getFeatureByLabel((string)yInputSelectedCheckBox.Tag);
+                                xAxisVals[i] = DataList[i].getFeatureByLabel((string)xInputSelectedCheckBox.Tag);
+                                colorVals[i] = (float)DataList[i].getOutputByLabel(rawVisItemUserControl.Name);
                             }
 
+                            // Normalize colorVals
+                            (float mean, float min, float max) meanMinMax = Garage.MeanMinMax(colorVals);
+                            float interval = meanMinMax.max - meanMinMax.min;
+                            for (int i = 0; i < colorVals.Length; i++)
+                                colorVals[i] = (colorVals[i] - meanMinMax.min) / interval;
+
                             // Set the new series of the selected output
-                            RawVisItemUserControl rawVisItemUserControl = (RawVisItemUserControl)outputFlowLayoutPanel.Controls[i];
                             addNewSeries(rawChart, rawVisItemUserControl.outputCheckBox.Text, rawVisItemUserControl.primaryColorButton.BackColor, rawVisItemUserControl.secondaryColorButton.BackColor);
                             // Insert values in chart
-                            Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, null, 0, rawChart.Series.Count - 1, "DataVisualisationForm");
+                            Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, colorVals, 0, rawChart.Series.Count - 1);
                         }
                 }
             }

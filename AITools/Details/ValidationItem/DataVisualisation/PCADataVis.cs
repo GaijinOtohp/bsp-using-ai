@@ -1,14 +1,12 @@
-﻿using Accord.Statistics.Analysis;
-using BSP_Using_AI.Database;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
@@ -19,10 +17,29 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
     // https://www.youtube.com/watch?v=FAnNBw7d0vg
     // and here is the overall operation
     // https://medium.com/analytics-vidhya/understanding-principle-component-analysis-pca-step-by-step-e7a4bb4031d9
-    partial class DataVisualisationForm : DbStimulatorReportHolder
+
+    [Serializable]
+    public class PCAitem
     {
-        double[][] _data;
-        double[][] _eigenVectors;
+        public double _eigenValue;
+        public double[] EigenVector; // PC loading scores
+
+        public bool _selected = true;
+
+        public PCAitem Clone()
+        {
+            PCAitem pcaitem = new PCAitem();
+            pcaitem._eigenValue = _eigenValue;
+            pcaitem.EigenVector = (double[])EigenVector.Clone();
+            pcaitem._selected = _selected;
+
+            return pcaitem;
+        }
+    }
+
+    partial class DataVisualisationForm
+    {
+        List<PCAitem> PCA;
 
         int _selectedColumn;
 
@@ -56,7 +73,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 else if (offset > 0.6d)
                 {
                     // If yes then the next column is the selected one
-                    selCol++; 
+                    selCol++;
                 }
                 else
                 {
@@ -74,7 +91,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 else
                 {
                     // Change color of all unselected columns
-                    foreach(DataPoint point in pcaChart.Series[0].Points)
+                    foreach (DataPoint point in pcaChart.Series[0].Points)
                         point.Color = System.Drawing.Color.DodgerBlue;
                     _selectedColumn = -1;
                 }
@@ -90,7 +107,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 {
                     // If yes then show eigenvector detail of the selected column
                     string eigenvector = "";
-                    foreach (double itemValue in _eigenVectors[_selectedColumn])
+                    foreach (double itemValue in PCA[_selectedColumn].EigenVector)
                         eigenvector += ". " + itemValue + "\n";
                     MessageBox.Show(eigenvector, "eigenvector of PC" + (_selectedColumn + 1) + " (loading scores)", MessageBoxButtons.OK);
                 }
@@ -99,26 +116,20 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private void saveChangesButton_Click(object sender, EventArgs e)
         {
             // Remove previous selection of eigenvectors
-            _pcLoadingScoresArray[_stepIndx].Clear();
+            _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA.Clear();
             // Save selected eigenvectors in _pcLoadingScoresArray
-            for (int i = 0; i < pcFlowLayoutPanel.Controls.Count; i++)
-                if (((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked)
-                {
-                    // If yes then the eigenvector is selected
-                    _pcLoadingScoresArray[_stepIndx].Add(_eigenVectors[i]);
-                }
+            foreach (PCAitem pcaItem in PCA)
+                _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA.Add(pcaItem.Clone());
 
             // Update model in models table with the new eigenvectors
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.Update("models", new string[] { "selected_variables" },
-                new Object[] { Garage.ObjectToByteArray(_pcLoadingScoresArray) }, _modelId, "PCADataVis");
+            dbStimulator.Update("models", new string[] { "the_model" },
+                new Object[] { Garage.ObjectToByteArray(_arthtModelsDic[_modelName].Clone()) }, _modelId, "PCADataVis");
 
             // Update the model
             // Initialize features lists
-            List<object[]>[] featuresLists = new List<object[]>[7];
-            for (int i = 0; i < featuresLists.Length; i++)
-                featuresLists[i] = new List<object[]>();
-            featuresLists[_stepIndx] = _featuresList;
+            Dictionary<string, List<Sample>> dataLists = new Dictionary<string, List<Sample>>();
+            dataLists.Add(_stepName, DataList);
 
             // Send features for fitting
             // Search for AIToolsForm
@@ -129,28 +140,30 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             if (_modelName.Contains("Neural network"))
             {
                 // This is for neural network
-                // Get the selected model path
-                dbStimulator = new DbStimulator();
-                dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-                Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("models",
-                                    new String[] { "model_path" },
-                                    "_id=?",
-                                    new object[] { _modelId },
-                                    "", "PCADataVis"));
-                dbStimulatorThread.Start();
+                aIToolsForm._tFBackThread._queue.Enqueue(new QueueSignalInfo()
+                {
+                    TargetFunc = "fit",
+                    CallingClass = "PCADataVis",
+                    ModelsName = _modelName,
+                    DataLists = dataLists,
+                    _datasetSize = -1,
+                    _modelId = _modelId,
+                    StepName = _stepName
+                });
+                aIToolsForm._tFBackThread._signal.Set();
             }
             else if (_modelName.Contains("K-Nearest neighbor"))
             {
                 // This is for knn
-                KNNBackThread kNNBackThread = new KNNBackThread(_targetsModelsHashtable, aIToolsForm);
-                Thread knnThread = new Thread(() => kNNBackThread.fit(_modelName, featuresLists, -1, _modelId, new List<List<long[]>>(), _stepIndx));
+                KNNBackThread kNNBackThread = new KNNBackThread(_arthtModelsDic, aIToolsForm);
+                Thread knnThread = new Thread(() => kNNBackThread.fit(_modelName, dataLists, -1, _modelId, _stepName));
                 knnThread.Start();
             }
             else if (_modelName.Contains("Naive bayes"))
             {
                 // This is for naive bayes
-                NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_targetsModelsHashtable, aIToolsForm);
-                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_modelName, featuresLists, -1, _modelId, new List<List<long[]>>(), _stepIndx));
+                NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, aIToolsForm);
+                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_modelName, dataLists, -1, _modelId, _stepName));
                 nbThread.Start();
             }
         }
@@ -160,17 +173,48 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private void setPCAVisTab()
         {
             // Check if PCA is already computed
-            if (_data != null)
-                // If yes then just return
-                return;
+            if (PCA != null)
+                if (PCA.Count > 0)
+                    // If yes then just return
+                    return;
+
+            PCA = getPCA(DataList);
+
+            // Insert eigenvalues in pcaChart
+            for (int i = 0; i < PCA.Count; i++)
+            {
+                pcaChart.Series[0].Points.AddXY("PC" + (i + 1), Math.Round(PCA[i]._eigenValue, 4));
+                CheckBox pcaCheckBox = createCheckBox(pcaChart.Series[0].Points[i].AxisLabel, i, pcaCheckBox_CheckedChanged);
+                pcFlowLayoutPanel.Controls.Add(pcaCheckBox);
+            }
+
+            // Check the previously selected PCs
+            for (int i = 0; i < _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA.Count; i++)
+            {
+                PCAitem pcaItem = _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA[i];
+                if (pcaItem._selected)
+                    ((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked = true;
+            }
+        }
+
+        private void pcaCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox pcaCheckBox = (sender as CheckBox);
+            // Change the selection property of its corresponding PCAitem
+            PCA[(int)pcaCheckBox.Tag]._selected = pcaCheckBox.Checked;
+        }
+
+        public static List<PCAitem> getPCA(List<Sample> dataList)
+        {
+            List<PCAitem> pca;
 
             // Initialise input data
-            _data = new double[_featuresList.Count][];
-            for (int i = 0; i < _featuresList.Count; i++)
-                _data[i] = (double[])_featuresList[i][0];
+            double[][] data = new double[dataList.Count][];
+            for (int i = 0; i < dataList.Count; i++)
+                data[i] = dataList[i].getFeatures();
 
             // Standardize data and compute covariance matrix
-            double[][] covMat = coVarMatForStandardizedData(standardizeData(_data));
+            double[][] covMat = coVarMatForStandardizedData(standardizeData(data));
 
             // Compute PCA (QR algorithm of covMat)
             // where the columns of qMat are the eigenvectors, and the diagonal of rMat is the eigenvalues
@@ -202,23 +246,16 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             PCList.Sort((e1, e2) => { return e2.Item1.CompareTo(e1.Item1); });
 
             // Copy eigenvectors in _eigenVectors
-            _eigenVectors = new double[PCList.Count][];
-            for (int i = 0; i < PCList.Count; i++)
-                _eigenVectors[i] = PCList[i].Item2;
-
-            // Insert eigenvalues in pcaChart
+            pca = new List<PCAitem>(PCList.Count);
             for (int i = 0; i < PCList.Count; i++)
             {
-                pcaChart.Series[0].Points.AddXY("PC" + (i + 1), Math.Round(PCList[i].Item1, 4));
-                pcFlowLayoutPanel.Controls.Add(new CheckBox() { Text = pcaChart.Series[0].Points[i].AxisLabel});
+                pca.Add(new PCAitem() { _eigenValue = PCList[i].Item1, EigenVector = PCList[i].Item2 });
             }
 
-            // Check the previously selected PCs
-            for (int i = 0; i < ((List<double[]>)((List<object[]>)_targetsModelsHashtable[_modelName])[_stepIndx][1]).Count; i++)
-                ((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked = true;
+            return pca;
         }
 
-        private double[][] standardizeData(double[][] data)
+        private static double[][] standardizeData(double[][] data)
         {
             // Calculate mean and standard deviation of each column (mean row, and standard deviation row)
             double[] means = new double[data[0].Length], stdDevs = new double[data[0].Length];
@@ -230,7 +267,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 for (int row = 0; row < colVals.Length; row++)
                     colVals[row] = data[row][col];
                 // Compute the mean
-                means[col] = (Garage.meanMinMax(colVals)).mean;
+                means[col] = (Garage.MeanMinMax(colVals)).mean;
                 // Compute standard deviation
                 stdDevs[col] = Garage.stdDevCalc(colVals, means[col]);
             }
@@ -249,7 +286,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             return stdzedData;
         }
 
-        private double[][] coVarMatForStandardizedData(double[][] data)
+        private static double[][] coVarMatForStandardizedData(double[][] data)
         {
             // Initialize coVar matrix
             double[][] covarMat = new double[data[0].Length][];
@@ -273,8 +310,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         /**
          * qMat columns are the eigenvectors
          * diagonal elements of rMat are the eigenvalues
-         */ 
-        private (double[][], double[][]) getQRMat(double[][] data)
+         */
+        private static (double[][], double[][]) getQRMat(double[][] data)
         {
             // Initialize Q matrix which has the same number of rows as data
             double[][] qMat = new double[data.GetLength(0)][];
@@ -337,7 +374,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             return (qMat, rMat);
         }
 
-        private double[][] matMultiply(double[][] mat1, double[][] mat2)
+        private static double[][] matMultiply(double[][] mat1, double[][] mat2)
         {
             double[][] result = new double[mat1.GetLength(0)][];
             // Check if number of columns of mat1 is equal to number of rows in mat2
@@ -364,7 +401,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             return result;
         }
 
-        private (double[][], double) matSubtract(double[][] mat1, double[][] mat2)
+        private static (double[][], double) matSubtract(double[][] mat1, double[][] mat2)
         {
             double[][] result = new double[mat1.GetLength(0)][];
             double elementWiseResult = 0;
@@ -388,28 +425,6 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             }
 
             return (result, elementWiseResult);
-        }
-
-        //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
-        //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        public void holdRecordReport(DataTable dataTable, string callingClassName)
-        {
-            if (!callingClassName.Equals("PCADataVis"))
-                return;
-
-            // Initialize features lists
-            List<object[]>[] featuresLists = new List<object[]>[7];
-            for (int i = 0; i < featuresLists.Length; i++)
-                featuresLists[i] = new List<object[]>();
-            featuresLists[_stepIndx] = _featuresList;
-
-            // Search for AIToolsForm
-            AIToolsForm aIToolsForm = null;
-            if (Application.OpenForms.OfType<AIToolsForm>().Count() == 1)
-                aIToolsForm = Application.OpenForms.OfType<AIToolsForm>().First();
-
-            aIToolsForm._tFBackThread._queue.Enqueue(new object[] { "fit", _modelName, featuresLists, dataTable.Rows[0].Field<string>("model_path"), -1, _modelId, new List<List<long[]>>(), _stepIndx });
-            aIToolsForm._tFBackThread._signal.Set();
         }
     }
 }

@@ -1,16 +1,11 @@
 ﻿using BSP_Using_AI.Database;
 using BSP_Using_AI.DetailsModify;
 using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.AITools.DatasetExplorer
 {
@@ -25,11 +20,11 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        private void showSignalDetails(double[] signal, OrderedDictionary featuresOrderedDictionary)
+        private void showSignalDetails(FilteringTools filteringTools, ARTHTFeatures artHTFeatures)
         {
             // Open a new form
-            FormDetailsModify formDetailsModify = new FormDetailsModify(signal, double.Parse(samplingRateLabel.Text), double.Parse(quantizationStepLabel.Text), signalNameLabel.Text + "\\Features details", double.Parse(startingIndexLabel.Text));
-            formDetailsModify._featuresOrderedDictionary = featuresOrderedDictionary;
+            FormDetailsModify formDetailsModify = new FormDetailsModify(filteringTools, signalNameLabel.Text + "\\Features details");
+            formDetailsModify._arthtFeatures = artHTFeatures;
 
             formDetailsModify.initializeAITools();
             formDetailsModify.finish();
@@ -39,8 +34,6 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             formDetailsModify.applyButton.Enabled = false;
             formDetailsModify.samplingRateTextBox.Enabled = false;
             formDetailsModify.filtersComboBox.Enabled = false;
-            formDetailsModify.fftButton.Enabled = false;
-            formDetailsModify.dwtButton.Enabled = false;
             formDetailsModify.discardButton.Enabled = false;
             formDetailsModify.setFeaturesLabelsButton.Enabled = false;
             formDetailsModify.aiGoalComboBox.Enabled = false;
@@ -61,7 +54,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
-                                new String[] { "signal", "features" },
+                                new String[] { "starting_index", "signal", "sampling_rate", "quantisation_step", "features" },
                                 "_id=?",
                                 new Object[] { _id },
                                 "", "DatasetFlowLayoutPanelItemUserControl"));
@@ -79,7 +72,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             }
 
             // Show message for confirming the action
-            DialogResult dialogResult = MessageBox.Show("Are you sure about deleting the signal \"" + this.signalNameLabel.Text + "(" + this.startingIndexLabel.Text     + ")" + "\"?", "Action confirmation", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show("Are you sure about deleting the signal \"" + this.signalNameLabel.Text + "(" + this.startingIndexLabel.Text + ")" + "\"?", "Action confirmation", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
                 // Remove it from models table
@@ -134,10 +127,13 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             foreach (DataRow row in dataTable.Rows)
             {
                 double[] signal = (double[])Garage.ByteArrayToObject(row.Field<byte[]>("signal"));
-                OrderedDictionary featuresOrderedDictionary = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                ARTHTFeatures artHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
 
+                FilteringTools filteringTools = new FilteringTools((int)row.Field<long>("sampling_rate"), row.Field<long>("quantisation_step"), null);
+                filteringTools.SetStartingInSecond(row.Field<long>("starting_index"));
+                filteringTools.SetOriginalSamples(signal);
                 // Show signal with features
-                this.Invoke(new MethodInvoker(delegate () { showSignalDetails(signal, featuresOrderedDictionary); }));
+                this.Invoke(new MethodInvoker(delegate () { showSignalDetails(filteringTools, artHTFeatures); }));
             }
         }
     }

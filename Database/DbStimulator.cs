@@ -1,11 +1,8 @@
 ﻿using BSP_Using_AI.Database;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.Globalization;
 using System.IO;
-using System.Threading;
 
 namespace BSP_Using_AI
 {
@@ -14,8 +11,6 @@ namespace BSP_Using_AI
         DbStimulatorReportHolder _recordsDbStimulatorReportHolder;
 
         SQLiteConnection _cnn;
-
-        public String _callingClassName;
 
         public DbStimulator()
         {
@@ -32,11 +27,10 @@ namespace BSP_Using_AI
 
             // Create tables if not exist
             createTable("models", new string[] { "_id integer PRIMARY KEY", "type_name text NOT NULL", "model_target text NOT NULL",
-                                    "the_model blob", "selected_variables blob", "outputs_thresholds blob",
-                                    "model_path text NOT NULL", "dataset_size integer NOT NULL", "model_updates integer NOT NULL",
-                                    "trainings_details blob NOT NULL","validation_data blob"}, _cnn);
+                                    "the_model blob", "dataset_size integer NOT NULL"}, _cnn);
             createTable("dataset", new string[] { "_id integer PRIMARY KEY", "sginal_name text NOT NULL", "starting_index integer NOT NULL",
-                                    "signal blob NOT NULL", "sampling_rate integer NOT NULL", "features blob NOT NULL" }, _cnn);
+                                    "signal blob NOT NULL", "sampling_rate integer NOT NULL", "quantisation_step integer NOT NULL",
+                                    "features blob NOT NULL" }, _cnn);
         }
 
         /**

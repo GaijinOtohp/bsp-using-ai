@@ -2,23 +2,23 @@
 using BSP_Using_AI.Database;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details
 {
     public partial class ValidationFlowLayoutPanelUserControl : UserControl, DbStimulatorReportHolder
     {
-        public ValidationFlowLayoutPanelUserControl()
+        float[] OutputsThresholds;
+
+        public ValidationFlowLayoutPanelUserControl(float[] outputsThresholds)
         {
             InitializeComponent();
+
+            OutputsThresholds = outputsThresholds;
         }
 
         //*******************************************************************************************************//
@@ -28,23 +28,30 @@ namespace BSP_Using_AI.AITools.Details
             EventHandlers.textBoxNumberOnly(sender, e);
         }
 
-        private void ValidationFlowLayoutPanelUserControl_Click(object sender, EventArgs e)
+        private void thresholdTextBox_TextChanged(object sender, EventArgs e)
         {
-            queryFeatures();
+            if (thresholdTextBox.Text.Length > 0)
+                for (int i = 0; i < OutputsThresholds.Length; i++)
+                    OutputsThresholds[i] = float.Parse(thresholdTextBox.Text);
         }
 
-        private void queryFeatures()
+        private void ValidationFlowLayoutPanelUserControl_Click(object sender, EventArgs e)
+        {
+            queryForSelectedDataset(((DetailsForm)this.FindForm())._aRTHTModels.DataIdsIntervalsList, this);
+        }
+
+        public static void queryForSelectedDataset(List<List<long[]>> dataIdsIntervalsList, DbStimulatorReportHolder dbStimulatorReportHolder)
         {
             // Qurey for signals features in all selected intervals from dataset
             string selection = "_id>=? and _id<=?";
             int intervalsNum = 1;
-            foreach (List<long[]> training in ((DetailsForm)this.FindForm())._trainingDetails)
+            foreach (List<long[]> training in dataIdsIntervalsList)
                 intervalsNum += training.Count;
             object[] selectionArgs = new object[intervalsNum * 2];
             intervalsNum = 0;
             selectionArgs[intervalsNum] = 0;
             selectionArgs[intervalsNum + 1] = 0;
-            foreach (List<long[]> training in ((DetailsForm)this.FindForm())._trainingDetails)
+            foreach (List<long[]> training in dataIdsIntervalsList)
                 foreach (long[] datasetInterval in training)
                 {
                     intervalsNum += 2;
@@ -54,7 +61,7 @@ namespace BSP_Using_AI.AITools.Details
                 }
 
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(dbStimulatorReportHolder);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                         new String[] { "features" },
                                         selection,
@@ -71,38 +78,24 @@ namespace BSP_Using_AI.AITools.Details
                 return;
 
             // Initialize list of features for selected step
-            List<object[]> featuresList = new List<object[]>();
+            List<Sample> dataList = new List<Sample>();
 
             // Get features of only the selected step
-            int step = ((FlowLayoutPanel)this.Parent).Controls.IndexOf(this) + 1; // The first item is just beats states
+            string stepName = Name;
 
             // Iterate through each signal features and sort them in featuresLists
-            OrderedDictionary signalFeaturesOrderedDictionary = null;
+            ARTHTFeatures aRTHTFeatures = null;
             foreach (DataRow row in dataTable.AsEnumerable())
             {
-                signalFeaturesOrderedDictionary = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
-                object[] stepFeatures = null;
-                if (signalFeaturesOrderedDictionary.Count > step)
-                    stepFeatures = (object[])signalFeaturesOrderedDictionary[step];
-                else
-                    continue;
+                aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
 
-                if (step == 1)
-                    featuresList.Add(stepFeatures);
-                else if (step == 4)
-                    foreach (List<object[]> beat in stepFeatures)
-                        foreach (object[] feature in beat)
-                            featuresList.Add(feature);
-                else
-                    foreach (object[] feature in stepFeatures)
-                        if (feature[0] != null)
-                            featuresList.Add(feature);
-                
+                foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
+                    dataList.Add(sample);
             }
 
             // Send data to DataVisualisationForm
-            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._targetsModelsHashtable, ((DetailsForm)this.FindForm())._modelName,
-                                                                                    ((DetailsForm)this.FindForm())._modelId, step - 1, featuresList);
+            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._arthtModelsDic, ((DetailsForm)this.FindForm())._aRTHTModels.Name,
+                                                                                    ((DetailsForm)this.FindForm())._modelId, stepName, dataList);
             dataVisualisationForm.stepLabel.Text = modelTargetLabel.Text;
             this.Invoke(new MethodInvoker(delegate () { dataVisualisationForm.Show(); }));
         }

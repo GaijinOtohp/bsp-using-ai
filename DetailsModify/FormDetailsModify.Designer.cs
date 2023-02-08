@@ -52,11 +52,6 @@
             this.ChoseFilterLabel = new System.Windows.Forms.Label();
             this.filtersComboBox = new System.Windows.Forms.ComboBox();
             this.autoApplyCheckBox = new System.Windows.Forms.CheckBox();
-            this.choseTransformLabel = new System.Windows.Forms.Label();
-            this.fftButton = new System.Windows.Forms.Button();
-            this.dwtButton = new System.Windows.Forms.Button();
-            this.dwtLevelsComboBox = new System.Windows.Forms.ComboBox();
-            this.editButton = new System.Windows.Forms.Button();
             this.signalFusionButton = new System.Windows.Forms.Button();
             this.pathLabel = new System.Windows.Forms.Label();
             this.setFeaturesLabelsButton = new System.Windows.Forms.Button();
@@ -196,7 +191,9 @@
             this.spectrumChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             chartArea2.AxisX.LabelStyle.Format = "0.00";
+            chartArea2.AxisX.Title = "Frequency (Hz)";
             chartArea2.AxisY.LabelStyle.Format = "0.00";
+            chartArea2.AxisY.Title = "Magnitude (mV)";
             chartArea2.Name = "ChartArea1";
             this.spectrumChart.ChartAreas.Add(chartArea2);
             this.spectrumChart.ContextMenuStrip = this.contextMenuStrip1;
@@ -249,6 +246,7 @@
             this.samplingRateTextBox.Size = new System.Drawing.Size(71, 20);
             this.samplingRateTextBox.TabIndex = 6;
             this.samplingRateTextBox.Text = "Sampling rate";
+            this.samplingRateTextBox.TextChanged += new System.EventHandler(this.samplingRateTextBox_TextChanged);
             this.samplingRateTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.samplingRateTextBox_KeyPress);
             // 
             // applyButton
@@ -291,13 +289,14 @@
             this.filtersComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.filtersComboBox.FormattingEnabled = true;
             this.filtersComboBox.Items.AddRange(new object[] {
-            "Butter Worth",
+            "Butterworth",
             "Chebyshev I",
             "Chebyshev II",
             "DC removal",
             "Normalize signal",
             "Absolute signal",
-            "Singal states viewer"});
+            "DWT",
+            "Peaks analyzer"});
             this.filtersComboBox.Location = new System.Drawing.Point(810, 42);
             this.filtersComboBox.Margin = new System.Windows.Forms.Padding(2);
             this.filtersComboBox.Name = "filtersComboBox";
@@ -319,67 +318,7 @@
             this.autoApplyCheckBox.TabIndex = 11;
             this.autoApplyCheckBox.Text = "Auto apply";
             this.autoApplyCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // choseTransformLabel
-            // 
-            this.choseTransformLabel.AutoSize = true;
-            this.choseTransformLabel.Location = new System.Drawing.Point(9, 259);
-            this.choseTransformLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.choseTransformLabel.Name = "choseTransformLabel";
-            this.choseTransformLabel.Size = new System.Drawing.Size(83, 13);
-            this.choseTransformLabel.TabIndex = 12;
-            this.choseTransformLabel.Text = "Chose transform";
-            // 
-            // fftButton
-            // 
-            this.fftButton.Enabled = false;
-            this.fftButton.Location = new System.Drawing.Point(110, 243);
-            this.fftButton.Margin = new System.Windows.Forms.Padding(2);
-            this.fftButton.Name = "fftButton";
-            this.fftButton.Size = new System.Drawing.Size(56, 20);
-            this.fftButton.TabIndex = 13;
-            this.fftButton.Text = "FFT";
-            this.fftButton.UseVisualStyleBackColor = true;
-            this.fftButton.Click += new System.EventHandler(this.fftButton_Click);
-            // 
-            // dwtButton
-            // 
-            this.dwtButton.Location = new System.Drawing.Point(110, 268);
-            this.dwtButton.Margin = new System.Windows.Forms.Padding(2);
-            this.dwtButton.Name = "dwtButton";
-            this.dwtButton.Size = new System.Drawing.Size(56, 20);
-            this.dwtButton.TabIndex = 14;
-            this.dwtButton.Text = "DWT";
-            this.dwtButton.UseVisualStyleBackColor = true;
-            this.dwtButton.Click += new System.EventHandler(this.dwtButton_Click);
-            // 
-            // dwtLevelsComboBox
-            // 
-            this.dwtLevelsComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.dwtLevelsComboBox.DisplayMember = "1";
-            this.dwtLevelsComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.dwtLevelsComboBox.Enabled = false;
-            this.dwtLevelsComboBox.FormattingEnabled = true;
-            this.dwtLevelsComboBox.Location = new System.Drawing.Point(507, 269);
-            this.dwtLevelsComboBox.Margin = new System.Windows.Forms.Padding(2);
-            this.dwtLevelsComboBox.Name = "dwtLevelsComboBox";
-            this.dwtLevelsComboBox.Size = new System.Drawing.Size(129, 21);
-            this.dwtLevelsComboBox.TabIndex = 15;
-            this.dwtLevelsComboBox.Tag = "";
-            this.dwtLevelsComboBox.SelectedIndexChanged += new System.EventHandler(this.dwtLayersComboBox_SelectedIndexChanged);
-            // 
-            // editButton
-            // 
-            this.editButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.editButton.Enabled = false;
-            this.editButton.Location = new System.Drawing.Point(446, 268);
-            this.editButton.Margin = new System.Windows.Forms.Padding(2);
-            this.editButton.Name = "editButton";
-            this.editButton.Size = new System.Drawing.Size(56, 20);
-            this.editButton.TabIndex = 16;
-            this.editButton.Text = "Edit";
-            this.editButton.UseVisualStyleBackColor = true;
-            this.editButton.Click += new System.EventHandler(this.editButton_Click);
+            this.autoApplyCheckBox.CheckedChanged += new System.EventHandler(this.autoApplyCheckBox_CheckedChanged);
             // 
             // signalFusionButton
             // 
@@ -551,6 +490,7 @@
             this.quantizationStepTextBox.Size = new System.Drawing.Size(71, 20);
             this.quantizationStepTextBox.TabIndex = 32;
             this.quantizationStepTextBox.Text = "Quantization step";
+            this.quantizationStepTextBox.TextChanged += new System.EventHandler(this.quantizationStepTextBox_TextChanged);
             this.quantizationStepTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.samplingRateTextBox_KeyPress);
             // 
             // samplingRateLabel
@@ -592,11 +532,6 @@
             this.Controls.Add(this.setFeaturesLabelsButton);
             this.Controls.Add(this.pathLabel);
             this.Controls.Add(this.signalFusionButton);
-            this.Controls.Add(this.editButton);
-            this.Controls.Add(this.dwtLevelsComboBox);
-            this.Controls.Add(this.dwtButton);
-            this.Controls.Add(this.fftButton);
-            this.Controls.Add(this.choseTransformLabel);
             this.Controls.Add(this.autoApplyCheckBox);
             this.Controls.Add(this.filtersComboBox);
             this.Controls.Add(this.ChoseFilterLabel);
@@ -626,9 +561,6 @@
         private System.Windows.Forms.Label ChoseFilterLabel;
         public System.Windows.Forms.ComboBox filtersComboBox;
         public System.Windows.Forms.CheckBox autoApplyCheckBox;
-        private System.Windows.Forms.Label choseTransformLabel;
-        private System.Windows.Forms.ComboBox dwtLevelsComboBox;
-        private System.Windows.Forms.Button editButton;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem sendSignalToolStripMenuItem;
         private System.Windows.Forms.Label pathLabel;
@@ -644,11 +576,9 @@
         public System.Windows.Forms.ComboBox signalsPickerComboBox;
         public System.Windows.Forms.TextBox samplingRateTextBox;
         public System.Windows.Forms.Button applyButton;
-        public System.Windows.Forms.Button dwtButton;
         public System.Windows.Forms.Button signalFusionButton;
         public System.Windows.Forms.Button predictButton;
         public System.Windows.Forms.ComboBox modelTypeComboBox;
-        public System.Windows.Forms.Button fftButton;
         public System.Windows.Forms.Button saveAsImageButton;
         public System.Windows.Forms.TextBox quantizationStepTextBox;
         private System.Windows.Forms.Label samplingRateLabel;

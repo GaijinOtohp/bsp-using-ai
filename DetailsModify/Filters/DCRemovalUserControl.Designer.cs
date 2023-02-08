@@ -33,15 +33,16 @@ namespace BSP_Using_AI.DetailsModify.Filters
             this.dcValueRemoveCheckBox = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.applyAfterTransformCheckBox = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // dcValueRemoveCheckBox
             // 
             this.dcValueRemoveCheckBox.AutoSize = true;
-            this.dcValueRemoveCheckBox.Location = new System.Drawing.Point(22, 16);
-            this.dcValueRemoveCheckBox.Margin = new System.Windows.Forms.Padding(2);
+            this.dcValueRemoveCheckBox.Checked = true;
+            this.dcValueRemoveCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.dcValueRemoveCheckBox.Location = new System.Drawing.Point(22, 8);
+            this.dcValueRemoveCheckBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.dcValueRemoveCheckBox.Name = "dcValueRemoveCheckBox";
             this.dcValueRemoveCheckBox.Size = new System.Drawing.Size(113, 17);
             this.dcValueRemoveCheckBox.TabIndex = 0;
@@ -64,29 +65,15 @@ namespace BSP_Using_AI.DetailsModify.Filters
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
-            // applyAfterTransformCheckBox
-            // 
-            this.applyAfterTransformCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.applyAfterTransformCheckBox.AutoSize = true;
-            this.applyAfterTransformCheckBox.Location = new System.Drawing.Point(22, 37);
-            this.applyAfterTransformCheckBox.Margin = new System.Windows.Forms.Padding(2);
-            this.applyAfterTransformCheckBox.Name = "applyAfterTransformCheckBox";
-            this.applyAfterTransformCheckBox.Size = new System.Drawing.Size(122, 17);
-            this.applyAfterTransformCheckBox.TabIndex = 19;
-            this.applyAfterTransformCheckBox.Text = "Apply after transform";
-            this.applyAfterTransformCheckBox.UseVisualStyleBackColor = true;
-            this.applyAfterTransformCheckBox.CheckStateChanged += new System.EventHandler(this.applyAfterTransformCheckBox_CheckStateChanged);
-            // 
             // DCRemovalUserControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ContextMenuStrip = this.contextMenuStrip1;
-            this.Controls.Add(this.applyAfterTransformCheckBox);
             this.Controls.Add(this.dcValueRemoveCheckBox);
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "DCRemovalUserControl";
-            this.Size = new System.Drawing.Size(284, 67);
+            this.Size = new System.Drawing.Size(284, 33);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -98,6 +85,5 @@ namespace BSP_Using_AI.DetailsModify.Filters
         public System.Windows.Forms.CheckBox dcValueRemoveCheckBox;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
-        public System.Windows.Forms.CheckBox applyAfterTransformCheckBox;
     }
 }

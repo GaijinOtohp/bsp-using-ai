@@ -1,28 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
 {
     public partial class FormSignalsComparison : Form
     {
-        public double[] _signal1;
-        public double[] _signal2;
+        FilteringTools _Signal_1_FilteringTools { get; set; }
+        FilteringTools _Signal_2_FilteringTools { get; set; }
+
+        public double[] _signal1 { get; set; }
+        public double[] _signal2 { get; set; }
         public double[] _comparison;
         public double[] _dtwPath;
-        public double _dtwDistance;
+        public double _dtwDistance { get; set; }
 
-        private double _sign1SamplingRate;
-        private double _sign1QuantizationStep;
-        private double _sign2SamplingRate;
-        private double _sign2QuantizationStep;
+        private double _sign1SamplingRate { get; set; }
+        private double _sign2SamplingRate { get; set; }
 
         bool _mouseDown = false;
         int _previousMouseX;
@@ -35,37 +32,26 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        public void insertSignal(double[] signal, double samplingRate, double quantizationStep)
+        public void insertSignal(FilteringTools filteringTools)
         {
-            // Calculate normalization coefficient
-            double normalizationCoef = 0D;
-            if (selectFirstSignalCheckBox.Checked || selectSecondSignalCheckBox.Checked)
-            foreach (double sample in signal)
-                normalizationCoef += sample * sample;
-            normalizationCoef = Math.Sqrt(normalizationCoef);
+            // Normalize the signal
+            Normalize normalize = new Normalize(filteringTools);
+            normalize.InsertFilter(null);
 
+            // Compute signal power
             double signalPower = 0D;
+            foreach (double sample in filteringTools._FilteredSamples)
+                signalPower += Math.Pow(sample / filteringTools._quantizationStep, 2) / filteringTools._FilteredSamples.Length;
 
             // Check if the first signal chart is open
             if (selectFirstSignalCheckBox.Checked)
             {
                 // If yes then copy this signal in firstSignalChart
-                _signal1 = new double[signal.Length];
-                if(normalizationCoef > 0)
-                    for (int i = 0; i < signal.Length; i++)
-                        _signal1[i] = signal[i] / normalizationCoef;
-
-                _sign1SamplingRate = samplingRate;
-                _sign1QuantizationStep = quantizationStep;
-
+                _Signal_1_FilteringTools = filteringTools;
                 // Insert signal values inside signal holder chart
-                Garage.loadSignalInChart((Chart)Controls.Find("firstSignalChart", false)[0], _signal1, samplingRate, quantizationStep, 0, "FormSignalsComparison");
-
+                Garage.loadSignalInChart(firstSignalChart, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "FormSignalsComparison");
                 // Set signal power
-                foreach (double sample in _signal1)
-                    signalPower += Math.Abs(sample * sample / _signal1.Length);
                 firstSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
-
                 // Uncheck the box
                 selectFirstSignalCheckBox.Checked = false;
             }
@@ -73,22 +59,11 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             if (selectSecondSignalCheckBox.Checked)
             {
                 // If yes then copy this signal in secondSignalChart
-                _signal2 = new double[signal.Length];
-                if (normalizationCoef > 0)
-                    for (int i = 0; i < signal.Length; i++)
-                        _signal2[i] = signal[i] / normalizationCoef;
-
-                _sign2SamplingRate = samplingRate;
-                _sign2QuantizationStep = quantizationStep;
-
+                _Signal_2_FilteringTools = filteringTools;
                 // Insert signal values inside signal holder chart
-                Garage.loadSignalInChart((Chart)Controls.Find("secondSignalChart", false)[0], _signal2, samplingRate, quantizationStep, 0, "FormSignalsComparison");
-
+                Garage.loadSignalInChart(secondSignalChart, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "FormSignalsComparison");
                 // Set signal power
-                foreach (double sample in _signal2)
-                    signalPower += Math.Abs(sample * sample / _signal2.Length);
                 secondSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
-
                 // Uncheck the box
                 selectSecondSignalCheckBox.Checked = false;
             }
@@ -99,62 +74,68 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
         private void compareSignals()
         {
             // Check if signals are available
-            if (_signal1 != null && _signal2 != null)
+            if (_Signal_1_FilteringTools == null || _Signal_2_FilteringTools == null)
+                return;
+
+            // Copy values
+            double[] sig1 = (double[])_Signal_1_FilteringTools._FilteredSamples.Clone();
+            double[] sig2 = (double[])_Signal_2_FilteringTools._FilteredSamples.Clone();
+            int meanSampRate = (int)(_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate / 2d);
+            double meanQuanStep = _Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep / 2d;
+
+            // Chekc which comparison is selected
+            if (crosscorrelationRadioButton.Checked)
+                // If yes then perform crosscorelation comparison
+                Garage.loadSignalInChart(comparisonChart, Garage.crossCorrelation(sig1, sig2), meanSampRate, 0, "FormSignalsComparison");
+            else if (minimumSubtractionRadioButton.Checked)
+                // If yes then perform minimum subtraction comparison
+                Garage.loadSignalInChart(comparisonChart, Garage.minimumSubtraction(sig1, sig2), meanSampRate, 0, "FormSignalsComparison");
+            else if (dynamicTimeWrapingRadioButton.Checked)
             {
-                // Chekc which comparison should be done
-                if (crosscorrelationRadioButton.Checked)
-                    // If yes then perform crosscorelation comparison
-                    Garage.loadSignalInChart(comparisonChart, Garage.crossCorrelation(_signal1, _signal2), (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
-                if (minimumSubtractionRadioButton.Checked)
-                    // If yes then perform minimum subtraction comparison
-                    Garage.loadSignalInChart(comparisonChart, Garage.minimumSubtraction(_signal1, _signal2), (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
-                if (dynamicTimeWrapingRadioButton.Checked)
+                // If yes then perform dynamic time wraping comparison
+                object[] dtwDistancePath = Garage.dynamicTimeWrapingDistancePath(sig1, sig2, 10);
+
+                // Create the coordination of the path
+                double[] pathX = new double[((List<int[]>)dtwDistancePath[1]).Count];
+                double[] pathY = new double[pathX.Length];
+                for (int i = 0; i < pathX.Length; i++)
                 {
-                    // If yes then perform dynamic time wraping comparison
-                    object[] dtwDistancePath = Garage.dynamicTimeWrapingDistancePath(_signal1, _signal2, 10);
-
-                    // Create the coordination of the path
-                    double[] pathX = new double[((List<int[]>)dtwDistancePath[1]).Count];
-                    double[] pathY = new double[pathX.Length];
-                    for (int i = 0; i < pathX.Length; i++)
-                    {
-                        pathX[i] = ((List<int[]>)dtwDistancePath[1])[i][0];
-                        pathY[i] = ((List<int[]>)dtwDistancePath[1])[i][1];
-                    }
-
-                    // Get the path signal from the dwt matrix
-                    double[] pathSignal = new double[pathX.Length];
-                    double[,] dwtMatrix = Garage.dynamicTimeWraping(_signal1, _signal2, 10);
-                    for (int i = 0; i < pathSignal.Length; i++)
-                    {
-                        pathSignal[i] = dwtMatrix[(int)pathX[i], (int)pathY[i]];
-                        if (double.IsInfinity(pathSignal[i]))
-                            pathSignal[i] = 0D;
-                    }
-
-                    // Create a signal for distance value
-                    double[] distanceValue = new double[pathX.Length];
-                    for (int i = 0; i < distanceValue.Length; i++)
-                        distanceValue[i] = (double)dtwDistancePath[0];
-
-                    // Set the signals in their charts
-                    Garage.loadSignalInChart(comparisonChart, pathSignal, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
-                    Garage.loadSignalInChart(distanceValueChart, distanceValue, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, 0, "FormSignalsComparison");
-                    Garage.loadXYInChart(pathChart, pathX, pathY, null, 0d, 0, "FormSignalsComparison");
+                    pathX[i] = ((List<int[]>)dtwDistancePath[1])[i][0];
+                    pathY[i] = ((List<int[]>)dtwDistancePath[1])[i][1];
                 }
 
-                // Set signal power
+                // Get the path signal from the dwt matrix
+                double[] pathSignal = new double[pathX.Length];
+                double[,] dwtMatrix = Garage.dynamicTimeWraping(sig1, sig2, 10);
+                for (int i = 0; i < pathSignal.Length; i++)
+                {
+                    pathSignal[i] = dwtMatrix[(int)pathX[i], (int)pathY[i]];
+                    if (double.IsInfinity(pathSignal[i]))
+                        pathSignal[i] = 0D;
+                }
 
-                // Get samples from signal chart
-                double[] samples = new double[comparisonChart.Series[0].Points.Count];
-                for (int i = 0; i < samples.Length; i++)
-                    samples[i] = comparisonChart.Series[0].Points[i].YValues[0];
+                // Create a signal for distance value
+                double[] distanceValue = new double[pathX.Length];
+                for (int i = 0; i < distanceValue.Length; i++)
+                    distanceValue[i] = (double)dtwDistancePath[0];
 
-                double signalPower = 0D;
-                foreach (double sample in samples)
-                    signalPower += Math.Abs(sample * sample / samples.Length);
-                comparisonSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
+                // Set the signals in their charts
+                Garage.loadSignalInChart(comparisonChart, pathSignal, meanSampRate, 0, "FormSignalsComparison");
+                Garage.loadSignalInChart(distanceValueChart, distanceValue, meanSampRate, 0, "FormSignalsComparison");
+                Garage.loadXYInChart(pathChart, pathX, pathY, null, 0d, 0, "FormSignalsComparison");
             }
+
+            // Set signal power
+
+            // Get samples from signal chart
+            double[] samples = new double[comparisonChart.Series[0].Points.Count];
+            for (int i = 0; i < samples.Length; i++)
+                samples[i] = comparisonChart.Series[0].Points[i].YValues[0];
+
+            double signalPower = 0D;
+            foreach (double sample in samples)
+                signalPower += Math.Pow(sample / meanQuanStep, 2) / samples.Length;
+            comparisonSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
         }
 
         //*******************************************************************************************************//
@@ -224,16 +205,21 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Chart senderChart = (Chart)((sender as ToolStripItem).Owner as ContextMenuStrip).SourceControl;
-            if (senderChart.Series[0].Points.Count < 1)
+            if (comparisonChart.Series[0].Points.Count < 1)
                 return;
 
             // Get samples from signal chart
-            double[] samples = new double[senderChart.Series[0].Points.Count];
+            double[] samples = new double[comparisonChart.Series[0].Points.Count];
             for (int i = 0; i < samples.Length; i++)
-                samples[i] = senderChart.Series[0].Points[i].YValues[0];
+                samples[i] = comparisonChart.Series[0].Points[i].YValues[0];
+            // Create new filteringTools for the signal
+            int meanSampRate = (int)(_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate / 2d);
+            double meanQuanStep = _Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep / 2d;
+            FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
+            filteringTools.SetStartingInSecond(_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec / 2);
+            filteringTools.SetOriginalSamples(samples);
 
-            EventHandlers.sendSignalTool(samples, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, "\\Comparator\\Collector");
+            EventHandlers.sendSignalTool(filteringTools, "\\Comparator\\Collector");
         }
 
         private void analyseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -246,8 +232,14 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             double[] samples = new double[senderChart.Series[0].Points.Count];
             for (int i = 0; i < samples.Length; i++)
                 samples[i] = senderChart.Series[0].Points[i].YValues[0];
+            // Create new filteringTools for the signal
+            int meanSampRate = (int)(_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate / 2d);
+            double meanQuanStep = _Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep / 2d;
+            FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
+            filteringTools.SetStartingInSecond(_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec / 2);
+            filteringTools.SetOriginalSamples(samples);
 
-            EventHandlers.analyseSignalTool(samples, (_sign1SamplingRate + _sign2SamplingRate) / 2, (_sign1QuantizationStep + _sign2QuantizationStep) / 2, "\\Comparator\\Analyser");
+            EventHandlers.analyseSignalTool(filteringTools, "\\Comparator\\Analyser");
         }
     }
 }

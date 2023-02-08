@@ -1,15 +1,12 @@
 ﻿using BSP_Using_AI.Database;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.DatasetExplorer
 {
@@ -18,12 +15,11 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         public MainForm _mainForm;
 
         public long _id;
-        public string _modelPath;
+        public ARTHTModels _aRTHTModels;
+
         public long _datasetSize;
         public int _updatesNum;
-        public List<List<long[]>> _trainingDetails;
         public AIToolsForm _aIToolsForm;
-        public string _modelName;
         public int _lastSelectedItem_shift = -1;
         public bool _shiftClicked = false;
 
@@ -40,7 +36,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
-                                new String[] { "_id", "sginal_name", "starting_index", "sampling_rate" },
+                                new String[] { "_id", "sginal_name", "starting_index", "sampling_rate", "quantisation_step" },
                                 null,
                                 null,
                                 " ORDER BY sginal_name ASC", "DatasetExplorerFormForDataset"));
@@ -50,19 +46,20 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         public void queryForTrainingDataset()
         {
             // Check if there was any added intervals
-            if (!(_trainingDetails.Count > _updatesNum))
+            List<List<long[]>> dataIdsIntervalsList = _aRTHTModels.DataIdsIntervalsList;
+            if (!(_aRTHTModels.DataIdsIntervalsList.Count > _updatesNum))
                 return;
 
             // Qurey for signals features in all last selected intervals from dataset
             string selection = "_id>=? and _id<=?";
             int intervalsNum = 1;
-            if (_trainingDetails.Count > 0)
-                intervalsNum += _trainingDetails[_trainingDetails.Count - 1].Count;
+            if (dataIdsIntervalsList.Count > 0)
+                intervalsNum += dataIdsIntervalsList[dataIdsIntervalsList.Count - 1].Count;
             object[] selectionArgs = new object[intervalsNum * 2];
             intervalsNum = 0;
             selectionArgs[intervalsNum] = 0;
             selectionArgs[intervalsNum + 1] = 0;
-            foreach (long[] datasetInterval in _trainingDetails[_trainingDetails.Count - 1])
+            foreach (long[] datasetInterval in dataIdsIntervalsList[dataIdsIntervalsList.Count - 1])
             {
                 intervalsNum += 2;
                 selection += " or _id>=? and _id<=?";
@@ -171,7 +168,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
             // Insert new intervals in _trainingDetails if there exist any interval
             if (datasetIntervalsList.Count > 0)
-                _trainingDetails.Add(datasetIntervalsList);
+                _aRTHTModels.DataIdsIntervalsList.Add(datasetIntervalsList);
 
             // Start training
             queryForTrainingDataset();
@@ -209,7 +206,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             {
                 // Clear modelsFlowLayoutPanel
                 if (signalsFlowLayoutPanel.Controls.Count > 0)
-                    this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Clear(); }));
+                    if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Clear(); }));
 
                 // Insert new items from records
                 foreach (DataRow row in dataTable.AsEnumerable())
@@ -219,6 +216,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     datasetFlowLayoutPanelItemUserControl.signalNameLabel.Text = row.Field<string>("sginal_name");
                     datasetFlowLayoutPanelItemUserControl.startingIndexLabel.Text = row.Field<long>("starting_index").ToString();
                     datasetFlowLayoutPanelItemUserControl.samplingRateLabel.Text = row.Field<long>("sampling_rate").ToString();
+                    datasetFlowLayoutPanelItemUserControl.quantizationStepLabel.Text = row.Field<long>("quantisation_step").ToString();
                     datasetFlowLayoutPanelItemUserControl._id = row.Field<long>("_id");
 
                     // Check if this form is for "Training dataset explorer"
@@ -229,65 +227,66 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                         datasetFlowLayoutPanelItemUserControl.featuresDetailsButton.Enabled = false;
 
                         // Check if its _id is included in _trainingDetails
-                        foreach (List<long[]> training in _trainingDetails)
+                        foreach (List<long[]> training in _aRTHTModels.DataIdsIntervalsList)
                             foreach (long[] datasetInterval in training)
                                 if (row.Field<long>("_id") >= datasetInterval[0] && row.Field<long>("_id") <= datasetInterval[1])
                                     // If yes then disable the UserControl 
                                     datasetFlowLayoutPanelItemUserControl.Enabled = false;
                     }
 
-                    this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Add(datasetFlowLayoutPanelItemUserControl); }));
+                    if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Add(datasetFlowLayoutPanelItemUserControl); }));
                 }
             }
             // Set features for training
             else if (callingClassName.Equals("DatasetExplorerFormForFeatures"))
             {
                 // Initialize lists of features for each step
-                List<object[]>[] featuresLists = new List<object[]>[7];
-                for (int i = 0; i < featuresLists.Length; i++)
-                    featuresLists[i] = new List<object[]>();
+                Dictionary<string, List<Sample>> dataLists = new Dictionary<string, List<Sample>>(7);
 
-                // Iterate through each signal features and sort them in featuresLists
-                OrderedDictionary signalFeatures = null;
+                // Iterate through each signal samples and sort them in dataLists
+                ARTHTFeatures aRTHTFeatures = null;
                 foreach (DataRow row in dataTable.AsEnumerable())
                 {
-                    signalFeatures = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
-                    // The first item is just beats states
-                    for (int i = 1; i < signalFeatures.Count; i++)
+                    aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                    foreach (string stepName in aRTHTFeatures.StepsDataDic.Keys)
                     {
-                        if (i == 1)
-                            featuresLists[i - 1].Add((object[])signalFeatures[i]);
-                        else if (i == 4)
-                            foreach (List<object[]> beat in (object[])signalFeatures[i])
-                                foreach (object[] feature in beat)
-                                    featuresLists[i - 1].Add(feature);
-                        else
-                            foreach (object[] feature in (object[])signalFeatures[i])
-                                if (feature[0] != null)
-                                    featuresLists[i - 1].Add(feature);
+                        if (!dataLists.ContainsKey(stepName))
+                            dataLists.Add(stepName, new List<Sample>());
+
+                        foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
+                            dataLists[stepName].Add(sample);
                     }
                 }
                 // Send features for fitting
                 // Check which model is selected
                 long datasetSize = _datasetSize + dataTable.Rows.Count;
-                if (_modelName.Contains("Neural network"))
+                if (_aRTHTModels.Name.Contains("Neural network"))
                 {
                     // This is for neural network
-                    _aIToolsForm._tFBackThread._queue.Enqueue(new object[] { "fit", _modelName, featuresLists, _modelPath, datasetSize, _id, _trainingDetails, -1 });
+                    _aIToolsForm._tFBackThread._queue.Enqueue(new QueueSignalInfo()
+                    {
+                        TargetFunc = "fit",
+                        CallingClass = "DatasetExplorerForm",
+                        ModelsName = _aRTHTModels.Name,
+                        DataLists = dataLists,
+                        _datasetSize = datasetSize,
+                        _modelId = _id,
+                        StepName = ""
+                    });
                     _aIToolsForm._tFBackThread._signal.Set();
                 }
-                else if (_modelName.Contains("K-Nearest neighbor"))
+                else if (_aRTHTModels.Name.Contains("K-Nearest neighbor"))
                 {
                     // This is for knn
-                    KNNBackThread kNNBackThread = new KNNBackThread(_aIToolsForm._targetsModelsHashtable, _aIToolsForm);
-                    Thread knnThread = new Thread(() => kNNBackThread.fit(_modelName, featuresLists, datasetSize, _id, _trainingDetails, -1));
+                    KNNBackThread kNNBackThread = new KNNBackThread(_aIToolsForm._arthtModelsDic, _aIToolsForm);
+                    Thread knnThread = new Thread(() => kNNBackThread.fit(_aRTHTModels.Name, dataLists, datasetSize, _id, ""));
                     knnThread.Start();
                 }
-                else if (_modelName.Contains("Naive bayes"))
+                else if (_aRTHTModels.Name.Contains("Naive bayes"))
                 {
                     // This is for naive bayes
-                    NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_aIToolsForm._targetsModelsHashtable, _aIToolsForm);
-                    Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_modelName, featuresLists, datasetSize, _id, _trainingDetails, -1));
+                    NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_aIToolsForm._arthtModelsDic, _aIToolsForm);
+                    Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_aRTHTModels.Name, dataLists, datasetSize, _id, ""));
                     nbThread.Start();
                 }
             }

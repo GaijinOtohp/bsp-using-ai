@@ -35,13 +35,14 @@ namespace BSP_Using_AI.DetailsModify.Filters
             // existanceOfCheckBox
             // 
             this.existanceOfCheckBox.AutoSize = true;
-            this.existanceOfCheckBox.Location = new System.Drawing.Point(22, 16);
+            this.existanceOfCheckBox.Location = new System.Drawing.Point(22, 8);
             this.existanceOfCheckBox.Margin = new System.Windows.Forms.Padding(2);
             this.existanceOfCheckBox.Name = "existanceOfCheckBox";
             this.existanceOfCheckBox.Size = new System.Drawing.Size(84, 17);
             this.existanceOfCheckBox.TabIndex = 21;
             this.existanceOfCheckBox.Text = "Existance of";
             this.existanceOfCheckBox.UseVisualStyleBackColor = true;
+            this.existanceOfCheckBox.CheckedChanged += new System.EventHandler(this.existanceOfCheckBox_CheckedChanged);
             // 
             // CheckExistanceUserControl
             // 
@@ -49,7 +50,7 @@ namespace BSP_Using_AI.DetailsModify.Filters
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.existanceOfCheckBox);
             this.Name = "CheckExistanceUserControl";
-            this.Size = new System.Drawing.Size(284, 46);
+            this.Size = new System.Drawing.Size(284, 33);
             this.ResumeLayout(false);
             this.PerformLayout();
 

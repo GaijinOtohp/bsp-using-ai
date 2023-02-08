@@ -42,9 +42,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // primaryColorButton
             // 
             this.primaryColorButton.BackColor = System.Drawing.Color.Fuchsia;
-            this.primaryColorButton.Location = new System.Drawing.Point(102, 3);
+            this.primaryColorButton.Location = new System.Drawing.Point(136, 5);
+            this.primaryColorButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.primaryColorButton.Name = "primaryColorButton";
-            this.primaryColorButton.Size = new System.Drawing.Size(32, 23);
+            this.primaryColorButton.Size = new System.Drawing.Size(43, 28);
             this.primaryColorButton.TabIndex = 1;
             this.primaryColorButton.UseVisualStyleBackColor = false;
             this.primaryColorButton.Click += new System.EventHandler(this.primaryColorButton_Click);
@@ -52,21 +53,23 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // secondaryColorButton
             // 
             this.secondaryColorButton.BackColor = System.Drawing.Color.Blue;
-            this.secondaryColorButton.Location = new System.Drawing.Point(140, 3);
+            this.secondaryColorButton.Location = new System.Drawing.Point(187, 5);
+            this.secondaryColorButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.secondaryColorButton.Name = "secondaryColorButton";
-            this.secondaryColorButton.Size = new System.Drawing.Size(32, 23);
+            this.secondaryColorButton.Size = new System.Drawing.Size(43, 28);
             this.secondaryColorButton.TabIndex = 2;
             this.secondaryColorButton.UseVisualStyleBackColor = false;
             this.secondaryColorButton.Click += new System.EventHandler(this.primaryColorButton_Click);
             // 
             // outputCheckBox
             // 
-            this.outputCheckBox.AutoSize = true;
             this.outputCheckBox.Checked = true;
             this.outputCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.outputCheckBox.Location = new System.Drawing.Point(3, 7);
+            this.outputCheckBox.Location = new System.Drawing.Point(0, 0);
+            this.outputCheckBox.Margin = new System.Windows.Forms.Padding(0);
+            this.outputCheckBox.MinimumSize = new System.Drawing.Size(125, 0);
             this.outputCheckBox.Name = "outputCheckBox";
-            this.outputCheckBox.Size = new System.Drawing.Size(56, 17);
+            this.outputCheckBox.Size = new System.Drawing.Size(125, 40);
             this.outputCheckBox.TabIndex = 3;
             this.outputCheckBox.Text = "output";
             this.outputCheckBox.UseVisualStyleBackColor = true;
@@ -74,15 +77,17 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // RawVisItemUserControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSize = true;
             this.Controls.Add(this.outputCheckBox);
             this.Controls.Add(this.secondaryColorButton);
             this.Controls.Add(this.primaryColorButton);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.MinimumSize = new System.Drawing.Size(233, 37);
             this.Name = "RawVisItemUserControl";
-            this.Size = new System.Drawing.Size(175, 30);
+            this.Size = new System.Drawing.Size(234, 40);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 

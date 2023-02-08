@@ -1,15 +1,11 @@
-﻿using System;
+﻿using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
 using System.IO;
-using System.Linq;
-using System.Numerics;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
-using BSP_Using_AI.DetailsModify;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI
@@ -18,7 +14,7 @@ namespace BSP_Using_AI
     {
         //*******************************************************************************************************//
         //*************************************INSERT SIGNAL VECTOR IN CHART*************************************//
-        public static void loadXYInChart(Chart chart, double[] xValues, double[] yValues, string[] labels, double startingIndex, int selectedSeries, String reference)
+        public static void loadXYInChart(Chart chart, double[] xValues, double[] yValues, string[] labels, double startingInSec, int selectedSeries, String reference)
         {
             Series series = chart.Series[selectedSeries];
 
@@ -28,15 +24,36 @@ namespace BSP_Using_AI
             int indx = 0;
             for (int i = 0; i < xValues.Length; i++)
             {
-                indx = series.Points.AddXY(startingIndex + xValues[i], yValues[i]);
+                indx = series.Points.AddXY(startingInSec + xValues[i], yValues[i]);
                 if (labels != null)
                     series.Points[indx].Label = labels[i];
             }
-                
+
             chart.Series[selectedSeries] = series;
         }
 
-        public static void loadSignalInChart(Chart chart, double[] samples, double samplingRate, double quantizationStep, double startingIndex, String reference)
+        public static void loadXYInChart(Chart chart, double[] xValues, double[] yValues, float[] colorVals, double startingInSec, int selectedSeries)
+        {
+            Series series = chart.Series[selectedSeries];
+
+            series.Points.Clear();
+
+            // Insert the signal in the chart
+            int indx = 0;
+            for (int i = 0; i < xValues.Length; i++)
+            {
+                indx = series.Points.AddXY(startingInSec + xValues[i], yValues[i]);
+                if (colorVals != null)
+                {
+                    series.Points[indx].MarkerColor = ControlPaint.Light(series.Points[indx].MarkerColor, colorVals[i]);
+                    series.Points[indx].MarkerBorderColor = ControlPaint.Light(series.Points[indx].MarkerBorderColor, colorVals[i]);
+                }
+            }
+
+            chart.Series[selectedSeries] = series;
+        }
+
+        public static void loadSignalInChart(Chart chart, double[] samples, double samplingRate, double startingIndex, String reference)
         {
             Series series = chart.Series[0];
 
@@ -44,70 +61,101 @@ namespace BSP_Using_AI
 
             // Insert the signal in the chart
             for (int i = 0; i < samples.Length; i++)
-                series.Points.AddXY(startingIndex + (i / samplingRate), samples[i] / quantizationStep);
+                series.Points.AddXY(startingIndex + (i / samplingRate), samples[i]);
             chart.Series[0] = series;
         }
 
         //*******************************************************************************************************//
         //****************************************ABSOLUTE VALUES SIGNAL*****************************************//
-        public static double[] absoluteSignal(double[] signal)
+        public static double[] absoluteSignal(double[] samples)
         {
-            double[] samples = new double[signal.Length];
-            for (int i = 0; i < signal.Length; i++)
-                samples[i] = Math.Abs(signal[i]);
+            double[] filteredSamples = new double[samples.Length];
+            for (int i = 0; i < samples.Length; i++)
+                filteredSamples[i] = Math.Abs(samples[i]);
 
-            return samples;
+            return filteredSamples;
         }
 
         //*******************************************************************************************************//
-        //***************************************NORMALIZED VALUES SIGNAL****************************************//
-        public static double[] normalizeSignal(double[] signal)
+        //*****************************************Vector normalization******************************************//
+        public static double[] vectorNormalization(double[] samples)
         {
             // Calculate the normalizationCoef of the selected signal
-            double[] samples = new double[signal.Length];
+            double[] filteredSamples = new double[samples.Length];
             double normalizationCoef = 0D;
-            for (int i = 0; i < signal.Length; i++)
-                normalizationCoef += signal[i] * signal[i];
+            foreach (double sample in samples)
+                normalizationCoef += sample * sample;
             normalizationCoef = Math.Sqrt(normalizationCoef);
 
-            for (int i = 0; i < signal.Length; i++)
-                samples[i] = signal[i] / normalizationCoef;
+            for (int i = 0; i < samples.Length; i++)
+                filteredSamples[i] = samples[i] / normalizationCoef;
 
-            return samples;
+            return filteredSamples;
+        }
+        //*******************************************************************************************************//
+        //*****************************************min max normalization*****************************************//
+        public static double[] normalizeSignal(double[] samples)
+        {
+            (double mean, double min, double max) meanMinMax = MeanMinMax(samples);
+            double ampInterval = meanMinMax.max - meanMinMax.min;
+            // Normalize the samples
+            double[] filteredSamples = new double[samples.Length];
+
+            for (int i = 0; i < samples.Length; i++)
+                filteredSamples[i] = (samples[i] - meanMinMax.min) / ampInterval;
+
+            return filteredSamples;
         }
 
         //*******************************************************************************************************//
         //******************************************PDF COEFS OF SIGNAL******************************************//
-        public static OrderedDictionary statParams(double[] signal)
+        public static List<StatParam> statParams(double[] samples)
         {
-            OrderedDictionary statParams = new OrderedDictionary();
+            List<StatParam> statParams = new List<StatParam>(5);
 
             // Get mean, min, and max of the signal
-            (double mean, double min, double max) = meanMinMax(signal);
+            (double mean, double min, double max) = MeanMinMax(samples);
 
             // Get standart deviation of the signal
-            double stdDev = stdDevCalc(signal, mean);
+            double stdDev = stdDevCalc(samples, mean);
 
             // Calculate inter quartile range (IQR)
-            double IQR = signalIQR(signal);
+            double IQR = signalIQR(samples);
 
-            statParams.Add("mean", mean);
-            statParams.Add("min", min);
-            statParams.Add("max", max);
-            statParams.Add("std_dev", stdDev);
-            statParams.Add("iqr", IQR);
+            statParams.Add(new StatParam() { Name = ARTHTNamings.Mean, _value = mean });
+            statParams.Add(new StatParam() { Name = ARTHTNamings.Min, _value = min });
+            statParams.Add(new StatParam() { Name = ARTHTNamings.Max, _value = max });
+            statParams.Add(new StatParam() { Name = ARTHTNamings.StdDev, _value = stdDev });
+            statParams.Add(new StatParam() { Name = ARTHTNamings.IQR, _value = IQR });
             return statParams;
         }
 
-        public static (double mean, double min, double max) meanMinMax(double[] signal)
+        public static (float mean, float min, float max) MeanMinMax(float[] samples)
+        {
+            // Calculate mean, min, max of signal
+            float mean = 0f;
+            float min = float.PositiveInfinity;
+            float max = float.NegativeInfinity;
+            foreach (float sample in samples)
+            {
+                mean += sample / samples.Length;
+                if (sample < min)
+                    min = sample;
+                if (sample > max)
+                    max = sample;
+            }
+
+            return (mean, min, max);
+        }
+        public static (double mean, double min, double max) MeanMinMax(double[] samples)
         {
             // Calculate mean, min, max of signal
             double mean = 0d;
             double min = double.PositiveInfinity;
             double max = double.NegativeInfinity;
-            foreach (double sample in signal)
+            foreach (double sample in samples)
             {
-                mean += sample / signal.Length;
+                mean += sample / samples.Length;
                 if (sample < min)
                     min = sample;
                 if (sample > max)
@@ -117,12 +165,12 @@ namespace BSP_Using_AI
             return (mean, min, max);
         }
 
-        public static double stdDevCalc(double[] signal, double mean)
+        public static double stdDevCalc(double[] samples, double mean)
         {
             // Calculate standard deviation
             double stdDev = 0d;
-            foreach (double sample in signal)
-                stdDev += Math.Pow(sample - mean, 2) / signal.Length;
+            foreach (double sample in samples)
+                stdDev += Math.Pow(sample - mean, 2) / samples.Length;
             stdDev = Math.Sqrt(stdDev);
 
             return stdDev;
@@ -181,111 +229,32 @@ namespace BSP_Using_AI
 
         //*******************************************************************************************************//
         //***********************************************DC REMOVAL**********************************************//
-        public static double[] removeDCValue(double[] signal)
+        public static double[] removeDCValue(double[] samples)
         {
-            if (signal.Length == 0)
+            if (samples.Length == 0)
                 return null;
+            double[] filteredSamples = (double[])samples.Clone();
 
             // Calculate the dc value
-            double dcValue = signal[0];
-            for (int i = 1; i < signal.Length; i++)
-                dcValue = ((dcValue * i) + signal[i]) / (i + 1);
+            double dcValue = samples[0];
+            for (int i = 1; i < samples.Length; i++)
+                dcValue = ((dcValue * i) + samples[i]) / (i + 1);
 
             // Remove the dc value from the singal samples
-            for (int i = 0; i < signal.Length; i++)
-                signal[i] -= dcValue;
+            for (int i = 0; i < samples.Length; i++)
+                filteredSamples[i] -= dcValue;
 
-            return signal;
-        }
-
-        //*******************************************************************************************************//
-        //***********************************************IIR FILTERs*********************************************//
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="signal"></param>
-        /// <param name="type">0: as low pass. 1: as high pass</param>
-        /// <param name="order"></param>
-        /// <param name="normalizedFreq">The cut off frequency in between 0 - 0.5</param>
-        /// <returns></returns>
-        public static double[] iirFilter(double[] signal, String filterName, int type, int order, double normalizedFreq, double samplingRate)
-        {
-            if (signal.Length == 0)
-                return null;
-
-            // Set the signal as float
-            float[] floatSignal = new float[signal.Length];
-            for (int i = 0; i < signal.Length; i++)
-                floatSignal[i] = (float)signal[i];
-
-            // Check the filter type
-            object filter = null;
-            NWaves.Signals.DiscreteSignal filtered = null;
-            switch (filterName)
-            {
-                case "Butter Worth":
-                    // This is butterworth filter
-                    // Check which type is selected
-                    if (type == 0)
-                    {
-                        // If yes then generate a low pass filter
-                        filter = new NWaves.Filters.Butterworth.LowPassFilter(normalizedFreq, order);
-                        filtered = ((NWaves.Filters.Butterworth.LowPassFilter)filter).ApplyTo(new NWaves.Signals.DiscreteSignal((int)samplingRate, floatSignal));
-                    } else
-                    {
-                        // If yes then generate a high pass filter
-                        filter = new NWaves.Filters.Butterworth.HighPassFilter(normalizedFreq, order);
-                        filtered = ((NWaves.Filters.Butterworth.HighPassFilter)filter).ApplyTo(new NWaves.Signals.DiscreteSignal((int)samplingRate, floatSignal));
-                    }
-                    break;
-                case "Chebyshev I":
-                    // This is Chebyshev I filter
-                    // Check which type is selected
-                    if (type == 0)
-                    {
-                        // If yes then generate a low pass filter
-                        filter = new NWaves.Filters.ChebyshevI.LowPassFilter(normalizedFreq, order);
-                        filtered = ((NWaves.Filters.ChebyshevI.LowPassFilter)filter).ApplyTo(new NWaves.Signals.DiscreteSignal((int)samplingRate, floatSignal));
-                    } else
-                    {
-                        // If yes then generate a high pass filter
-                        filter = new NWaves.Filters.ChebyshevI.HighPassFilter(normalizedFreq, order);
-                        filtered = ((NWaves.Filters.ChebyshevI.HighPassFilter)filter).ApplyTo(new NWaves.Signals.DiscreteSignal((int)samplingRate, floatSignal));
-                    }
-                    break;
-                case "Chebyshev II":
-                    // This is Chebyshev II filter
-                    // Check which type is selected
-                    if (type == 0)
-                    {
-                        // If yes then generate a low pass filter
-                        filter = new NWaves.Filters.ChebyshevII.LowPassFilter(normalizedFreq, order);
-                        filtered = ((NWaves.Filters.ChebyshevII.LowPassFilter)filter).ApplyTo(new NWaves.Signals.DiscreteSignal((int)samplingRate, floatSignal));
-                    }
-                    else
-                    {
-                        // If yes then generate a high pass filter
-                        filter = new NWaves.Filters.ChebyshevII.HighPassFilter(normalizedFreq, order);
-                        filtered = ((NWaves.Filters.ChebyshevII.HighPassFilter)filter).ApplyTo(new NWaves.Signals.DiscreteSignal((int)samplingRate, floatSignal));
-                    }
-                    break;
-            }
-
-            // Copy the filtered signal in signal as double
-            for (int i = 0; i < filtered.Length; i++)
-                signal[i] = (double)filtered.Samples[i];
-
-            return signal;
+            return filteredSamples;
         }
 
         //*******************************************************************************************************//
         //**********************************************DWT TRANSFORM********************************************//
-        public static object[] calculateDWT(double[] signal, String waveletName, int maxLevel)
+        public static List<double[]> calculateDWT(double[] samples, String waveletName, int maxLevel)
         {
-            if (signal.Length == 0)
+            if (samples.Length == 0)
                 return null;
             // Create the signal of length of power of 2
-            double[] signalOfPowerOf2 = createPowerOf2Signal(signal);
+            double[] signalOfPowerOf2 = createPowerOf2Signal(samples);
             // Create a copy of the signal in float items
             float[] signalInPowerOf2 = new float[signalOfPowerOf2.Length];
             for (int i = 0; i < signalOfPowerOf2.Length; i++)
@@ -304,28 +273,28 @@ namespace BSP_Using_AI
             fwt.Direct(signalInPowerOf2, dwtOfSignal, 1);
 
             // Sort dwt levels in dwtLevelsSamples from dwtOfSignal
-            object[] dwtLevelsSamples = new object[allLevels];
+            List<double[]> dwtLevelsSamples = new List<double[]>(allLevels);
 
-            int levelSignalLength = signal.Length / 2;
-            if (signal.Length % 2 == 1)
+            int levelSignalLength = samples.Length / 2;
+            if (samples.Length % 2 == 1)
                 levelSignalLength += 1;
 
-            int levelAddedSamplesLen = (dwtOfSignal.Length - signal.Length) / 2;
+            int levelAddedSamplesLen = (dwtOfSignal.Length - samples.Length) / 2;
 
-            dwtLevelsSamples[0] = new double[levelSignalLength];
+            dwtLevelsSamples.Add(new double[levelSignalLength]);
             for (int j = 0; j < levelSignalLength; j++)
-                ((double[])dwtLevelsSamples[0])[j] = dwtOfSignal[levelSignalLength + levelAddedSamplesLen + j];
+                dwtLevelsSamples[0][j] = dwtOfSignal[levelSignalLength + levelAddedSamplesLen + j];
 
-            signal = new double[levelSignalLength];
+            samples = new double[levelSignalLength];
             for (int j = 0; j < levelSignalLength; j++)
-                signal[j] = dwtOfSignal[j];
+                samples[j] = dwtOfSignal[j];
 
             try
             {
                 for (int i = 1; i < allLevels; i++)
                 {
                     // Create the signal of length of power of 2
-                    signalOfPowerOf2 = createPowerOf2Signal(signal);
+                    signalOfPowerOf2 = createPowerOf2Signal(samples);
                     // Create a copy of the signal in float items
                     signalInPowerOf2 = new float[signalOfPowerOf2.Length];
                     for (int j = 0; j < signalOfPowerOf2.Length; j++)
@@ -335,19 +304,19 @@ namespace BSP_Using_AI
                     dwtOfSignal = new float[signalOfPowerOf2.Length];
                     fwt.Direct(signalInPowerOf2, dwtOfSignal, 1);
 
-                    levelSignalLength = signal.Length / 2;
-                    if (signal.Length % 2 == 1)
+                    levelSignalLength = samples.Length / 2;
+                    if (samples.Length % 2 == 1)
                         levelSignalLength += 1;
 
-                    levelAddedSamplesLen = (dwtOfSignal.Length - signal.Length) / 2;
+                    levelAddedSamplesLen = (dwtOfSignal.Length - samples.Length) / 2;
 
-                    dwtLevelsSamples[i] = new double[levelSignalLength];
+                    dwtLevelsSamples.Add(new double[levelSignalLength]);
                     for (int j = 0; j < levelSignalLength; j++)
                         ((double[])dwtLevelsSamples[i])[j] = dwtOfSignal[levelSignalLength + levelAddedSamplesLen + j];
 
-                    signal = new double[levelSignalLength];
+                    samples = new double[levelSignalLength];
                     for (int j = 0; j < levelSignalLength; j++)
-                        signal[j] = dwtOfSignal[j];
+                        samples[j] = dwtOfSignal[j];
                 }
             }
             catch (Exception e)
@@ -429,12 +398,7 @@ namespace BSP_Using_AI
                 }
 
                 // Normalize the new vector
-                normalizationCoef = 0D;
-                foreach (double sample in newPsi)
-                    normalizationCoef += sample * sample;
-                normalizationCoef = Math.Sqrt(normalizationCoef);
-                for (int i = 0; i < newPsi.Length; i++)
-                    newPsi[i] = newPsi[i] / normalizationCoef;
+                newPsi = vectorNormalization(newPsi);
 
                 // Add new orthogonalized signal
                 orthogonalizedSignals.Add(newPsi);
@@ -467,202 +431,262 @@ namespace BSP_Using_AI
         /// where the state could be up, down, or stable
         /// </summary>
         /// <param name="samples"></param>
-        /// <param name="interval">is the interval between max and min (max - min)</param>
-        /// <param name="thresholdRatio">vertical resolution</param>
-        /// <param name="horThreshold">horizontal resolution</param>
-        /// <param name="accThresholdRatio">minimum angle rotation between last state and next one</param>
-        /// <param name="accelerationEnabled">calculate acceleration if enabled</param>
+        /// <param name="ART">threshold for amplitude resolution</param>
+        /// <param name="HT">threshold for horizontal resolution</param>
+        /// <param name="TDT">threshold for the opposite of tangent deviation between last state and next state</param>
+        /// <param name="deviationtionEnabled">compute tangent deviation if enabled</param>
         /// <returns></returns>
-        public static List<State> scanPeaks(double[] samples, double interval, double thresholdRatio, double quantizationStep, double tdtThresholdRatio, bool deviationtionEnabled, Chart chart)
+        public static Dictionary<string, List<State>> scanPeaks(double[] samples, double ART, int HT, double TDT, double samplingRate, bool deviationtionEnabled)
         {
-            List<State> states = new List<State>();
+            double amplitudeInterval = Garage.amplitudeInterval(samples);
+            Dictionary<string, List<State>> statesDIc = new Dictionary<string, List<State>>(5)
+            {
+                { SANamings.AllPeaks, new List<State>() },
+                { SANamings.UpPeaks, new List<State>() },
+                { SANamings.DownPeaks, new List<State>() },
+                { SANamings.StableStates, new List<State>() },
+            };
 
-            //interval *= quantizationStep;
-            //for (int i = 0; i < samples.Length; i++)
-                //samples[i] *= quantizationStep;
+            if (amplitudeInterval == 0 || samplingRate == 0) return statesDIc;
 
-            // Add the first temporary state as a stable state
-            states.Add(createState("stable", 0, samples[0]));
+            bool resetEverything = false;
+            TempState up = new TempState() { Name = SANamings.Up, _edgeValue = double.NegativeInfinity };
+            TempState down = new TempState() { Name = SANamings.Down, _edgeValue = double.PositiveInfinity };
+            TempState stable = new TempState() { Name = SANamings.Stable };
 
-            // Create a variable for a temporary new state
-            State tempNewState = createState("", 0, samples[0]);
+            State lastUpState = new State() { Name = up.Name, _index = 0, _value = samples[0], _firstApearanceValue = samples[0] }; ////////// Verify this
+            State lastDownState = new State() { Name = down.Name, _index = 0, _value = samples[0], _firstApearanceValue = samples[0] }; ////////// Verify this
+            State lastStableState = new State() { Name = stable.Name, _index = 0, _value = samples[0], _firstApearanceValue = samples[0] }; ////////// Verify this
 
-            // Create a variable for last recorded state
-            State lastState;
-            double differenceRatio;
-            double oppositeRatio;
-            // Iterate through all next samples in the signal
+            double previousSample = samples[0];
+            double lastStateValue = samples[0];
+            double opposite;
             for (int i = 1; i < samples.Length; i++)
             {
-                // Get last state
-                lastState = states[states.Count - 1];
-
-                // Update the temporary new state
-                tempNewState._index = i;
-                tempNewState._value = samples[i];
-
-                // Compute difference ratio between current sample and last state
-                differenceRatio = (samples[i] - lastState._value) / interval;
-
-                // Calculate opposite
-                oppositeRatio = opposite(ref states, ref tempNewState) / interval;
-
-                // Update min and max of tempNewState
-                if (samples[i] < tempNewState._minValue)
+                // Check if this move is going up/down/or stable
+                if (samples[i] > previousSample)
                 {
-                    tempNewState._minValue = samples[i];
-                    tempNewState._minIndex = i;
-                }
-                if (samples[i] > tempNewState._maxValue)
-                {
-                    tempNewState._maxValue = samples[i];
-                    tempNewState._maxIndex = i;
-                }
-                if (oppositeRatio < thresholdRatio)
-                {
-                    tempNewState._stableValue = samples[i];
-                    tempNewState._stableIndex = i;
-                }
-                /*if (oppositeRatio < tempNewState._closeOppValue)
-                {
-                    tempNewState._closeOppValue = oppositeRatio;
-                    tempNewState._closeOppIndex = i;
-                }*/
-
-                // Check if opposite reaches thresholdRatio
-                if (Math.Abs(oppositeRatio) > thresholdRatio)
-                {
-                    tempNewState._initialValue = tempNewState._value;
-                    tempNewState._initialIndex = tempNewState._index;
-                    // Check if amplitude between current sample and last state is greater than thresholdRatio
-                    //if (differenceRatio > 1.5 * thresholdRatio || (lastState.Name.Equals("up") && lastState._maxValue < tempNewState._maxValue))
-                    if ((tempNewState._maxValue - lastState._maxValue) / interval > thresholdRatio)
+                    // Check if current sample value is the highest recorded
+                    if (samples[i] > up._edgeValue)
                     {
-                        // If yes then set the new state as Up
-                        tempNewState.Name = "up";
-                        tempNewState._value = tempNewState._maxValue;
-                        tempNewState._index = tempNewState._maxIndex;
-                        if (lastState.Name.Equals("up"))
-                        {
-                            lastState.Name = "stable";
-                            lastState._value = lastState._initialValue;
-                            lastState._index = lastState._initialIndex;
-                        }
+                        up._edgeIndex = i;
+                        up._edgeValue = samples[i];
+
+                        // Check if last state is up and is not away more than horThreshold
+                        if (lastUpState._index > lastDownState._index && lastUpState._index > lastStableState._index && i - lastUpState._index < HT)
+                            // If yes then update up peak
+                            addUpState(ref statesDIc, ref up, ref lastUpState, lastDownState, lastStableState, ref resetEverything, false);
                     }
-                    // Check if amplitude between current sample and last state is less than -thresholdRatio
-                    //else if (differenceRatio < -1.5 * thresholdRatio || (lastState.Name.Equals("down") && lastState._maxValue > tempNewState._maxValue))
-                    else if ((tempNewState._minValue - lastState._minValue) / interval < thresholdRatio)
+                }
+                else if (samples[i] < previousSample)
+                {
+                    // Check if current sample value is the lowest recorded
+                    if (samples[i] < down._edgeValue)
                     {
-                        // If yes then set the new state as Up
-                        tempNewState.Name = "down";
-                        tempNewState._value = tempNewState._minValue;
-                        tempNewState._index = tempNewState._minIndex;
-                        if (lastState.Name.Equals("down"))
-                        {
-                            lastState.Name = "stable";
-                            lastState._value = lastState._initialValue;
-                            lastState._index = lastState._initialIndex;
-                        }
+                        down._edgeIndex = i;
+                        down._edgeValue = samples[i];
+
+                        // Check if last state is up and is not away more than horThreshold
+                        if (lastDownState._index > lastUpState._index && lastDownState._index > lastStableState._index && i - lastDownState._index < HT)
+                            // If yes then update down peak
+                            addDownState(ref statesDIc, ref down, lastUpState, ref lastDownState, lastStableState, ref resetEverything, false);
                     }
+                }
+
+                // Get last state's index
+                int lastStateIndex = statesDIc[SANamings.AllPeaks].Count - 1;
+                if (statesDIc[SANamings.AllPeaks].Count > 0)
+                    if (statesDIc[SANamings.AllPeaks][lastStateIndex].Name.Equals(SANamings.Stable))
+                        lastStateValue = statesDIc[SANamings.AllPeaks][lastStateIndex]._firstApearanceValue;
                     else
-                    {
-                        // If yes then set the new state as Stable
-                        tempNewState.Name = "stable";
-                    }
+                        lastStateValue = statesDIc[SANamings.AllPeaks][lastStateIndex]._value;
 
-                    // Check if temporary new state has a name
-                    if (!tempNewState.Name.Equals(""))
-                    {
-                        // Check if previous state is not the same as the new state
-                        //if (lastState.Name != tempNewState.Name)
-                        // If yes then add a new state
-                        states.Add(tempNewState);
-                        //else
-                            // Else just remplace it with the new state
-                            //states[states.Count - 1] = tempNewState;
-
-                        // Refresh the temporary new state
-                        tempNewState = createState("", i, samples[i]);
-                    }
-
-                    // Reset i of iteration
-                    if (i < samples.Length - 1)
-                        i = states[states.Count - 1]._index + 1;
+                // Check if its absolute change of moving up is thresholdRatio % more than interval (max - min)
+                if ((samples[i] - lastStateValue) / amplitudeInterval > ART)
+                    // If yes then add new up peak
+                    addUpState(ref statesDIc, ref up, ref lastUpState, lastDownState, lastStableState, ref resetEverything, false);
+                // Check if its absolute change of moving down is more than interval (max - min) with thresholdRatio%
+                else if (-(samples[i] - lastStateValue) / amplitudeInterval > ART)
+                    // If yes then add new down peak
+                    addDownState(ref statesDIc, ref down, lastUpState, ref lastDownState, lastStableState, ref resetEverything, false);
+                // Check if current index is away from the index of last state with more than horThreshold
+                // and the absolure change between up and down is less than thresholdRatio
+                else if ((i - lastUpState._index > HT && i - lastDownState._index > HT && i > lastStableState._index) && Math.Abs((samples[i] - lastStateValue) / amplitudeInterval) < ART)
+                {
+                    // If yes then add new stable state
+                    stable._edgeIndex = i - 1;
+                    stable._edgeValue = samples[i - 1];
+                    addStableState(ref statesDIc, ref stable, lastUpState, lastDownState, ref lastStableState, ref resetEverything, false);
                 }
 
                 ///:::::::::::::::::::: FOT TANGENT DEVIATION TOLERANCE :::::::::::::::::::::///
                 // Set tangent deviation angle if enabled
-                if (states.Count > 1 && deviationtionEnabled)
+                if (statesDIc[SANamings.AllPeaks].Count > 1 && deviationtionEnabled)
                 {
-                    // Calculate this deviation in amplitude
-                    double tolerance = opposite(ref states, ref tempNewState);
+                    // Update last state's index
+                    lastStateIndex = statesDIc[SANamings.AllPeaks].Count - 1;
+                    opposite = Opposite(statesDIc[SANamings.AllPeaks][lastStateIndex - 1], statesDIc[SANamings.AllPeaks][lastStateIndex], samplingRate);
 
-                    // Check if tolerance is higher than tdtThresholdRatio % of interval
-                    if (tolerance / interval > tdtThresholdRatio)
+                    // Check if opposite is higher than tdtThresholdRatio % of interval
+                    if (opposite / amplitudeInterval > TDT)
                     {
                         // If yes then new tangent deviation reached threshold
+
                         // Add new state for the new accelerated state
-                        if (lastState.Name.Equals("up"))
-                            states.Add(createState("up", i, samples[i]));
-                        else if (lastState.Name.Equals("down"))
-                            states.Add(createState("down", i, samples[i]));
-                        else if (lastState.Name.Equals("stable"))
-                            states.Add(createState("stable", i, samples[i]));
+                        if (statesDIc[SANamings.AllPeaks][lastStateIndex].Name.Equals(SANamings.Up))
+                            addUpState(ref statesDIc, ref up, ref lastUpState, lastDownState, lastStableState, ref resetEverything, true);
+                        else if (statesDIc[SANamings.AllPeaks][lastStateIndex].Name.Equals(SANamings.Down))
+                            addDownState(ref statesDIc, ref down, lastUpState, ref lastDownState, lastStableState, ref resetEverything, true);
+                        else if (statesDIc[SANamings.AllPeaks][lastStateIndex].Name.Equals(SANamings.Stable))
+                        {
+                            stable._edgeIndex = i - 1;
+                            stable._edgeValue = samples[i - 1];
+                            addStableState(ref statesDIc, ref stable, lastUpState, lastDownState, ref lastStableState, ref resetEverything, true);
+                        }
                     }
 
                     ///:::::::::::::::::::: STATE ROTAION :::::::::::::::::::::///
                     // Update second last state's acceleration value
-                    if (states.Count > 2)
-                    {
-                        double lastTan = (states[states.Count - 1]._value - states[states.Count - 2]._value) / (states[states.Count - 1]._index - states[states.Count - 2]._index);
-                        double secondLastTan = (states[states.Count - 2]._value - states[states.Count - 3]._value) / (states[states.Count - 2]._index - states[states.Count - 3]._index);
-
-                        states[states.Count - 2]._deviantionAngle = (Math.Atan(lastTan) - Math.Atan(secondLastTan)) * 180 / Math.PI;
-                    }
+                    if (statesDIc[SANamings.AllPeaks].Count > 2)
+                        statesDIc[SANamings.AllPeaks][lastStateIndex - 1]._deviantionAngle = (Math.Atan(statesDIc[SANamings.AllPeaks][lastStateIndex]._meanTangentFromLastState) - Math.Atan(statesDIc[SANamings.AllPeaks][lastStateIndex - 1]._meanTangentFromLastState)) *
+                                                                    180 / Math.PI;
                 }
+
+                // Check if everything should be resetted
+                if (resetEverything)
+                {
+                    up._edgeValue = double.NegativeInfinity;
+                    down._edgeValue = double.PositiveInfinity;
+
+                    resetEverything = false;
+                }
+
+                // Set the new previous sample
+                previousSample = samples[i];
 
             }
 
-            //for (int i = 0; i < states.Count; i++)
-                //states[i]._value /= quantizationStep;
-            return states;
+            return statesDIc;
         }
 
-        private static State createState(string name, int index, double value)
+        private static void addUpState(ref Dictionary<string, List<State>> statesDIc, ref TempState up, ref State lastUpState, State lastDownState, State lastStableState, ref bool resetEverything, bool justAdd)
         {
-            return new State
+            if (statesDIc[SANamings.AllPeaks].Count > 0)
             {
-                Name = name,
-                _index = index,
-                _value = value,
-                _minIndex = index,
-                _minValue = value,
-                _maxIndex = index,
-                _maxValue = value,
-                _stableIndex = index,
-                _stableValue = value,
-                _deviantionAngle = 0d,
-                _meanFromLastState = value,
-                _meanTangentFromLastState = double.NegativeInfinity,
-                _tangentFromLastState = double.NegativeInfinity
-            };
+                // Check if there is different state before this new up state
+                if ((lastDownState._index > lastUpState._index && up._edgeIndex > lastDownState._index) || (lastStableState._index > lastUpState._index && up._edgeIndex > lastStableState._index) || justAdd)
+                {
+                    // If yes then just add the new down state
+                    State upState = new State() { Name = up.Name, _index = up._edgeIndex, _value = up._edgeValue, _firstApearanceValue = up._edgeValue };
+                    statesDIc[SANamings.AllPeaks].Add(upState);
+                    statesDIc[SANamings.UpPeaks].Add(upState);
+                    lastUpState = upState;
+                    // Reset everything
+                    resetEverything = true;
+                }
+                // Check if last down state is greater than the current new one
+                else if (up._edgeValue > lastUpState._value)
+                {
+                    // If yes then update last up state
+                    lastUpState._index = up._edgeIndex;
+                    lastUpState._value = up._edgeValue;
+                    // Reset everything
+                    resetEverything = true;
+                }
+            }
+            else
+            {
+                State upState = new State() { Name = up.Name, _index = up._edgeIndex, _value = up._edgeValue, _firstApearanceValue = up._edgeValue };
+                statesDIc[SANamings.AllPeaks].Add(upState);
+                statesDIc[SANamings.UpPeaks].Add(upState);
+                lastUpState = upState;
+                // Reset everything
+                resetEverything = true;
+            }
         }
 
-        private static double opposite(ref List<State> states, ref State tempNewState)
+        private static void addDownState(ref Dictionary<string, List<State>> statesDIc, ref TempState down, State lastUpState, ref State lastDownState, State lastStableState, ref bool resetEverything, bool justAdd)
+        {
+            if (statesDIc[SANamings.AllPeaks].Count > 0)
+            {
+                // Check if there is different state before this new down state
+                if ((lastUpState._index > lastDownState._index && down._edgeIndex > lastUpState._index) || (lastStableState._index > lastDownState._index && down._edgeIndex > lastStableState._index) || justAdd)
+                {
+                    // If yes then just add the new down state
+                    State downState = new State() { Name = down.Name, _index = down._edgeIndex, _value = down._edgeValue, _firstApearanceValue = down._edgeValue };
+                    statesDIc[SANamings.AllPeaks].Add(downState);
+                    statesDIc[SANamings.DownPeaks].Add(downState);
+                    lastDownState = downState;
+                    // Reset everything
+                    resetEverything = true;
+                }
+                // Check if last down state is greater than the current new one
+                else if (down._edgeValue < lastDownState._value)
+                {
+                    // If yes then update last down state
+                    lastDownState._index = down._edgeIndex;
+                    lastDownState._value = down._edgeValue;
+                    // Reset everything
+                    resetEverything = true;
+                }
+            }
+            else
+            {
+                State downState = new State() { Name = down.Name, _index = down._edgeIndex, _value = down._edgeValue, _firstApearanceValue = down._edgeValue };
+                statesDIc[SANamings.AllPeaks].Add(downState);
+                statesDIc[SANamings.DownPeaks].Add(downState);
+                lastDownState = downState;
+                // Reset everything
+                resetEverything = true;
+            }
+        }
+
+        private static void addStableState(ref Dictionary<string, List<State>> statesDIc, ref TempState stable, State lastUpState, State lastDownState, ref State lastStableState, ref bool resetEverything, bool justAdd)
+        {
+            if (statesDIc[SANamings.AllPeaks].Count > 0)
+            {
+                // Check if there is different state before this new down state
+                if ((lastDownState._index > lastStableState._index && stable._edgeIndex > lastDownState._index) || (lastUpState._index > lastStableState._index && stable._edgeIndex > lastUpState._index) || justAdd)
+                {
+                    // If yes then just add the new stable state
+                    State stableState = new State() { Name = stable.Name, _index = stable._edgeIndex, _value = stable._edgeValue, _firstApearanceValue = stable._edgeValue };
+                    statesDIc[SANamings.AllPeaks].Add(stableState);
+                    statesDIc[SANamings.StableStates].Add(stableState);
+                    lastStableState = stableState;
+                }
+                else
+                {
+                    // If yes then update last stable state
+                    lastStableState._index = stable._edgeIndex;
+                    lastStableState._value = stable._edgeValue;
+                }
+            }
+            else
+            {
+                State stableState = new State() { Name = stable.Name, _index = stable._edgeIndex, _value = stable._edgeValue, _firstApearanceValue = stable._edgeValue };
+                statesDIc[SANamings.AllPeaks].Add(stableState);
+                statesDIc[SANamings.StableStates].Add(stableState);
+                lastStableState = stableState;
+            }
+            // Reset everything
+            resetEverything = true;
+        }
+
+        private static double Opposite(State secondLastState, State lastState, double samplingRate)
         {
             // Calculate tangent argument between last two states
-            tempNewState._tangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / ((tempNewState._index - states[states.Count - 1]._index) / 360d);
+            lastState._tangentFromLastState = (lastState._value - secondLastState._value) / ((lastState._index - secondLastState._index) / samplingRate);
             // Update mean_tangent
-            if (double.IsNegativeInfinity(tempNewState._meanTangentFromLastState))
-                tempNewState._meanTangentFromLastState = (tempNewState._value - states[states.Count - 1]._value) / ((tempNewState._index - states[states.Count - 1]._index) / 360d);
+            if (double.IsNegativeInfinity(lastState._meanTangentFromLastState))
+                lastState._meanTangentFromLastState = (lastState._value - secondLastState._value) / ((lastState._index - secondLastState._index) / samplingRate);
             else
-                tempNewState._meanTangentFromLastState = (tempNewState._meanTangentFromLastState * (tempNewState._index - states[states.Count - 1]._index) + (tempNewState._value - states[states.Count - 1]._value) / ((tempNewState._index - states[states.Count - 1]._index) / 360d)) / (tempNewState._index - states[states.Count - 1]._index + 1);
+                lastState._meanTangentFromLastState = (lastState._meanTangentFromLastState * (lastState._index - secondLastState._index) + (lastState._value - secondLastState._value) / ((lastState._index - secondLastState._index) / samplingRate)) / (lastState._index - secondLastState._index + 1);
 
             // Calculate deviation between last tangent and mean tangent in rad
             //double tangentedeviation = Math.Abs(Math.Atan(tempNewState._tangentFromLastState) - Math.Atan(tempNewState._meanTangentFromLastState));
-            double tangentedeviation = Math.Atan(tempNewState._tangentFromLastState) - Math.Atan(tempNewState._meanTangentFromLastState);
+            double tangentedeviation = Math.Atan(lastState._tangentFromLastState) - Math.Atan(lastState._meanTangentFromLastState);
             // Calculate this deviation in amplitude
-            double segment = Math.Sqrt(Math.Pow(tempNewState._value - states[states.Count - 1]._value, 2) + Math.Pow((tempNewState._index - states[states.Count - 1]._index) / 360d, 2));
+            double segment = Math.Sqrt(Math.Pow(lastState._value - secondLastState._value, 2) + Math.Pow((lastState._index - secondLastState._index) / samplingRate, 2));
             double opposite = Math.Sin(tangentedeviation) * segment;
 
             return opposite;
@@ -678,8 +702,9 @@ namespace BSP_Using_AI
         /// <param name="interval">interval between max and min (max - min)</param>
         /// <param name="states">list of all peaks</param>
         /// <returns></returns>
-        public static List<int[]> scanQRS(double[] samples, double interval, List<State> states)
+        public static List<int[]> scanQRS(double[] samples, List<State> states)
         {
+            double amplitudeInterval = Garage.amplitudeInterval(samples);
             // Scan for QRS peaks
             // Get QRS peaks indexes from _samples
             List<int[]> qrsPeaks = new List<int[]>(states.Count); // as [Q index, R index, S index]
@@ -691,7 +716,7 @@ namespace BSP_Using_AI
                 if (qrsPeak[0] == -1)
                 {
                     // If yes then check if current status is up
-                    if (states[i].Name.Equals("up"))
+                    if (states[i].Name.Equals(SANamings.Up))
                         // If yes then set the previous state index as Q
                         if (i > 0)
                             qrsPeak[0] = (int)states[i - 1]._index;
@@ -705,9 +730,9 @@ namespace BSP_Using_AI
                 else if (qrsPeak[1] == -1)
                 {
                     // If yes then check if current status is down
-                    if (states[i].Name.Equals("down"))
+                    if (states[i].Name.Equals(SANamings.Down))
                         // Check if previous state was stable
-                        if (states[i - 1].Name.Equals("stable"))
+                        if (states[i - 1].Name.Equals(SANamings.Stable))
                             // If yes then set the middle of stable status as R
                             qrsPeak[1] = ((int)states[i - 1]._index + (int)states[i - 2]._index) / 2;
                         else
@@ -721,17 +746,17 @@ namespace BSP_Using_AI
                 {
                     // If yes then we are looking for the S peak
                     // Check if current status is up or the last status
-                    if (states[i].Name.Equals("up"))
+                    if (states[i].Name.Equals(SANamings.Up))
                     {
                         // If yes then set the previous state index as S
                         // Check if the previous status wasn't stable
-                        if (!states[i - 1].Name.Equals("stable"))
+                        if (!states[i - 1].Name.Equals(SANamings.Stable))
                             qrsPeak[2] = (int)states[i - 1]._index;
                         else
                             qrsPeak[2] = (int)states[i - 2]._index;
 
                         // Check if current qrs energy is higher than 60% of interval
-                        if (((samples[qrsPeak[1]] - samples[qrsPeak[0]] + samples[qrsPeak[1]] - samples[qrsPeak[2]]) / (2 * interval)) > 0.6)
+                        if (((samples[qrsPeak[1]] - samples[qrsPeak[0]] + samples[qrsPeak[1]] - samples[qrsPeak[2]]) / (2 * amplitudeInterval)) > 0.6)
                             // If yes then insert the new peak
                             qrsPeaks.Add(qrsPeak);
                         qrsPeak = new int[3] { (int)states[i - 1]._index, -1, -1 };
@@ -742,7 +767,7 @@ namespace BSP_Using_AI
                         qrsPeak[2] = (int)states[i]._index;
 
                         // Check if current qrs energy is higher than 60% of interval
-                        if (((samples[qrsPeak[1]] - samples[qrsPeak[0]] + samples[qrsPeak[1]] - samples[qrsPeak[2]]) / (2 * interval)) > 0.6)
+                        if (((samples[qrsPeak[1]] - samples[qrsPeak[0]] + samples[qrsPeak[1]] - samples[qrsPeak[2]]) / (2 * amplitudeInterval)) > 0.6)
                             // If yes then insert the new peak
                             qrsPeaks.Add(qrsPeak);
                         qrsPeak = new int[3] { -1, -1, -1 };
@@ -993,7 +1018,8 @@ namespace BSP_Using_AI
                 {
                     var obj = binForm.Deserialize(memStream);
                     return obj;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                 }
@@ -1110,28 +1136,46 @@ namespace BSP_Using_AI
 
         //*******************************************************************************************************//
         //**************************************REARRANGE INPUT OF FEATURES**************************************//
-        public static List<object[]> rearrangeFeaturesInput(List<object[]> featuresLists, List<double[]> pcLoadingScores)
+        public static List<Sample> rearrangeFeaturesInput(List<Sample> dataLists, List<PCAitem> pcLoadingScores)
         {
             if (pcLoadingScores.Count > 0)
-                for (int i = 0; i < featuresLists.Count; i++)
+                for (int i = 0; i < dataLists.Count; i++)
                 {
-                    double[] inputBuff = new double[pcLoadingScores.Count];
-                    for (int j = 0; j < pcLoadingScores.Count; j++)
-                        for (int k = 0; k < ((double[])featuresLists[i][0]).Length; k++)
-                        inputBuff[j] += ((double[])featuresLists[i][0])[k] * pcLoadingScores[j][k];
-                    featuresLists[i][0] = inputBuff;
+                    int selectedPCsNum = 0;
+                    foreach (PCAitem pcaItem in pcLoadingScores)
+                        if (pcaItem._selected)
+                            selectedPCsNum++;
+                    double[] inputBuff = new double[selectedPCsNum];
+                    selectedPCsNum = 0;
+                    foreach (PCAitem pcaItem in pcLoadingScores)
+                        if (pcaItem._selected)
+                        {
+                            for (int k = 0; k < dataLists[i].getFeatures().Length; k++)
+                                inputBuff[selectedPCsNum] += dataLists[i].getFeatures()[k] * pcaItem.EigenVector[k];
+                            selectedPCsNum++;
+                        }
+                    dataLists[i].insertFeaturesArray(inputBuff);
                 }
-            return featuresLists;
+            return dataLists;
         }
 
-        public static double[] rearrangeInput(double[] input, List<double[]> pcLoadingScores)
+        public static double[] rearrangeInput(double[] input, List<PCAitem> pcLoadingScores)
         {
             if (pcLoadingScores.Count > 0)
             {
-                double[] inputBuff = new double[pcLoadingScores.Count];
-                for (int j = 0; j < pcLoadingScores.Count; j++)
-                    for (int k = 0; k < input.Length; k++)
-                        inputBuff[j] += input[k] * pcLoadingScores[j][k];
+                int selectedPCsNum = 0;
+                foreach (PCAitem pcaItem in pcLoadingScores)
+                    if (pcaItem._selected)
+                        selectedPCsNum++;
+                double[] inputBuff = new double[selectedPCsNum];
+                selectedPCsNum = 0;
+                foreach (PCAitem pcaItem in pcLoadingScores)
+                    if (pcaItem._selected)
+                    {
+                        for (int k = 0; k < input.Length; k++)
+                            inputBuff[selectedPCsNum] += input[k] * pcaItem.EigenVector[k];
+                        selectedPCsNum++;
+                    }
                 input = inputBuff;
             }
 

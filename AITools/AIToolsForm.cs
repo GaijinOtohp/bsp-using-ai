@@ -1,21 +1,13 @@
 ﻿using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.Database;
-using Keras;
-using Keras.Layers;
-using Keras.Models;
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 
 namespace BSP_Using_AI
 {
@@ -23,7 +15,7 @@ namespace BSP_Using_AI
     {
         public MainForm _mainForm;
 
-        public Hashtable _targetsModelsHashtable = null;
+        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
 
         public TFBackThread _tFBackThread;
 
@@ -43,7 +35,7 @@ namespace BSP_Using_AI
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("models",
-                                new String[] { "_id", "type_name", "model_target", "model_path", "dataset_size", "model_updates", "trainings_details" },
+                                new String[] { "_id", "the_model", "dataset_size" },
                                 null,
                                 null,
                                 "", "AIToolsForm"));
@@ -65,28 +57,25 @@ namespace BSP_Using_AI
 
             if (showMessage) { MessageBox.Show(message, "Fields missing", MessageBoxButtons.OK); return; }
 
-            // Set selected_variables and thresholds for the 7 steps
-            List<double[]>[] pcLoadingScores = new List<double[]>[] { new List<double[]>(), new List<double[]>(), new List<double[]>(),
-                                                                  new List<double[]>(), new List<double[]>(), new List<double[]>(), new List<double[]>() };
-            List<float[]> outputsThresholds = new List<float[]> { null, new float[] { 0.5f }, null, new float[] { 0.5f, 0.5f }, new float[] { 0.5f }, null, new float[] { 0.5f } };
             // Check which model for which terget is selected
             if (modelTypeComboBox.SelectedIndex == 0 && aiGoalComboBox.SelectedIndex == 0)
             {
                 // If yes then this is neural network for WPW syndrome detection
-                _tFBackThread._queue.Enqueue(new object[] { "createNeuralNetworkModelForWPW", "AIToolsForm", this, pcLoadingScores, outputsThresholds });
+                _tFBackThread._queue.Enqueue(new QueueSignalInfo() { TargetFunc = "createNeuralNetworkModelForWPW", CallingClass = "AIToolsForm", _aIToolsForm = this });
                 _tFBackThread._signal.Set();
-            } else if (modelTypeComboBox.SelectedIndex == 1 && aiGoalComboBox.SelectedIndex == 0)
+            }
+            else if (modelTypeComboBox.SelectedIndex == 1 && aiGoalComboBox.SelectedIndex == 0)
             {
                 // If yes then this is for KNN models
-                KNNBackThread kNNBackThread = new KNNBackThread(_targetsModelsHashtable, this);
-                Thread knnThread = new Thread(() => kNNBackThread.createKNNkModelForWPW(pcLoadingScores, outputsThresholds));
+                KNNBackThread kNNBackThread = new KNNBackThread(_arthtModelsDic, this);
+                Thread knnThread = new Thread(() => kNNBackThread.createKNNkModelForWPW());
                 knnThread.Start();
             }
             else if (modelTypeComboBox.SelectedIndex == 2 && aiGoalComboBox.SelectedIndex == 0)
             {
                 // If yes then this is for KNN models
-                NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_targetsModelsHashtable, this);
-                Thread nbThread = new Thread(() => naiveBayesBackThread.createNBModelForWPW(pcLoadingScores, outputsThresholds));
+                NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, this);
+                Thread nbThread = new Thread(() => naiveBayesBackThread.createNBModelForWPW());
                 nbThread.Start();
             }
         }
@@ -126,26 +115,30 @@ namespace BSP_Using_AI
 
             // Clear modelsFlowLayoutPanel
             if (modelsFlowLayoutPanel.Controls.Count > 0)
-                this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Clear(); }));
+                if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Clear(); }));
 
             // Insert new items from records
             foreach (DataRow row in dataTable.AsEnumerable())
             {
                 // Create an item of the model
                 ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl();
-                int modelIndx = 0;
-                while (modelsFlowLayoutPanel.Controls.ContainsKey(row.Field<string>("type_name") + " for " + row.Field<string>("model_target") + modelIndx))
-                    modelIndx++;
-                modelsFlowLayoutPanelItemUserControl.Name = row.Field<string>("type_name") + " for " + row.Field<string>("model_target") + modelIndx;
-                modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = modelsFlowLayoutPanelItemUserControl.Name;
+
+                ARTHTModels aRTHTModels = (ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"));
+
+                modelsFlowLayoutPanelItemUserControl.Name = aRTHTModels.Name;
+                modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = aRTHTModels.Name;
                 modelsFlowLayoutPanelItemUserControl.datasetSizeLabel.Text = row.Field<long>("dataset_size").ToString();
-                modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = row.Field<long>("model_updates").ToString();
+                modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = aRTHTModels.DataIdsIntervalsList.Count().ToString();
                 modelsFlowLayoutPanelItemUserControl.unfittedDataLabel.Text = "0";
                 modelsFlowLayoutPanelItemUserControl._id = row.Field<long>("_id");
-                modelsFlowLayoutPanelItemUserControl._modelPath = row.Field<string>("model_path");
-                modelsFlowLayoutPanelItemUserControl._trainingDetails = (List<List<long[]>>)Garage.ByteArrayToObject(row.Field<byte[]>("trainings_details"));
+                for (int i = 0; i < 240; i++)
+                    if (!_arthtModelsDic.ContainsKey(aRTHTModels.Name))
+                        Thread.Sleep(500);
+                    else
+                        break;
+                modelsFlowLayoutPanelItemUserControl._aRTHTModels = _arthtModelsDic[aRTHTModels.Name];
 
-                this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Add(modelsFlowLayoutPanelItemUserControl); }));
+                if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Add(modelsFlowLayoutPanelItemUserControl); }));
             }
         }
 

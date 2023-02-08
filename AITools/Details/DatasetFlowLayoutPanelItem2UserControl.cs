@@ -1,16 +1,4 @@
-﻿using BSP_Using_AI.Database;
-using BSP_Using_AI.DetailsModify;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace BSP_Using_AI.AITools.Details
 {
@@ -24,10 +12,10 @@ namespace BSP_Using_AI.AITools.Details
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        
+
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
-        
+
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
     }

@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
 {
@@ -21,13 +15,13 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        public void insertSignal(double[] signal, double samplingRate, double quantizationStep, String path)
+        public void insertSignal(FilteringTools filteringTools, String path)
         {
             // Check if the flow layout is open for new signals
             if (selectSignalCheckBox.Checked)
             {
                 // Create new UserControlSignalPower and insert it in signalsFlowLayoutPanel
-                UserControlSignalPower userControlSignalPower = new UserControlSignalPower(signal, samplingRate, quantizationStep);
+                UserControlSignalPower userControlSignalPower = new UserControlSignalPower(filteringTools);
                 userControlSignalPower.pathLabel.Text = path;
                 if (signalsFlowLayoutPanel.Width > 900)
                 {

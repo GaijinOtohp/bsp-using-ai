@@ -1,67 +1,45 @@
-﻿using BSP_Using_AI.Database;
+﻿using BSP_Using_AI.AITools.Details;
+using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+using BSP_Using_AI.Database;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools
 {
-    class KNNBackThread: DbStimulatorReportHolder
+    class KNNBackThread : DbStimulatorReportHolder
     {
         private AIBackThreadReportHolder _aiBackThreadReportHolderForAIToolsForm;
 
-        private Hashtable _targetsModelsHashtable = null;
-        private string _selectedModel;
+        private Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        ARTHTModels _aRTHTModels = null;
 
-        public struct KNNModel
+        public KNNBackThread(Dictionary<string, ARTHTModels> arthtModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
-            public int k;
-            public List<object[]> featuresList;
-        }
-
-        private struct distanteOutput
-        {
-            public double distance;
-            public double[] output;
-        }
-
-        private struct kError
-        {
-            public double error;
-            public int k;
-        }
-
-        public KNNBackThread(Hashtable targetsModelsHashtable, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
-        {
-            _targetsModelsHashtable = targetsModelsHashtable;
+            _arthtModelsDic = arthtModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
-        public void fit(string modelsName, List<object[]>[] featuresLists, long datasetSize, long modelId, List<List<long[]>> trainingDetails, int stepIndx)
+        public void fit(string modelsName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
         {
             int fitProgress = 0;
-            int tolatFitProgress = featuresLists.Length;
+            int tolatFitProgress = dataLists.Count;
 
-            // Iterate through models from the selected ones in _targetsModelsHashtable
-            int[] ks = new int[featuresLists.Length];
+            // Iterate through models from the selected ones in _arthtModelsDic
+            ARTHTModels arthtModels = _arthtModelsDic[modelsName];
 
             // Fit features
-            if (stepIndx > -1)
-            {
-                ((List<object[]>)_targetsModelsHashtable[modelsName])[stepIndx][0] = fit((KNNModel)((List<object[]>)_targetsModelsHashtable[modelsName])[stepIndx][0],
-                                                                                      featuresLists[stepIndx], ks, stepIndx,
-                                                                                      (List<double[]>)((List<object[]>)_targetsModelsHashtable[modelsName])[stepIndx][1]);
-            }
+            if (!stepName.Equals(""))
+                fit((KNNModel)arthtModels.ARTHTModelsDic[stepName],
+                                               dataLists[stepName]);
             else
-                for (int i = 0; i < ((List<object[]>)_targetsModelsHashtable[modelsName]).Count; i++)
+                foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
                 {
-                    ((List<object[]>)_targetsModelsHashtable[modelsName])[i][0] = fit((KNNModel)((List<object[]>)_targetsModelsHashtable[modelsName])[i][0],
-                                                                                      featuresLists[i], ks, i,
-                                                                                      (List<double[]>)((List<object[]>)_targetsModelsHashtable[modelsName])[i][1]);
+                    fit((KNNModel)arthtModels.ARTHTModelsDic[stepNa],
+                                                   dataLists[stepNa]);
 
                     // Update fitProgressBar
                     fitProgress++;
@@ -71,54 +49,56 @@ namespace BSP_Using_AI.AITools
 
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
-            if (trainingDetails.Count > 0)
-                dbStimulator.Update("models", new string[] { "the_model", "dataset_size", "model_updates", "trainings_details" },
-                    new Object[] { Garage.ObjectToByteArray(ks), datasetSize, trainingDetails.Count, Garage.ObjectToByteArray(trainingDetails) }, modelId, "TFBackThread");
+            if (arthtModels.DataIdsIntervalsList.Count > 0)
+                dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
+                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()), datasetSize }, modelId, "TFBackThread");
             else
                 dbStimulator.Update("models", new string[] { "the_model" },
-                    new Object[] { Garage.ObjectToByteArray(ks) }, modelId, "TFBackThread");
+                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()) }, modelId, "TFBackThread");
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
                 _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "fitting_complete", modelsName, datasetSize }, "AIToolsForm");
         }
 
-        public static KNNModel fit(KNNModel model, List<object[]> featuresList, int[] ks, int i, List<double[]> pcLoadingScores)
+        public static KNNModel fit(KNNModel model, List<Sample> dataList)
         {
-            featuresList = Garage.rearrangeFeaturesInput(featuresList, pcLoadingScores);
+            if (model._pcaActive)
+                dataList = Garage.rearrangeFeaturesInput(dataList, model.PCA);
             // Set the new optimal k for this model
-            if (featuresList.Count > 0)
-                ks[i] = getOptimalK(featuresList.Select((x, y) => new { Index = y, Value = x })
+            if (dataList.Count > 0)
+                model.k = getOptimalK(dataList.Select((x, y) => new { Value = x, Index = y })
                                                         .GroupBy(x => x.Index / 300)
                                                         .Select(x => x.Select(v => v.Value).ToList())
-                                                        .ToList()[0],
-                                                        pcLoadingScores);
+                                                        .ToList()[0], model);
             else
-                ks[i] = 3;
+                model.k = 3;
             // Set the new features in the model
-            model = new KNNModel { k = ks[i], featuresList = new List<object[]>() };
-            foreach (object[] feature in featuresList)
-                model.featuresList.Add(feature);
+            foreach (Sample feature in dataList)
+                model.DataList.Add(feature);
 
             return model;
         }
 
-        public static double[] predict(double[] input, KNNModel kNNModel, List<double[]> pcLoadingScores)
+        public static double[] predict(double[] features, KNNModel kNNModel)
         {
             // Initialize input
-            input = Garage.rearrangeInput(input, pcLoadingScores);
+            if (kNNModel._pcaActive)
+                features = Garage.rearrangeInput(features, kNNModel.PCA);
             // Create list for calculating distances between input and saved dataset
             List<distanteOutput> distances = new List<distanteOutput>();
             // Iterate through all saved features and calucalte distance between the input and the saved feature
+            double[] savedFeatures;
             double distance;
-            foreach (object[] feature in kNNModel.featuresList)
+            foreach (Sample samp in kNNModel.DataList)
             {
                 distance = 0;
-                for (int i = 0; i < input.Length; i++)
-                    distance += Math.Pow(input[i] - ((double[])feature[0])[i], 2);
+                savedFeatures = samp.getFeatures();
+                for (int i = 0; i < features.Length; i++)
+                    distance += Math.Pow(features[i] - savedFeatures[i], 2);
                 distance = Math.Sqrt(distance);
                 // Insert distance and its output in distances
-                distances.Add(new distanteOutput { distance = distance, output = (double[])feature[1] });
+                distances.Add(new distanteOutput { distance = distance, output = samp.getOutputs() });
             }
             // Sort distances in distances
             distances.Sort((e1, e2) => { return e1.distance.CompareTo(e2.distance); });
@@ -136,76 +116,88 @@ namespace BSP_Using_AI.AITools
             return output;
         }
 
-        public void createKNNkModelForWPW(List<double[]>[] pcLoadingScores, List<float[]> outputsThresholds)
+        public void createKNNkModelForWPW()
         {
             // Create neural network models for WPW syndrome detection
             // Create 7 models for { 2 for QRS detection (Threshold_ratio & Hor_threshold, remove_miss_selected_R),
             // 2 for P_T detection (Threshold_ratio & Hor_threshold, P & T states),
             // 1 for short PR detection,
             // 2 for delta deteciton (Acceleration threshold, delta existence) }
-            List<object[]> modelsList = new List<object[]>();
+            ARTHTModels arthtModels = new ARTHTModels();
             // Create a KNN models structure with the initial optimum K, which is "3"
-            modelsList.Add(new object[] { createKNNModel(3), pcLoadingScores[0], outputsThresholds[0] }); // (15, 2) For R peaks detection
-            modelsList.Add(new object[] { createKNNModel(3), pcLoadingScores[1], outputsThresholds[1] }); // (2, 1) For R selection
-            modelsList.Add(new object[] { createKNNModel(3), pcLoadingScores[2], outputsThresholds[2] }); // (5, 2) For beat peaks detection
-            modelsList.Add(new object[] { createKNNModel(3), pcLoadingScores[3], outputsThresholds[3] }); // (3, 2) For P and T detection
-            modelsList.Add(new object[] { createKNNModel(3), pcLoadingScores[4], outputsThresholds[4] }); // (1, 1) For short PR detection
-            modelsList.Add(new object[] { createKNNModel(3), pcLoadingScores[5], outputsThresholds[5] }); // (6, 1) For delta detection
-            modelsList.Add(new object[] { createKNNModel(3), pcLoadingScores[6], outputsThresholds[6] }); // (6, 1) For WPW syndrome declaration
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createKNNModel(ARTHTNamings.Step1RPeaksScanData, 3, 2); // (15, 2) For R peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createKNNModel(ARTHTNamings.Step2RPeaksSelectionData, 3, 1); // (2, 1) For R selection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createKNNModel(ARTHTNamings.Step3BeatPeaksScanData, 3, 2); // (5, 2) For beat peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createKNNModel(ARTHTNamings.Step4PTSelectionData, 3, 2); // (3, 2) For P and T detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createKNNModel(ARTHTNamings.Step5ShortPRScanData, 3, 1); // (1, 1) For short PR detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createKNNModel(ARTHTNamings.Step6UpstrokesScanData, 3, 1); // (6, 1) For delta detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createKNNModel(ARTHTNamings.Step7DeltaExaminationData, 3, 1); // (6, 1) For WPW syndrome declaration
 
-            // Insert models in _targetsModelsHashtable
+            // Insert models in _arthtModelsDic
             int modelIndx = 0;
-            while (_targetsModelsHashtable.ContainsKey("K-Nearest neighbor for WPW syndrome detection" + modelIndx))
+            while (_arthtModelsDic.ContainsKey("K-Nearest neighbor for WPW syndrome detection" + modelIndx))
                 modelIndx++;
-            _targetsModelsHashtable.Add("K-Nearest neighbor for WPW syndrome detection" + modelIndx, modelsList);
+            arthtModels.Name = "K-Nearest neighbor for WPW syndrome detection" + modelIndx;
+            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
 
-            // Create array of ints initialized with models optimum k values
-            int[] ks = new int[] { 3, 3, 3, 3, 3, 3, 3 };
             // Save models in models table
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size", "model_updates", "trainings_details" },
-                new Object[] { "K-Nearest neighbor", "WPW syndrome detection", Garage.ObjectToByteArray(ks), Garage.ObjectToByteArray(pcLoadingScores), Garage.ObjectToByteArray(outputsThresholds), "", 0, 0, Garage.ObjectToByteArray(new List<List<long[]>>()) }, "KNNBackThread");
+            dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "dataset_size" },
+                new Object[] { "K-Nearest neighbor", "WPW syndrome detection", Garage.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)
                 _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "createModel" }, "AIToolsForm");
         }
 
-        public static KNNModel createKNNModel(int k)
+        public static KNNModel createKNNModel(string stepName, List<Sample> dataList, bool pcaActive)
+        {
+            // Compute PCA loading scores if PCA is active
+            List<PCAitem> pca = new List<PCAitem>();
+            if (pcaActive)
+                // If yes then compute PCA loading scores
+                pca = DataVisualisationForm.getPCA(dataList);
+            int output;
+
+            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step4PTSelectionData))
+                output = 2;
+            else
+                output = 1;
+
+            KNNModel tempModel = createKNNModel(stepName, 3, output);
+            tempModel._pcaActive = pcaActive;
+            tempModel.PCA = pca;
+
+            return tempModel;
+        }
+
+        public static KNNModel createKNNModel(string name, int k, int outputNumber)
         {
             // Create a KNN model structure with the initial optimum K
-            return new KNNModel { k = k, featuresList = new List<object[]>() };
+            KNNModel model = new KNNModel { Name = name, k = k };
+            // Set initial thresholds for output decisions
+            model.OutputsThresholds = new float[outputNumber];
+            for (int i = 0; i < outputNumber; i++)
+                model.OutputsThresholds[i] = 0.5f;
+
+            return model;
         }
 
-        public void initializeNeuralNetworkModelsForWPW(long lastSignalId, int[] ks, List<double[]>[] pcLoadingScores, List<float[]> outputsThresholds)
+        public void initializeNeuralNetworkModelsForWPW(ARTHTModels arthtModels)
         {
-            // Create model according their k in ks
-            List<object[]> modelsList = new List<object[]>();
-            for (int i = 0; i < pcLoadingScores.Length; i++)
-                modelsList.Add(new object[] { createKNNModel(ks[i]), pcLoadingScores[i], outputsThresholds[i] });
-            // Insert models in _targetsModelsHashtable
-            int modelIndx = 0;
-            while (_targetsModelsHashtable.ContainsKey("K-Nearest neighbor for WPW syndrome detection" + modelIndx))
-                modelIndx++;
-            _targetsModelsHashtable.Add("K-Nearest neighbor for WPW syndrome detection" + modelIndx, modelsList);
-            // Set the selected model name
-            _selectedModel = "K-Nearest neighbor for WPW syndrome detection" + modelIndx;
+            // Insert models in _arthtModelsDic
+            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
+            _aRTHTModels = arthtModels;
 
-            // Query for all fitted signals in this model in dataset table
-            DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            dbStimulator.Query("dataset",
-                                new String[] { "features" },
-                                "_id<=?",
-                                new Object[] { lastSignalId },
-                                "", "KNNBackThread");
+            // Query for the selected dataset
+            ValidationFlowLayoutPanelUserControl.queryForSelectedDataset(arthtModels.DataIdsIntervalsList, this);
         }
 
-        private static int getOptimalK(List<object[]> features, List<double[]> pcLoadingScores)
+        private static int getOptimalK(List<Sample> data, KNNModel model)
         {
             // Iterate through all possible k values
             List<kError> kErrors = new List<kError>();
-            for (int k = 1; k <= 101 && k <= features.Count; k += 2)
+            for (int k = 1; k <= 41 && k <= data.Count; k += 2)
             {
                 // Separate features to 4 quarters
                 // and take 3 quarters as KNNModel features
@@ -213,48 +205,50 @@ namespace BSP_Using_AI.AITools
                 int parts = 1;
                 int partFeaturesNmbr = 1;
                 for (int i = 4; i > 0; i--)
-                    if (features.Count / i > 0)
+                    if (data.Count / i > 0)
                     {
                         parts = i;
                         break;
                     }
-                partFeaturesNmbr = features.Count / parts;
+                partFeaturesNmbr = data.Count / parts;
                 double modelError = 0;
                 double predError;
                 for (int i = 0; i < parts; i++)
                 {
                     // Create KNNModel and validation list
-                    KNNModel kNNModel = new KNNModel { k = k, featuresList = new List<object[]>() };
-                    List<object[]> validationList = new List<object[]>();
+                    KNNModel kNNModel = model.Clone();
+                    List<Sample> validationList = new List<Sample>();
                     if (parts == 1)
-                        foreach (object[] feature in features)
+                        foreach (Sample sample in data)
                         {
-                            kNNModel.featuresList.Add(feature);
-                            validationList.Add(feature);
+                            kNNModel.DataList.Add(sample);
+                            validationList.Add(sample);
                         }
                     else
-                        for (int j = 0; j < features.Count; j++)
+                        for (int j = 0; j < data.Count; j++)
                         {
                             // Check if this feature is for validation
                             if ((i * partFeaturesNmbr <= j && j < (i + 1) * partFeaturesNmbr) || (i == parts - 1 && i * partFeaturesNmbr <= j))
                                 // This is for validation
-                                validationList.Add(features[j]);
+                                validationList.Add(data[j]);
                             else
                                 // This is for KNNModel
-                                kNNModel.featuresList.Add(features[j]);
+                                kNNModel.DataList.Add(data[j]);
                         }
                     // Calculate error for this parition
                     double[] predictedOutput;
-                    foreach (object[] feature in validationList)
+                    double[] actualOutput;
+                    foreach (Sample sample in validationList)
                     {
                         // Calculate prediction error
                         predError = 0;
-                        predictedOutput = predict((double[])feature[0], kNNModel, pcLoadingScores);
+                        predictedOutput = predict(sample.getFeatures(), kNNModel);
+                        actualOutput = sample.getOutputs();
                         for (int j = 0; j < predictedOutput.Length; j++)
-                            predError += Math.Pow(predictedOutput[j] - ((double[])feature[1])[j], 2);
+                            predError += Math.Pow(predictedOutput[j] - actualOutput[j], 2);
                         predError = Math.Sqrt(predError);
                         // Add this error in modelError
-                        modelError += predError / features.Count;
+                        modelError += predError / data.Count;
                     }
                 }
 
@@ -271,27 +265,15 @@ namespace BSP_Using_AI.AITools
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
         public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
-            if (!callingClassName.Contains("KNNBackThread"))
-                return;
-
-            // Iterate through each signal features and sort them in featuresLists
-            OrderedDictionary signalFeatures = null;
+            // Iterate through each signal samples and sort them in dataLists
+            ARTHTFeatures aRTHTFeatures;
             foreach (DataRow row in dataTable.AsEnumerable())
             {
-                signalFeatures = (OrderedDictionary)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
-                // The first item is just beats states
-                for (int i = 1; i < signalFeatures.Count; i++)
+                aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                foreach (string stepName in aRTHTFeatures.StepsDataDic.Keys)
                 {
-                    if (i == 1)
-                        ((KNNModel)((List<object[]>)_targetsModelsHashtable[_selectedModel])[i - 1][0]).featuresList.Add((object[])signalFeatures[i]);
-                    else if (i == 4)
-                        foreach (List<object[]> beat in (object[])signalFeatures[i])
-                            foreach (object[] feature in beat)
-                                ((KNNModel)((List<object[]>)_targetsModelsHashtable[_selectedModel])[i - 1][0]).featuresList.Add(feature);
-                    else
-                        foreach (object[] feature in (object[])signalFeatures[i])
-                            if (feature[0] != null)
-                                ((KNNModel)((List<object[]>)_targetsModelsHashtable[_selectedModel])[i - 1][0]).featuresList.Add(feature);
+                    foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
+                        ((KNNModel)_aRTHTModels.ARTHTModelsDic[stepName]).DataList.Add(sample);
                 }
             }
         }
