@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSP Using AI", "BSP Using AI\BSP Using AI.csproj", "{BFF9833D-2E5D-489A-82BE-78613D9CCA83}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFF9833D-2E5D-489A-82BE-78613D9CCA83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFF9833D-2E5D-489A-82BE-78613D9CCA83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFF9833D-2E5D-489A-82BE-78613D9CCA83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFF9833D-2E5D-489A-82BE-78613D9CCA83}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A05C3CD6-ED80-4C99-A981-F7A3AB225F39}
+	EndGlobalSection
+EndGlobal
