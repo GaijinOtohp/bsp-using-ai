@@ -315,7 +315,7 @@ namespace BSP_Using_AI.DetailsModify
                 {
                     case 1:
                         // This is for QRS detection
-                        featuresItems = new ToolStripMenuItem(ARTHTNamings.Step1RPeaksScanData);
+                        featuresItems = new ToolStripMenuItem(ARTHTNamings.Step1RPeaksScanData) { Name = ARTHTNamings.Step1RPeaksScanData };
                         Sample rPeaksScanSamp = new Sample(ARTHTNamings.Step1RPeaksScanData + "0", 15, 2, _arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData]);
                         // Disable showing results in chart
                         _FilteringTools.ShowResultInChart(false);
@@ -381,7 +381,7 @@ namespace BSP_Using_AI.DetailsModify
                         break;
                     case 2:
                         // This is for QRS selection
-                        featuresItems = new ToolStripMenuItem(ARTHTNamings.Step2RPeaksSelectionData);
+                        featuresItems = new ToolStripMenuItem(ARTHTNamings.Step2RPeaksSelectionData) { Name = ARTHTNamings.Step2RPeaksSelectionData };
 
                         // Create a hashtable where to store R indexes and their amplitude
                         Dictionary<int, State> rDictionary = new Dictionary<int, State>();
@@ -550,9 +550,9 @@ namespace BSP_Using_AI.DetailsModify
                         // This is for beats peaks detection (P, T)
                         // Get previous saved features if exists
                         if (featuresTableLayoutPanel.Controls.Count == 3)
-                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[2]).Items[0];
+                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step3BeatPeaksScanData]).Items[0];
                         else
-                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step3BeatPeaksScanData);
+                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step3BeatPeaksScanData) { Name = ARTHTNamings.Step3BeatPeaksScanData };
 
                         // Create the pdf of the signal and insert its coefs as inputs
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Features);
@@ -639,9 +639,9 @@ namespace BSP_Using_AI.DetailsModify
                         // This is for P and T selection
                         // Get previous saved features if exists
                         if (featuresTableLayoutPanel.Controls.Count == 4)
-                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[3]).Items[0];
+                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step4PTSelectionData]).Items[0];
                         else
-                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step4PTSelectionData);
+                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step4PTSelectionData) { Name = ARTHTNamings.Step4PTSelectionData };
 
                         // Get the index of selected beat
                         int selectedBeatIndx = featuresItems.DropDownItems.Count;
@@ -662,10 +662,6 @@ namespace BSP_Using_AI.DetailsModify
                             flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.State + i);
                             // Set the inputs of the state
                             flowLayoutItems03 = new ToolStripMenuItem(ARTHTNamings.Features);
-                            ///
-                            double a = _FilteringTools._FilteredSamples[signalStates[i]._index];
-                            double b = signalStates[i]._value;
-                            ///
                             ptSelectionSamp.insertFeature(0, ARTHTNamings.Stx, signalStates[i]._value);
                             flowLayoutItems03.DropDownItems.Add("ampSt" + i + ": " + ptSelectionSamp.getFeatureByLabel(ARTHTNamings.Stx));
                             if (selectedBeatIndx == 0)
@@ -786,9 +782,9 @@ namespace BSP_Using_AI.DetailsModify
                         // This is for short PR detection
                         // Get previous saved features if exists
                         if (featuresTableLayoutPanel.Controls.Count == 5)
-                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[4]).Items[0];
+                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step5ShortPRScanData]).Items[0];
                         else
-                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step5ShortPRScanData);
+                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step5ShortPRScanData) { Name = ARTHTNamings.Step5ShortPRScanData };
 
                         // Get the index of selected beat
                         selectedBeatIndx = featuresItems.DropDownItems.Count;
@@ -896,9 +892,9 @@ namespace BSP_Using_AI.DetailsModify
                         // This is for delta detection
                         // Get previous saved features if exists
                         if (featuresTableLayoutPanel.Controls.Count == 6)
-                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[5]).Items[0];
+                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step6UpstrokesScanData]).Items[0];
                         else
-                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step6UpstrokesScanData);
+                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step6UpstrokesScanData) { Name = ARTHTNamings.Step6UpstrokesScanData };
 
                         // Get curretn step threshold
                         threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
@@ -1044,9 +1040,9 @@ namespace BSP_Using_AI.DetailsModify
                         // This is for delta selection
                         // Get previous saved features if exists
                         if (featuresTableLayoutPanel.Controls.Count == 7)
-                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[6]).Items[0];
+                            featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step7DeltaExaminationData]).Items[0];
                         else
-                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step7DeltaExaminationData);
+                            featuresItems = new ToolStripMenuItem(ARTHTNamings.Step7DeltaExaminationData) { Name = ARTHTNamings.Step7DeltaExaminationData };
 
                         // Get curretn step threshold
                         threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
@@ -1131,7 +1127,7 @@ namespace BSP_Using_AI.DetailsModify
 
                 // Show selected features in featuresFlowLayoutPanel
                 MenuStrip selectedFeature = new MenuStrip();
-                selectedFeature.Name = featuresItems.Text.Replace(" ", "_");
+                selectedFeature.Name = featuresItems.Name;
                 selectedFeature.Items.Add(featuresItems);
                 if (featuresTableLayoutPanel.Controls.ContainsKey(selectedFeature.Name))
                     featuresTableLayoutPanel.Controls.RemoveByKey(selectedFeature.Name);
@@ -1198,8 +1194,8 @@ namespace BSP_Using_AI.DetailsModify
             _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
             for (int i = 0; i < _FilteringTools._RawSamples.Length; i++)
                 _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
-            double[] samples = _FilteringTools._RawSamples;
             _FilteringTools.ApplyFilters(false);
+            double[] samples = _FilteringTools._FilteredSamples;
 
             List<object[]> peaksLabels = new List<object[]>();
             foreach (Beat beat in _arthtFeatures.SignalBeats)
@@ -1290,7 +1286,7 @@ namespace BSP_Using_AI.DetailsModify
                     }
 
                     // Get previous saved features if exists
-                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[6]).Items[0];
+                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step7DeltaExaminationData]).Items[0];
                     // Remove last feature from featuresItems if existed
                     featuresItems.DropDownItems.RemoveAt(featuresItems.DropDownItems.Count - 1);
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step7DeltaExaminationData].removeLastSample();
@@ -1316,7 +1312,7 @@ namespace BSP_Using_AI.DetailsModify
                 case 6:
                     // This is for delta detection
                     // Get previous saved features if exists
-                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[5]).Items[0];
+                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step6UpstrokesScanData]).Items[0];
                     // Remove last feature from featuresItems if existed
                     featuresItems.DropDownItems.RemoveAt(featuresItems.DropDownItems.Count - 1);
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step6UpstrokesScanData].removeLastSample();
@@ -1379,7 +1375,7 @@ namespace BSP_Using_AI.DetailsModify
                     }
 
                     // Get previous saved features if exists
-                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[4]).Items[0];
+                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step5ShortPRScanData]).Items[0];
                     // Remove last feature from featuresItems if existed
                     featuresItems.DropDownItems.RemoveAt(featuresItems.DropDownItems.Count - 1);
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].removeLastSample();
@@ -1411,7 +1407,7 @@ namespace BSP_Using_AI.DetailsModify
                 case 4:
                     // This is for P and T selection
                     // Get previous saved features if exists
-                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[3]).Items[0];
+                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step4PTSelectionData]).Items[0];
                     // Remove last feature from featuresItems if existed
                     featuresItems.DropDownItems.RemoveAt(featuresItems.DropDownItems.Count - 1);
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step4PTSelectionData].removeLastSample();
@@ -1432,7 +1428,7 @@ namespace BSP_Using_AI.DetailsModify
                 case 3:
                     // This is for beats peaks detection (P, T)
                     // Get previous saved features if exists
-                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[2]).Items[0];
+                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step3BeatPeaksScanData]).Items[0];
                     // Remove last feature from featuresItems if existed
                     featuresItems.DropDownItems.RemoveAt(featuresItems.DropDownItems.Count - 1);
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].removeLastSample();
@@ -1464,7 +1460,7 @@ namespace BSP_Using_AI.DetailsModify
                 case 2:
                     // This is for QRS selection
                     // Get previous saved features if exists
-                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[1]).Items[0];
+                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step2RPeaksSelectionData]).Items[0];
                     // Remove last feature from featuresItems if existed
                     featuresItems.DropDownItems.Clear();
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step2RPeaksSelectionData].removeLastSample();
@@ -1523,7 +1519,7 @@ namespace BSP_Using_AI.DetailsModify
                 case 1:
                     // This is for QRS detection
                     // Get previous saved features if exists
-                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[0]).Items[0];
+                    featuresItems = (ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step1RPeaksScanData]).Items[0];
                     // Remove last feature from featuresItems if existed
                     featuresItems.DropDownItems.Clear();
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData].removeLastSample();
@@ -1561,7 +1557,7 @@ namespace BSP_Using_AI.DetailsModify
 
             // Show selected features in featuresFlowLayoutPanel
             MenuStrip selectedFeature = new MenuStrip();
-            selectedFeature.Name = featuresItems.Text.Replace(" ", "_");
+            selectedFeature.Name = featuresItems.Name;
             selectedFeature.Items.Add(featuresItems);
             if (featuresTableLayoutPanel.Controls.ContainsKey(selectedFeature.Name))
                 featuresTableLayoutPanel.Controls.RemoveByKey(selectedFeature.Name);
@@ -1583,7 +1579,7 @@ namespace BSP_Using_AI.DetailsModify
                 if (i == 1)
                 {
                     // This is for QRS detection
-                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step1RPeaksScanData);
+                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step1RPeaksScanData) { Name = ARTHTNamings.Step1RPeaksScanData };
 
                     inputs = _arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData].Samples[0].getFeatures();
                     outputs = _arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData].Samples[0].getOutputs();
@@ -1614,7 +1610,7 @@ namespace BSP_Using_AI.DetailsModify
                 else if (i == 2)
                 {
                     // This is for QRS selection
-                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step2RPeaksSelectionData);
+                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step2RPeaksSelectionData) { Name = ARTHTNamings.Step2RPeaksSelectionData };
 
                     for (int j = 0; j < _arthtFeatures.StepsDataDic[ARTHTNamings.Step2RPeaksSelectionData].Samples.Count; j++)
                     {
@@ -1635,7 +1631,7 @@ namespace BSP_Using_AI.DetailsModify
                 else if (i == 3)
                 {
                     // This is for beats peaks detection (P, T)
-                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step3BeatPeaksScanData);
+                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step3BeatPeaksScanData) { Name = ARTHTNamings.Step3BeatPeaksScanData };
 
                     for (int j = 0; j < _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples.Count; j++)
                     {
@@ -1660,7 +1656,7 @@ namespace BSP_Using_AI.DetailsModify
                 else if (i == 4)
                 {
                     // This is for P and T selection
-                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step4PTSelectionData);
+                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step4PTSelectionData) { Name = ARTHTNamings.Step4PTSelectionData };
 
                     // Data of all beats are combined in one list
                     // We need to separate each beat on its own
@@ -1714,7 +1710,7 @@ namespace BSP_Using_AI.DetailsModify
                 else if (i == 5)
                 {
                     // This is for short PR detection
-                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step5ShortPRScanData);
+                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step5ShortPRScanData) { Name = ARTHTNamings.Step5ShortPRScanData };
 
                     for (int j = 0; j < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; j++)
                     {
@@ -1746,7 +1742,7 @@ namespace BSP_Using_AI.DetailsModify
                 else if (i == 6)
                 {
                     // This is for delta detection
-                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step6UpstrokesScanData);
+                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step6UpstrokesScanData) { Name = ARTHTNamings.Step6UpstrokesScanData };
 
                     for (int j = 0; j < _arthtFeatures.StepsDataDic[ARTHTNamings.Step6UpstrokesScanData].Samples.Count; j++)
                     {
@@ -1776,7 +1772,7 @@ namespace BSP_Using_AI.DetailsModify
                 else if (i == 7)
                 {
                     // This is for delta declaration
-                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step7DeltaExaminationData);
+                    featuresItems = new ToolStripMenuItem(ARTHTNamings.Step7DeltaExaminationData) { Name = ARTHTNamings.Step7DeltaExaminationData };
 
                     for (int j = 0; j < _arthtFeatures.StepsDataDic[ARTHTNamings.Step7DeltaExaminationData].Samples.Count; j++)
                     {
@@ -1806,7 +1802,7 @@ namespace BSP_Using_AI.DetailsModify
 
                 // Show selected features in featuresFlowLayoutPanel
                 MenuStrip selectedFeature = new MenuStrip();
-                selectedFeature.Name = featuresItems.Text.Replace(" ", "_");
+                selectedFeature.Name = featuresItems.Name;
                 selectedFeature.Items.Add(featuresItems);
                 featuresTableLayoutPanel.Controls.Add(selectedFeature);
             }

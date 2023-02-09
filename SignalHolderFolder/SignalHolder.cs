@@ -10,7 +10,7 @@ namespace BSP_Using_AI.SignalHolderFolder
 {
     public partial class SignalHolder : UserControl
     {
-        public FilteringTools _FilteringTools { get; set; }
+        public FilteringTools _FilteringTools { get; set; } = new FilteringTools(1, 1, null);
 
         public double[] _samples { get; set; }
 

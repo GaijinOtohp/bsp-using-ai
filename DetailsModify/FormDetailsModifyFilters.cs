@@ -15,9 +15,9 @@ namespace BSP_Using_AI.DetailsModify
 
         public partial class FilteringTools
         {
-            public double[] _OriginalRawSamples { get; set; }
-            public double[] _RawSamples { get; set; }
-            public double[] _FilteredSamples { get; set; }
+            public double[] _OriginalRawSamples { get; set; } = new double[1];
+            public double[] _RawSamples { get; set; } = new double[1];
+            public double[] _FilteredSamples { get; set; } = new double[1];
             public int _originalSamplingRate { get; set; }
             public int _samplingRate { get; set; }
             public double _quantizationStep { get; set; }
