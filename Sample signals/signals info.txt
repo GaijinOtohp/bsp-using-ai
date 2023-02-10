@@ -1,0 +1,4 @@
+Three signals diagnosed with WPW pattern.
+The signals are saved in two formats (.mat, and .txt). You can choose the format you prefer.
+The sampling rate: 360 samples/sec
+The quantization step: 200 adu/mV
