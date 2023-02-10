@@ -42,9 +42,10 @@ namespace BSP_Using_AI.SignalHolderFolder
         private void detailsModifyButton_Click(object sender, EventArgs e)
         {
             // Check if the form is already opened, and wlose it if so
-            foreach (FormDetailsModify form in Application.OpenForms.OfType<FormDetailsModify>())
-                if (form.Text.Equals("Signal details"))
-                    form.Close();
+            FormDetailsModify[] formDetailsModifyArray = Application.OpenForms.OfType<FormDetailsModify>().ToArray();
+            for (int i = 0; i < formDetailsModifyArray.Length; i++)
+                if (formDetailsModifyArray[i].Text.Equals("Signal details"))
+                    formDetailsModifyArray[i].Close();
 
             // Open a new form
             FormDetailsModify formDetailsModify = new FormDetailsModify(_FilteringTools.Clone(), pathLabel.Text + "\\Modify");
