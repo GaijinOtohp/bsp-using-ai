@@ -308,7 +308,7 @@ namespace BSP_Using_AI.DetailsModify
                     _arthtFeatures._processedStep = 1;
 
                 // Get curretn step threshold
-                float threshold = 1f;
+                float threshold = 0.5f;
 
                 // Check which step of features selectoin is this
                 switch (_arthtFeatures._processedStep)
@@ -418,8 +418,8 @@ namespace BSP_Using_AI.DetailsModify
                                     {
                                         // If yes then the last state is the closest.
                                         // Then save the 6 states near it in qrsList if they didn't already exist
-                                            if (!rDictionary.ContainsKey(signalUpStates[lastSavedRIndx]._index))
-                                                rDictionary.Add(signalUpStates[lastSavedRIndx]._index, signalUpStates[lastSavedRIndx]);
+                                        if (!rDictionary.ContainsKey(signalUpStates[lastSavedRIndx]._index))
+                                            rDictionary.Add(signalUpStates[lastSavedRIndx]._index, signalUpStates[lastSavedRIndx]);
                                         break;
                                     }
                                 }
@@ -848,8 +848,9 @@ namespace BSP_Using_AI.DetailsModify
                             _arthtFeatures._processedStep++;
                             // Remove the check box of short PR declaration in filtersFlowLayoutPanel
                             _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
-                            // Get curretn step threshold
-                            threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                            // Get short PR declaration step threshold from the model if prediction is activated
+                            if (_predictionOn)
+                                threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
                             // Get number of declared short PR
                             for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
                                 if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
@@ -896,8 +897,9 @@ namespace BSP_Using_AI.DetailsModify
                         else
                             featuresItems = new ToolStripMenuItem(ARTHTNamings.Step6UpstrokesScanData) { Name = ARTHTNamings.Step6UpstrokesScanData };
 
-                        // Get curretn step threshold
-                        threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                        // Get short PR declaration step threshold from the model if prediction is activated
+                        if (_predictionOn)
+                            threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
                         // Get current short PR beat and next short PR beat
                         shortPRNmbr = 0;
                         shortPRBeatIndx = -1;
@@ -1044,8 +1046,9 @@ namespace BSP_Using_AI.DetailsModify
                         else
                             featuresItems = new ToolStripMenuItem(ARTHTNamings.Step7DeltaExaminationData) { Name = ARTHTNamings.Step7DeltaExaminationData };
 
-                        // Get curretn step threshold
-                        threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                        // Get short PR declaration step threshold from the model if prediction is activated
+                        if (_predictionOn)
+                            threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
                         // Get current short PR beat and next short PR beat
                         shortPRNmbr = 0;
                         shortPRBeatIndx = -1;
@@ -1093,8 +1096,9 @@ namespace BSP_Using_AI.DetailsModify
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
-                        // Get curretn step threshold
-                        threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData].OutputsThresholds[0];
+                        // Get WPW declaration step threshold from the model if prediction is activated
+                        if (_predictionOn)
+                            threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData].OutputsThresholds[0];
                         // Set WPW syndrome index if existed
                         if (deltaExamSamp.getOutputByLabel(ARTHTNamings.WPWPattern) > threshold)
                             _arthtFeatures.SignalBeats[shortPRBeatIndx]._wpwDetected = true;
@@ -1247,8 +1251,10 @@ namespace BSP_Using_AI.DetailsModify
             if (_arthtFeatures._processedStep == featuresTableLayoutPanel.Controls.Count + 1)
                 _arthtFeatures._processedStep--;
 
-            // Get curretn step threshold
-            float threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+            // Get short PR declaration step threshold from the model if prediction is activated
+            float threshold = 0.5f;
+            if (_predictionOn)
+                threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
             // Check which step of features selectoin is this
             switch (_arthtFeatures._processedStep)
             {
@@ -1279,7 +1285,7 @@ namespace BSP_Using_AI.DetailsModify
                         // Add the check box of delta declaration in filtersFlowLayoutPanel
                         ExistanceDeclare existanceDeclare = new ExistanceDeclare(_FilteringTools, "Existance of delta");
                         existanceDeclare.InsertFilter(filtersFlowLayoutPanel);
-                        
+
                         // Enable next button
                         nextButton.Enabled = true;
                         nextButton.Text = "Next";
