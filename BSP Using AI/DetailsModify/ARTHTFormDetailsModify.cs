@@ -820,6 +820,9 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Set the outputs of the state
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
+                        shortPRScanSamp.insertOutput(0,
+                                                    ARTHTNamings.ShortPR,
+                                                    0);
                         // Check if P state exists
                         if (_arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex != int.MinValue)
                         {
@@ -1402,8 +1405,6 @@ namespace BSP_Using_AI.DetailsModify
                     {
                         ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).tdtThresholdScrollBar.Enabled = false;
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).ActivateTDT(false);
-                        ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).amplitudeThresholdScrollBar.Enabled = true;
-                        ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).hThresholdScrollBar.Enabled = true;
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
 
                         ExistanceDeclare existanceDeclare = new ExistanceDeclare(_FilteringTools, "Existance of short PR");
@@ -1457,6 +1458,8 @@ namespace BSP_Using_AI.DetailsModify
                             signalChart.Series[i].LabelForeColor = Color.Transparent;
 
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = true;
+                        ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).amplitudeThresholdScrollBar.Enabled = true;
+                        ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).hThresholdScrollBar.Enabled = true;
                     }
 
                     // Set the previous beat for segmentation
