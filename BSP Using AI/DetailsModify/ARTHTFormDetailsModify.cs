@@ -544,7 +544,7 @@ namespace BSP_Using_AI.DetailsModify
                         _FilteringTools.ApplyFilters(false);
 
                         // Give the instruction for next goal, and enable previous button
-                        featuresSettingInstructionsLabel.Text = "Set the best \"Threshold ratio\" and \"Hor Threshold\" for the segmentation of P and T waves.\n" + 1 + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
+                        featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" for the segmentation of P and T waves.\n" + 1 + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
                         break;
                     case 3:
                         // This is for beats peaks detection (P, T)
@@ -618,7 +618,7 @@ namespace BSP_Using_AI.DetailsModify
                             _FilteringTools.ApplyFilters(false);
 
                             // Give the instruction for next goal, and enable previous button
-                            featuresSettingInstructionsLabel.Text = "Set the best \"Threshold ratio\" and \"Hor Threshold\" for the segmentation of P and T waves.\n" + (nextBeatIndex + 1) + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
+                            featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" for the segmentation of P and T waves.\n" + (nextBeatIndex + 1) + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
                         }
                         else
                         {
@@ -873,7 +873,7 @@ namespace BSP_Using_AI.DetailsModify
                                 setNextBeat(_arthtFeatures.SignalBeats[shortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[shortPRBeatIndx], null);
 
                                 // Give the instruction for next goal, and enable previous button
-                                featuresSettingInstructionsLabel.Text = "Set the best \"Acceleration threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + 1 + "/" + shortPRNmbr + "\nPress next after you finish.";
+                                featuresSettingInstructionsLabel.Text = "Set the best \"tangent deviation threshold (TDT) threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + 1 + "/" + shortPRNmbr + "\nPress next after you finish.";
                             }
                             else
                             {
@@ -1009,7 +1009,7 @@ namespace BSP_Using_AI.DetailsModify
                             setNextBeat(_arthtFeatures.SignalBeats[nextShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[nextShortPRBeatIndx], null);
 
                             // Give the instruction for next goal, and enable previous button
-                            featuresSettingInstructionsLabel.Text = "Set the best \"Acceleration threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
+                            featuresSettingInstructionsLabel.Text = "Set the best \"tangent deviation threshold (TDT) threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
                         }
                         else
                         {
@@ -1112,7 +1112,7 @@ namespace BSP_Using_AI.DetailsModify
                             setNextBeat(_arthtFeatures.SignalBeats[nextShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[nextShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step6UpstrokesScanData].Samples[featuresItems.DropDownItems.Count]);
 
                             // Give the instruction for next goal, and enable previous button
-                            featuresSettingInstructionsLabel.Text = "Set the best \"Acceleration threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
+                            featuresSettingInstructionsLabel.Text = "Set the best \"tangent deviation threshold (TDT) threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
                         }
                         else
                         {
@@ -1313,7 +1313,7 @@ namespace BSP_Using_AI.DetailsModify
                     setNextBeat(_arthtFeatures.SignalBeats[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step6UpstrokesScanData].Samples[featuresItems.DropDownItems.Count]);
 
                     // Give the instruction for next goal, and enable previous button
-                    featuresSettingInstructionsLabel.Text = "Set the best \"Acceleration threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
+                    featuresSettingInstructionsLabel.Text = "Set the best \"tangent deviation threshold (TDT) threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
                     break;
                 case 6:
                     // This is for delta detection
@@ -1348,7 +1348,7 @@ namespace BSP_Using_AI.DetailsModify
                     setNextBeat(_arthtFeatures.SignalBeats[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[previousShortPRBeatIndx], null);
 
                     // Give the instruction for next goal, and enable previous button
-                    featuresSettingInstructionsLabel.Text = "Set the best \"Acceleration threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
+                    featuresSettingInstructionsLabel.Text = "Set the best \"tangent deviation threshold (TDT) threshold\" where the state before R must be as high as possible for delta of WPW syndrome detection.\n" + (featuresItems.DropDownItems.Count + 1) + "/" + shortPRNmbr + "\nPress next after you finish.";
                     break;
                 case 5:
                     // This is for short PR detection
@@ -1461,7 +1461,7 @@ namespace BSP_Using_AI.DetailsModify
                     _FilteringTools.ApplyFilters(false);
 
                     // Give the instruction for next goal, and enable previous button
-                    featuresSettingInstructionsLabel.Text = "Set the best \"Threshold ratio\" and \"Hor Threshold\" for the segmentation of P and T waves.\n" + (previousBeatIndex + 1) + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
+                    featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" for the segmentation of P and T waves.\n" + (previousBeatIndex + 1) + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
                     break;
                 case 2:
                     // This is for QRS selection
