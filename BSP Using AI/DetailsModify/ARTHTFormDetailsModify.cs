@@ -437,6 +437,8 @@ namespace BSP_Using_AI.DetailsModify
                         for (int i = 1; i < orderedRPeaks.Count; i++)
                             averageRR += (orderedRPeaks[i]._index - orderedRPeaks[i - 1]._index) / (double)intervalsNum;
 
+                        // Initialize SognalBeats list
+                        _arthtFeatures.SignalBeats = new List<Beat>();
                         // Set the inputs and outputs for each qrs in qrsOrderedDictionary
                         Sample rPeaksSelectionSamp;
                         for (int i = 0; i < orderedRPeaks.Count; i++)
