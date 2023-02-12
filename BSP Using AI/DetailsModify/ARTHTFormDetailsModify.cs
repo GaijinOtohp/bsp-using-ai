@@ -628,7 +628,7 @@ namespace BSP_Using_AI.DetailsModify
                             _arthtFeatures._processedStep++;
                             // Remove access to peaks analyzer control
                             ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).amplitudeThresholdScrollBar.Enabled = false;
-                            ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).HorizontalScroll.Enabled = false;
+                            ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).hThresholdScrollBar.Enabled = false;
                             _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
                             // Refresh the apply button if autoApply is checked
                             setNextBeat(_arthtFeatures.SignalBeats[0], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[0], null);

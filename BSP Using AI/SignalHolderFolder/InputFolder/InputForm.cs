@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.SignalHolderFolder.Input
@@ -123,6 +124,7 @@ namespace BSP_Using_AI.SignalHolderFolder.Input
             }
             // Set the path of the signal, sampling rate, and quantization step
             _CurrentSignalHolder.pathLabel.Text = _FilePath.Substring(_FilePath.LastIndexOf("\\"));
+            _CurrentSignalHolder._arthtFeatures = new ARTHTFeatures();
             _CurrentSignalHolder._FilteringTools = new FilteringTools(samplingRate, quantizationStep, null);
 
             // Insert signal values inside signal holder chart
