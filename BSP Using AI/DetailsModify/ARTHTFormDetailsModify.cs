@@ -48,15 +48,24 @@ namespace BSP_Using_AI.DetailsModify
                 // Take the nearest point of up points in X
                 Dictionary<string, List<State>> statesDic = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._StatesDIc;
                 State nearestState = new State();
+                double nearestStateMag = double.PositiveInfinity;
                 foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
                     foreach (State xState in statesDic[statesLabel])
-                        if (Math.Abs(xValue - xState._index) < Math.Abs(xValue - nearestState._index))
+                    {
+                        // Compute magnitude between the state and the cursor position
+                        double mag = Math.Sqrt(Math.Pow((xValue - xState._index) / xInterval, 2) + Math.Pow((yValue - xState._value) / yInterval, 2));
+                        // Compare it with the previous nearest state
+                        if (mag < nearestStateMag)
+                        {
                             nearestState = xState;
+                            nearestStateMag = mag;
+                        }
+                    }
 
                 // Check if cursor is near to the point by less than 20% in X and Y
                 if (!statesDic.ContainsKey(SANamings.Selection))
                     statesDic.Add(SANamings.Selection, new List<State>());
-                if (Math.Abs(xValue - nearestState._index) / xInterval < 0.2 && Math.Abs(yValue - nearestState._value) / yInterval < 0.2)
+                if (nearestStateMag < 0.2)
                 {
                     // If yes then make a selection point at this position
                     Garage.loadXYInChart(signalChart, new double[1] { (nearestState._index / (double)_FilteringTools._samplingRate) + _FilteringTools._startingInSec }, new double[1] { nearestState._value }, null, 0, 4, "FormDetailModify");
