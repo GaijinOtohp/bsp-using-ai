@@ -35,6 +35,10 @@ namespace BSP_Using_AI.DetailsModify
             if ((_arthtFeatures._processedStep == 2 || _arthtFeatures._processedStep == 4) && (sender as Chart).Name.Equals("signalChart"))
             {
                 // If yes then it is activated
+                Chart chart = sender as Chart;
+                // Check if cursor is inside the chart
+                if (e.X >= chart.Width || e.Y >= chart.Height)
+                    return;
                 // Check if mouse cursor is near to a any state by 20% to the nearest state
                 // Calculate x interval and y interval
                 double xInterval = ((sender as Chart).ChartAreas[0].AxisX.Maximum - (sender as Chart).ChartAreas[0].AxisX.Minimum) * _FilteringTools._samplingRate;
