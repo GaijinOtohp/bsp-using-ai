@@ -533,10 +533,12 @@ namespace BSP_Using_AI.DetailsModify
                         int ending = 0;
                         for (int i = 0; i < _arthtFeatures.SignalBeats.Count; i++)
                         {
+                            // Set the starting to be from 3/4 of the last R peak
                             if (i != 0)
-                                starting = (_arthtFeatures.SignalBeats[i]._rIndex + _arthtFeatures.SignalBeats[i - 1]._rIndex) / 2;
+                                starting = _arthtFeatures.SignalBeats[i - 1]._rIndex + (_arthtFeatures.SignalBeats[i]._rIndex - _arthtFeatures.SignalBeats[i - 1]._rIndex) / 4;
+                            // and the ending to be to 3/4 of the next R peak
                             if (i != _arthtFeatures.SignalBeats.Count - 1)
-                                ending = (_arthtFeatures.SignalBeats[i]._rIndex + _arthtFeatures.SignalBeats[i + 1]._rIndex) / 2;
+                                ending = _arthtFeatures.SignalBeats[i + 1]._rIndex - (_arthtFeatures.SignalBeats[i + 1]._rIndex - _arthtFeatures.SignalBeats[i]._rIndex) / 4;
                             else
                                 ending = _FilteringTools._OriginalRawSamples.Length - 1;
 
