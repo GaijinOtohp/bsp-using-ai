@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -1031,6 +1032,7 @@ namespace BSP_Using_AI
         //*******************SEARCH FOR PARTICULAR STRING INSIDE ALL FILES OF A DIRECTORY************************//
         public static void searchForInDir(String searchingFor, String dirPath, String fileExtension)
         {
+            searchingFor = searchingFor.ToLower();
             // Look for all directories inside the selected one
             int searchedDirs = 0;
             List<String> directories = new List<string>();
@@ -1046,10 +1048,46 @@ namespace BSP_Using_AI
             foreach (string directorie in directories)
                 foreach (string file in System.IO.Directory.EnumerateFiles(directorie, "*." + fileExtension))
                 {
-                    string contents = System.IO.File.ReadAllText(file);
+                    string contents = File.ReadAllText(file).ToLower();
                     if (contents.Contains(searchingFor))
                         Console.WriteLine(file);
                 }
+        }
+
+        //*******************************************************************************************************//
+        //****************Separate signals from WFDB as text to the specified signals as text********************//
+        public static void TxtWFDBToTxtSignals(string txtFilePath, string[] signalsNames)
+        {
+            // Check if the file exists and is of txt extension
+            FileInfo fileInfo = new FileInfo(txtFilePath);
+            if (fileInfo.Exists && fileInfo.Extension.EndsWith("txt"))
+            {
+                string[] separatedNumbers;
+                List<(string filePath, StringBuilder samples)> signalsList = new List<(string fileName, StringBuilder samples)>(signalsNames.Length);
+                for (int i = 0; i < signalsNames.Length; i++)
+                    signalsList.Add((GetFilePathWithoutExtenstion(fileInfo.FullName) + "_0" + (i + 1) + signalsNames[i] + ".txt", new StringBuilder()));
+                // If yes then read lines of the file
+                foreach (string line in File.ReadLines(fileInfo.FullName))
+                {
+                    // Separate the line according the existed spaces bewteen the characters
+                    separatedNumbers = line.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                    // Iterate through the parts of the line
+                    // The first part is the sample number only
+                    for (int i = 1; i < separatedNumbers.Length; i++)
+                        signalsList[i - 1].samples.Append(separatedNumbers[i] + " ");
+                }
+                // Write the files of the separated signals
+                foreach ((string filePath, StringBuilder samples) in signalsList)
+                    if (samples.Length > 0)
+                        File.WriteAllText(filePath, samples.ToString());
+            }
+        }
+        public static string GetFilePathWithoutExtenstion(string filePath)
+        {
+            // Check if the file path has an extension
+            if (Path.HasExtension(filePath))
+                return filePath.Substring(0, filePath.LastIndexOf("."));
+            return filePath;
         }
 
         //*******************************************************************************************************//
