@@ -1,4 +1,5 @@
 ﻿using System;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 
 namespace BSP_Using_AI
 {
@@ -16,9 +17,12 @@ namespace BSP_Using_AI
         protected override void Dispose(bool disposing)
         {
             // Close tensorflow thread server
-            System.Diagnostics.Process[] tfServer = System.Diagnostics.Process.GetProcessesByName("BSP Using AI");
-            foreach (System.Diagnostics.Process tfProcess in tfServer)
-                tfProcess.Kill();
+            _tFBackThread._queue.Enqueue(new QueueSignalInfo()
+            {
+                TargetFunc = "Close",
+                CallingClass = "MainForm",
+            });
+            _tFBackThread._signal.Set();
             if (disposing && (components != null))
             {
                 components.Dispose();

@@ -74,6 +74,16 @@ namespace BSP_Using_AI.AITools
                         case "initializeNeuralNetworkModelsForWPW":
                             initializeNeuralNetworkModelsForWPW(item.aRTHTModels);
                             break;
+                        case "Close":
+                            List<ARTHTModels> arthtModels = _arthtModelsDic.Values.ToList();
+                            for (int i = 0; i < arthtModels.Count; i++)
+                                if (arthtModels[i].ARTHTModelsDic.ElementAt(0).Value is NeuralNetworkModel)
+                                {
+                                    List<CustomBaseModel> neuralNetworkModels = arthtModels[i].ARTHTModelsDic.Values.ToList();
+                                    for (int j = 0; j < neuralNetworkModels.Count; j++)
+                                        ((NeuralNetworkModel)neuralNetworkModels[j]).Model.Dispose();
+                                }
+                            return;
                     }
                 }
             }
