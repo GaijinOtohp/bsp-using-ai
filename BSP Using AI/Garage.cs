@@ -1189,7 +1189,7 @@ namespace BSP_Using_AI
                         if (pcaItem._selected)
                         {
                             for (int k = 0; k < dataLists[i].getFeatures().Length; k++)
-                                inputBuff[selectedPCsNum] += dataLists[i].getFeatures()[k] * pcaItem.EigenVector[k];
+                                inputBuff[selectedPCsNum] += dataLists[i].getFeatures()[k] * pcaItem.EigenVector[k].loadingScore;
                             selectedPCsNum++;
                         }
                     dataLists[i].insertFeaturesArray(inputBuff);
@@ -1211,7 +1211,7 @@ namespace BSP_Using_AI
                     if (pcaItem._selected)
                     {
                         for (int k = 0; k < input.Length; k++)
-                            inputBuff[selectedPCsNum] += input[k] * pcaItem.EigenVector[k];
+                            inputBuff[selectedPCsNum] += input[k] * pcaItem.EigenVector[k].loadingScore;
                         selectedPCsNum++;
                     }
                 input = inputBuff;

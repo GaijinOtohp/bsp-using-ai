@@ -22,7 +22,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
     public class PCAitem
     {
         public double _eigenValue;
-        public double[] EigenVector; // PC loading scores
+        public EigenVectorItem[] EigenVector; // PC loading scores
 
         public bool _selected = true;
 
@@ -30,11 +30,19 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             PCAitem pcaitem = new PCAitem();
             pcaitem._eigenValue = _eigenValue;
-            pcaitem.EigenVector = (double[])EigenVector.Clone();
+            pcaitem.EigenVector = new EigenVectorItem[EigenVector.Length];
+            for (int i = 0; i < EigenVector.Length; i++)
+                pcaitem.EigenVector[i] = new EigenVectorItem { FeatureLabel = EigenVector[i].FeatureLabel, loadingScore = EigenVector[i].loadingScore };
             pcaitem._selected = _selected;
 
             return pcaitem;
         }
+    }
+    [Serializable]
+    public class EigenVectorItem
+    {
+        public string FeatureLabel;
+        public double loadingScore;
     }
 
     partial class DataVisualisationForm
@@ -107,8 +115,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 {
                     // If yes then show eigenvector detail of the selected column
                     string eigenvector = "";
-                    foreach (double itemValue in PCA[_selectedColumn].EigenVector)
-                        eigenvector += ". " + itemValue + "\n";
+                    foreach (EigenVectorItem EigenVecItem in PCA[_selectedColumn].EigenVector)
+                        eigenvector += ". " + EigenVecItem.FeatureLabel + ": " + EigenVecItem.loadingScore + "\n";
                     MessageBox.Show(eigenvector, "eigenvector of PC" + (_selectedColumn + 1) + " (loading scores)", MessageBoxButtons.OK);
                 }
         }
@@ -212,6 +220,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             double[][] data = new double[dataList.Count][];
             for (int i = 0; i < dataList.Count; i++)
                 data[i] = dataList[i].getFeatures();
+            // Get features labels and sort them by index
+            string[] featuresLabels = null;
+            if (dataList.Count > 0)
+                featuresLabels = dataList[0].DataParent.FeaturesLabelsIndx.OrderBy(feature => feature.Value).Select(feature => feature.Key).ToArray();
 
             // Standardize data and compute covariance matrix
             double[][] covMat = coVarMatForStandardizedData(standardizeData(data));
@@ -233,13 +245,13 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             }
 
             // Set a list for eigenvalue and its corresponding eigenvector
-            List<(double, double[])> PCList = new List<(double, double[])>();
-            double[] eigenVector;
+            List<(double, EigenVectorItem[])> PCList = new List<(double, EigenVectorItem[])>();
+            EigenVectorItem[] eigenVector;
             for (int col = 0; col < qMat[0].Length; col++)
             {
-                eigenVector = new double[qMat.GetLength(0)];
+                eigenVector = new EigenVectorItem[qMat.GetLength(0)];
                 for (int row = 0; row < eigenVector.Length; row++)
-                    eigenVector[row] = qMat[row][col];
+                    eigenVector[row] = new EigenVectorItem { FeatureLabel = featuresLabels[row], loadingScore = qMat[row][col] };
                 PCList.Add((rMat[col][col], eigenVector));
             }
             // Sort the eigenvectors according to eigenvalues in a descending way
