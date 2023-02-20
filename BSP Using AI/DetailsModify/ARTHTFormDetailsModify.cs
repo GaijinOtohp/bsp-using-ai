@@ -270,6 +270,12 @@ namespace BSP_Using_AI.DetailsModify
                 foreach (Series series in signalChart.Series)
                     if (!series.Name.Equals(SANamings.Signal))
                         series.Points.Clear();
+
+                // Reset the signal
+                _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
+                for (int i = 0; i < _FilteringTools._RawSamples.Length; i++)
+                    _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
+                _FilteringTools.ApplyFilters(false);
             }
         }
 
@@ -278,7 +284,7 @@ namespace BSP_Using_AI.DetailsModify
             // Remove all filters
             _FilteringTools.RemoveAllFilters();
             // Disable auto apply to filters
-            _FilteringTools.SetAutoApply(enable);
+            _FilteringTools.SetAutoApply(!enable);
 
             signalFusionButton.Enabled = !enable;
             signalsPickerComboBox.Enabled = !enable;
