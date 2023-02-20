@@ -164,7 +164,8 @@ namespace BSP_Using_AI.DetailsModify
 
                 // Show signal in the chart
                 if (_FormDetailModify != null && _showResultInChart)
-                    _FormDetailModify.loadSignal(_FilteredSamples, _samplingRate, _startingInSec);
+                    if (_FormDetailModify.IsHandleCreated)
+                        _FormDetailModify.loadSignal(_FilteredSamples, _samplingRate, _startingInSec);
 
                 _ignoreFiltering = false;
             }
