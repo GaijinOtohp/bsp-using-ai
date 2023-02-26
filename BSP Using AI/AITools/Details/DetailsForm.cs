@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.AITools.DatasetExplorer;
+﻿using Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection;
+using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.Database;
 using System;
 using System.Collections.Concurrent;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValidationDataSelectionForm;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details
@@ -43,7 +45,7 @@ namespace BSP_Using_AI.AITools.Details
                 refreshValidationData(stepName, false);
             }
 
-            timeToFinishLabel.Text = "Processed in: " + Garage.PeriodInSecToString(_aRTHTModels._validationTimeCompelxity);
+            timeToFinishLabel.Text = "Processed in: " + Garage.PeriodInSecToString(_aRTHTModels._validationTimeCompelxity) + ", " + _aRTHTModels._ValidationInfo;
 
             // Query for all signals in dataset table
             DbStimulator dbStimulator = new DbStimulator();
@@ -65,20 +67,24 @@ namespace BSP_Using_AI.AITools.Details
             validationFlowLayoutPanelUserControl.modelTargetLabel.Text = stepName;
             validationFlowLayoutPanelUserControl.algorithmTypeLabel.Text = validationData.AlgorithmType;
             validationFlowLayoutPanelUserControl.datasetSizeLabel.Text = validationData._datasetSize.ToString();
-            validationFlowLayoutPanelUserControl.trainingDatasetLabel.Text = validationData._trainingDatasetSize.ToString();
-            validationFlowLayoutPanelUserControl.validationDatasetLabel.Text = validationData._validationDatasetSize.ToString();
-            validationFlowLayoutPanelUserControl.accuracyLabel.Text = Math.Round(validationData._accuracy, 4).ToString();
-            validationFlowLayoutPanelUserControl.sensitivityLabel.Text = Math.Round(validationData._sensitivity, 4).ToString();
-            validationFlowLayoutPanelUserControl.specificityLabel.Text = Math.Round(validationData._specificity, 4).ToString();
+            validationFlowLayoutPanelUserControl.trainingDatasetLabel.Text = Math.Round(validationData._trainingDatasetSize, 2).ToString();
+            validationFlowLayoutPanelUserControl.validationDatasetLabel.Text = Math.Round(validationData._validationDatasetSize, 2).ToString();
+            
+            validationFlowLayoutPanelUserControl.sensitivityLabel.Text = Math.Round(validationData._sensitivity * 100, 2).ToString() + "%";
+            validationFlowLayoutPanelUserControl.specificityLabel.Text = Math.Round(validationData._specificity * 100, 2).ToString() + "%";
 
             if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
             {
+                validationFlowLayoutPanelUserControl.accuracyLabel.Text = Math.Round(validationData._accuracy, 4).ToString();
                 validationFlowLayoutPanelUserControl.thresholdTextBox.Enabled = false;
                 validationFlowLayoutPanelUserControl.sensitivityLabel.Text = "/";
                 validationFlowLayoutPanelUserControl.specificityLabel.Text = "/";
             }
             else
+            {
+                validationFlowLayoutPanelUserControl.accuracyLabel.Text = Math.Round(validationData._accuracy * 100, 2).ToString() + "%";
                 validationFlowLayoutPanelUserControl.thresholdTextBox.Text = _aRTHTModels.ARTHTModelsDic[stepName].OutputsThresholds[0].ToString();
+            }
 
             if (replace)
                 this.Invoke(new MethodInvoker(delegate ()
@@ -90,13 +96,31 @@ namespace BSP_Using_AI.AITools.Details
                 }));
             else
                 this.Invoke(new MethodInvoker(delegate () { validationFlowLayoutPanel.Controls.Add(validationFlowLayoutPanelUserControl); }));
+
+            // Insert overall accuracy, sensitivity, specificity, and mase in their controls
+            double overallAccuracy = 0, overAllSensitivity = 0, overallSpecificity = 0, overallMASE = 0;
+            foreach (CustomBaseModel model in _aRTHTModels.ARTHTModelsDic.Values)
+            {
+                if (model.Name.Equals(ARTHTNamings.Step1RPeaksScanData) || model.Name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || model.Name.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                    overallMASE += model.ValidationData._accuracy / 3;
+                else
+                {
+                    overallAccuracy += model.ValidationData._accuracy / 4;
+                    overAllSensitivity += model.ValidationData._sensitivity / 4;
+                    overallSpecificity += model.ValidationData._specificity / 4;
+                }
+            }
+            overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAccuracy * 100, 2).ToString() + "%";
+            overallSensitivityLabel.Text = "Overall sensitivity: " + Math.Round(overAllSensitivity * 100, 2).ToString() + "%";
+            overallSpecificityLabel.Text = "Overall specificity: " + Math.Round(overallSpecificity * 100, 2).ToString() + "%";
+            overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
         }
 
-        private void insertValidatoinData(int trainingSize, int validationSize, double accuracy, double sensitivity, double specificity, string stepName)
+        private void insertValidatoinData(double trainingSize, double validationSize, double accuracy, double sensitivity, double specificity, string stepName)
         {
             ValidationData validationData = _aRTHTModels.ARTHTModelsDic[stepName].ValidationData;
 
-            validationData._datasetSize = trainingSize + validationSize;
+            validationData._datasetSize = (int)(trainingSize + validationSize);
             validationData._trainingDatasetSize = trainingSize;
             validationData._validationDatasetSize = validationSize;
             validationData._accuracy = accuracy;
@@ -189,7 +213,7 @@ namespace BSP_Using_AI.AITools.Details
             {
                 // Set final processing time
                 long processingTime = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - _startingTime) / 1000;
-                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Processed in: " + Garage.PeriodInSecToString(processingTime); }));
+                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Processed in: " + Garage.PeriodInSecToString(processingTime) + ", " + _aRTHTModels._ValidationInfo; }));
                 // Insert it in _validationData
                 _aRTHTModels._validationTimeCompelxity = processingTime;
 
@@ -237,7 +261,7 @@ namespace BSP_Using_AI.AITools.Details
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
-                                        new String[] { "features" },
+                                        new String[] { "_id", "sginal_name", "starting_index", "sampling_rate", "quantisation_step", "features" },
                                         selection,
                                         selectionArgs,
                                         "", callingClassName));
@@ -361,238 +385,204 @@ namespace BSP_Using_AI.AITools.Details
                 }
                 else if (callingClassName.Equals("DetailsFormForFeatures"))
                 {
-                    // Shuffle all records first
-                    Garage.Shuffle(dataTable);
+                    // Open ValidationDataSelectionForm
+                    Invoke(new MethodInvoker(delegate () {
+                        ValidationDataSelectionForm validationDataSelectionForm = new ValidationDataSelectionForm(dataTable, ValidateModel);
+                        validationDataSelectionForm.Show();
+                    }));
 
-                    // Initialize lists of features for each step
-                    List<Sample> trainingSamples;
-                    List<Sample> validationSamples;
+                    //ValidateModel(dataTable);
+                }
+            }
+        }
 
-                    // Separate features to 4 quarters
-                    // and take 3 quarters as training data
-                    // and the fourth quarter as validation data
-                    int parts = 1;
-                    int partSamplesNmbr = 1;
-                    for (int i = 4; i > 0; i--)
-                        if (dataTable.Rows.Count / i > 0)
+        //______________________________________________________________________________________________________//
+        //:::::::::::::::::::::::::::::::::::::::::Validation process::::::::::::::::::::::::::::::::::::::::::://
+        public void ValidateModel(DataTable dataTable)
+        {
+            // Initialize lists of features for each step
+            List<Sample> trainingSamples;
+            List<Sample> validationSamples;
+
+            // Separate features to 4 quarters
+            // and take 3 quarters as training data
+            // and the fourth quarter as validation data
+            int parts = 1;
+            int partSamplesNmbr = 1;
+            for (int i = 4; i > 0; i--)
+                if (dataTable.Rows.Count / i > 0)
+                {
+                    parts = i;
+                    break;
+                }
+            // Check if parts is equal to 1
+            if (parts == 1)
+            {
+                // If yes then data is not sufficient for validation
+                // Show a message aboutit and return
+                MessageBox.Show("Datasize not sufficient", "Warning \"Unexpected data\"", MessageBoxButtons.OK);
+                return;
+            }
+
+            partSamplesNmbr = dataTable.Rows.Count / parts;
+
+            // Check if cross validation is activated
+            int validationPart = parts - 1;
+            int crossValidationNumbr = 1;
+            // if (enableCrossValidationCheckBox.Checked)
+            if (false)
+            {
+                // If yes then
+                validationPart = 0;
+                crossValidationNumbr = parts;
+            }
+
+            ////////////////////////// Start validation for each step model (7 steps)
+            int fitProgress = 0;
+            // Initialize _validationData
+            foreach (CustomBaseModel model in _aRTHTModels.ARTHTModelsDic.Values)
+                model.ValidationData = new ValidationData();
+
+            this.Invoke(new MethodInvoker(delegate () { validationFlowLayoutPanel.Controls.Clear(); }));
+            // Set maximum of progress bar
+            this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Maximum = _aRTHTModels.ARTHTModelsDic.Count; }));
+            double accuracy, sensitivity, specificity;
+            int trainingSize, validationSize, possibilities, targetPositives, targetNegatives;
+            // Calculate number of data to be processed
+            _data = 0;
+            for (int x = validationPart; x < parts; x++)
+                for (int j = 0; j < dataTable.Rows.Count; j++)
+                    if ((x * partSamplesNmbr <= j && j < (x + 1) * partSamplesNmbr) || (x == parts - 1 && x * partSamplesNmbr <= j))
+                    {
+                        DataRow row = dataTable.Rows[j];
+                        ARTHTFeatures aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                        foreach (Data data in aRTHTFeatures.StepsDataDic.Values)
+                            //_data += data.Samples.Count * data.OutputsLabelsIndx.Count;
+                            _data += data.Samples.Count;
+                    }
+
+            _remainingData = _data;
+
+            // Start validation process for each step model
+            calculateTimeToFinish();
+            foreach (string stepName in _aRTHTModels.ARTHTModelsDic.Keys)
+            {
+                trainingSize = 0;
+                validationSize = 0;
+                accuracy = 0;
+                sensitivity = 0;
+                specificity = 0;
+                possibilities = 0;
+                targetPositives = 0;
+                targetNegatives = 0;
+                for (int x = validationPart; x < parts; x++)
+                {
+                    // Iterate through each signal features
+                    trainingSamples = new List<Sample>();
+                    validationSamples = new List<Sample>();
+                    List<int> selectedBeatLastState = new List<int>();
+                    // and split them into 75% for training and 25% for validation in trainingFeatures and validationFeatures respectively
+                    for (int j = 0; j < dataTable.Rows.Count; j++)
+                    {
+                        DataRow row = dataTable.Rows[j];
+                        ARTHTFeatures aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+
+                        if ((x * partSamplesNmbr <= j && j < (x + 1) * partSamplesNmbr) || (x == parts - 1 && x * partSamplesNmbr <= j))
+                            foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
+                                validationSamples.Add(sample);
+                        else
+                            foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
+                                trainingSamples.Add(sample);
+                    }
+
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // Create The model from trainingFeatures
+                    // Send features for fitting
+                    // Check which model is selected
+                    //trainingSize += trainingFeatures.Count;
+                    trainingSize = trainingSamples.Count;
+                    //validationSize += validationFeatures.Count;
+                    validationSize = validationSamples.Count;
+                    KNNModel knnModel = new KNNModel { };
+                    NaiveBayesModel nbModel = new NaiveBayesModel { };
+                    if (_aRTHTModels.Name.Contains("Neural network"))
+                    {
+                        // This is for neural network
+                        _tFBackThread._queue.Enqueue(new QueueSignalInfo()
                         {
-                            parts = i;
-                            break;
+                            TargetFunc = "fit",
+                            CallingClass = this.Name,
+                            DataList = trainingSamples,
+                            ModelsName = _aRTHTModels.Name,
+                            StepName = stepName
+                        });
+                        _tFBackThread._signal.Set();
+                    }
+                    else if (_aRTHTModels.Name.Contains("K-Nearest neighbor"))
+                    {
+                        // This is for knn
+                        // Create a KNN model structure with the initial optimum K, which is "3"
+                        knnModel = KNNBackThread.createKNNModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
+
+                        // Fit features
+                        knnModel = KNNBackThread.fit(knnModel, trainingSamples);
+                    }
+                    else if (_aRTHTModels.Name.Contains("Naive bayes"))
+                    {
+                        // This is for naive bayes
+                        nbModel = NaiveBayesBackThread.createNBModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
+
+                        // Fit features
+                        nbModel = NaiveBayesBackThread.fit(nbModel, trainingSamples);
+                    }
+
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // Calculate validation metrics
+                    double[] predictedOutput;
+                    double[] actualOutput;
+
+                    string currentBeatName = "";
+                    string prevBeatName = "";
+                    int numberOfStates = 0;
+                    (double predicted, double actual) pPrediction = (-1, 0);
+                    (double predicted, double actual) tPrediction = (-1, 0);
+                    for (int j = 0; j < validationSize; j++)
+                    {
+                        Sample sample = validationSamples[j];
+                        actualOutput = sample.getOutputs();
+                        // Get prediction output for current feature
+                        predictedOutput = askForPrediction(sample.getFeatures(), _aRTHTModels.Name, knnModel, nbModel, stepName);
+                        _remainingData--;
+
+                        // Check which type of validation metrics is this
+                        if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                        {
+                            // If yes then this is for regression metrics
+                            for (int i = 0; i < predictedOutput.Length; i++)
+                            {
+                                // Calculate accuracy using Mean Absolute Percentage Error formula
+                                // where accuracy should be (1 - mape)
+                                double mape = Math.Abs((actualOutput[i] - predictedOutput[i]) / actualOutput[i]);
+                                accuracy = 1d - (((1d - accuracy) * possibilities + mape) / (possibilities + 1));
+                                possibilities++;
+                            }
                         }
-                    // Check if parts is equal to 1
-                    if (parts == 1)
-                    {
-                        // If yes then data is not sufficient for validation
-                        // Show a message aboutit and return
-                        MessageBox.Show("Datasize not sufficient", "Warning \"Unexpected data\"", MessageBoxButtons.OK);
-                        return;
-                    }
-
-                    partSamplesNmbr = dataTable.Rows.Count / parts;
-
-                    // Check if cross validation is activated
-                    int validationPart = parts - 1;
-                    int crossValidationNumbr = 1;
-                    if (enableCrossValidationCheckBox.Checked)
-                    {
-                        // If yes then
-                        validationPart = 0;
-                        crossValidationNumbr = parts;
-                    }
-
-                    ////////////////////////// Start validation for each step model (7 steps)
-                    int fitProgress = 0;
-                    // Initialize _validationData
-                    foreach (CustomBaseModel model in _aRTHTModels.ARTHTModelsDic.Values)
-                        model.ValidationData = new ValidationData();
-
-                    this.Invoke(new MethodInvoker(delegate () { validationFlowLayoutPanel.Controls.Clear(); }));
-                    // Set maximum of progress bar
-                    this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Maximum = _aRTHTModels.ARTHTModelsDic.Count; }));
-                    double accuracy, sensitivity, specificity;
-                    int trainingSize, validationSize, possibilities, targetPositives, targetNegatives;
-                    // Calculate number of data to be processed
-                    _data = 0;
-                    for (int x = validationPart; x < parts; x++)
-                        for (int j = 0; j < dataTable.Rows.Count; j++)
-                            if ((x * partSamplesNmbr <= j && j < (x + 1) * partSamplesNmbr) || (x == parts - 1 && x * partSamplesNmbr <= j))
-                            {
-                                DataRow row = dataTable.Rows[j];
-                                ARTHTFeatures aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
-                                foreach (Data data in aRTHTFeatures.StepsDataDic.Values)
-                                    //_data += data.Samples.Count * data.OutputsLabelsIndx.Count;
-                                    _data += data.Samples.Count;
-                            }
-
-                    _remainingData = _data;
-
-                    // Start validation process for each step model
-                    calculateTimeToFinish();
-                    foreach (string stepName in _aRTHTModels.ARTHTModelsDic.Keys)
-                    {
-                        trainingSize = 0;
-                        validationSize = 0;
-                        accuracy = 0;
-                        sensitivity = 0;
-                        specificity = 0;
-                        possibilities = 0;
-                        targetPositives = 0;
-                        targetNegatives = 0;
-                        for (int x = validationPart; x < parts; x++)
+                        else
                         {
-                            // Iterate through each signal features
-                            trainingSamples = new List<Sample>();
-                            validationSamples = new List<Sample>();
-                            List<int> selectedBeatLastState = new List<int>();
-                            // and split them into 75% for training and 25% for validation in trainingFeatures and validationFeatures respectively
-                            for (int j = 0; j < dataTable.Rows.Count; j++)
+                            // This is for classification metrics
+                            // Check if this is for P and T selection
+                            if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
                             {
-                                DataRow row = dataTable.Rows[j];
-                                ARTHTFeatures aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
-
-                                if ((x * partSamplesNmbr <= j && j < (x + 1) * partSamplesNmbr) || (x == parts - 1 && x * partSamplesNmbr <= j))
-                                    foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
-                                        validationSamples.Add(sample);
-                                else
-                                    foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
-                                        trainingSamples.Add(sample);
-                            }
-
-                            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                            // Create The model from trainingFeatures
-                            // Send features for fitting
-                            // Check which model is selected
-                            //trainingSize += trainingFeatures.Count;
-                            trainingSize = trainingSamples.Count;
-                            //validationSize += validationFeatures.Count;
-                            validationSize = validationSamples.Count;
-                            KNNModel knnModel = new KNNModel { };
-                            NaiveBayesModel nbModel = new NaiveBayesModel { };
-                            if (_aRTHTModels.Name.Contains("Neural network"))
-                            {
-                                // This is for neural network
-                                _tFBackThread._queue.Enqueue(new QueueSignalInfo()
+                                // If yes then prediction should be rearanged for each beat states
+                                // Check if beat name is changed
+                                // or if this is the last state in validationSamples
+                                currentBeatName = sample.Name.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)[0];
+                                if (!currentBeatName.Equals(prevBeatName) || j == validationSize - 1)
                                 {
-                                    TargetFunc = "fit",
-                                    CallingClass = this.Name,
-                                    DataList = trainingSamples,
-                                    ModelsName = _aRTHTModels.Name,
-                                    StepName = stepName
-                                });
-                                _tFBackThread._signal.Set();
-                            }
-                            else if (_aRTHTModels.Name.Contains("K-Nearest neighbor"))
-                            {
-                                // This is for knn
-                                // Create a KNN model structure with the initial optimum K, which is "3"
-                                knnModel = KNNBackThread.createKNNModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
-
-                                // Fit features
-                                knnModel = KNNBackThread.fit(knnModel, trainingSamples);
-                            }
-                            else if (_aRTHTModels.Name.Contains("Naive bayes"))
-                            {
-                                // This is for naive bayes
-                                nbModel = NaiveBayesBackThread.createNBModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
-
-                                // Fit features
-                                nbModel = NaiveBayesBackThread.fit(nbModel, trainingSamples);
-                            }
-
-                            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                            // Calculate validation metrics
-                            double[] predictedOutput;
-                            double[] actualOutput;
-
-                            string currentBeatName = "";
-                            string prevBeatName = "";
-                            int numberOfStates = 0;
-                            (double predicted, double actual) pPrediction = (-1, 0);
-                            (double predicted, double actual) tPrediction = (-1, 0);
-                            for (int j = 0; j < validationSize; j++)
-                            {
-                                Sample sample = validationSamples[j];
-                                actualOutput = sample.getOutputs();
-                                // Get prediction output for current feature
-                                predictedOutput = askForPrediction(sample.getFeatures(), _aRTHTModels.Name, knnModel, nbModel, stepName);
-                                _remainingData--;
-
-                                // Check which type of validation metrics is this
-                                if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
-                                {
-                                    // If yes then this is for regression metrics
-                                    for (int i = 0; i < predictedOutput.Length; i++)
+                                    // Check if this is the last state
+                                    if (j == validationSize - 1)
                                     {
-                                        // Calculate accuracy using Mean Absolute Percentage Error formula
-                                        // where accuracy should be (1 - mape)
-                                        double mape = Math.Abs((actualOutput[i] - predictedOutput[i]) / actualOutput[i]);
-                                        accuracy = 1d - (((1d - accuracy) * possibilities + mape) / (possibilities + 1));
-                                        possibilities++;
-                                    }
-                                }
-                                else
-                                {
-                                    // This is for classification metrics
-                                    // Check if this is for P and T selection
-                                    if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
-                                    {
-                                        // If yes then prediction should be rearanged for each beat states
-                                        // Check if beat name is changed
-                                        // or if this is the last state in validationSamples
-                                        currentBeatName = sample.Name.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)[0];
-                                        if (!currentBeatName.Equals(prevBeatName) || j == validationSize - 1)
-                                        {
-                                            // Check if this is the last state
-                                            if (j == validationSize - 1)
-                                            {
-                                                // Compute last state's values
-                                                numberOfStates++;
-
-                                                // Check if p probability is greater than previous predicted sample
-                                                if (predictedOutput[0] > pPrediction.predicted)
-                                                    pPrediction = (predictedOutput[0], actualOutput[0]);
-
-                                                // Check if t probability is greater than previous predicted sample
-                                                if (predictedOutput[1] > tPrediction.predicted)
-                                                    tPrediction = (predictedOutput[1], actualOutput[1]);
-                                            }
-
-                                            // Check if there exist predicted states
-                                            if (numberOfStates > 0)
-                                            {
-                                                // Cumpute the accuracy, sensitivity, and specificity of previous beat
-
-                                                // Compute accuracy
-                                                double trueVals = numberOfStates * 2;
-                                                trueVals -= pPrediction.actual == 1 ? 0 : 2;
-                                                trueVals -= tPrediction.actual == 1 ? 0 : 2;
-                                                accuracy = (accuracy * possibilities + trueVals) / (possibilities + numberOfStates * 2);
-                                                // possibilities of all of the otputs (2) --> predictedOutput.Length
-                                                possibilities += numberOfStates * 2;
-
-                                                // Compute sensitivity
-                                                double truePositives = pPrediction.actual + tPrediction.actual;
-                                                sensitivity = (sensitivity * targetPositives + truePositives) / (targetPositives + 2);
-                                                // only 1 p wave and 1 t wave (2 target positive) for each beat
-                                                targetPositives += 2;
-
-                                                // Compute specificity
-                                                double trueNegatives = trueVals - truePositives;
-                                                specificity = (specificity * targetNegatives + trueNegatives) / (targetNegatives + numberOfStates * 2 - 2);
-                                                // all states are negative except 1 for p wave and 1 for t wave
-                                                targetNegatives += numberOfStates * 2 - 2;
-                                            }
-
-                                            // Initialize values for next beat
-                                            prevBeatName = currentBeatName;
-                                            numberOfStates = 0;
-                                            pPrediction = (-1, 0);
-                                            tPrediction = (-1, 0);
-
-                                            // Break the for loop here if this is the last state
-                                            if (j == validationSize - 1)
-                                                break;
-                                        }
+                                        // Compute last state's values
                                         numberOfStates++;
 
                                         // Check if p probability is greater than previous predicted sample
@@ -603,57 +593,388 @@ namespace BSP_Using_AI.AITools.Details
                                         if (predictedOutput[1] > tPrediction.predicted)
                                             tPrediction = (predictedOutput[1], actualOutput[1]);
                                     }
+
+                                    // Check if there exist predicted states
+                                    if (numberOfStates > 0)
+                                    {
+                                        // Cumpute the accuracy, sensitivity, and specificity of previous beat
+
+                                        // Compute accuracy
+                                        double trueVals = numberOfStates * 2;
+                                        trueVals -= pPrediction.actual == 1 ? 0 : 2;
+                                        trueVals -= tPrediction.actual == 1 ? 0 : 2;
+                                        accuracy = (accuracy * possibilities + trueVals) / (possibilities + numberOfStates * 2);
+                                        // possibilities of all of the otputs (2) --> predictedOutput.Length
+                                        possibilities += numberOfStates * 2;
+
+                                        // Compute sensitivity
+                                        double truePositives = pPrediction.actual + tPrediction.actual;
+                                        sensitivity = (sensitivity * targetPositives + truePositives) / (targetPositives + 2);
+                                        // only 1 p wave and 1 t wave (2 target positive) for each beat
+                                        targetPositives += 2;
+
+                                        // Compute specificity
+                                        double trueNegatives = trueVals - truePositives;
+                                        specificity = (specificity * targetNegatives + trueNegatives) / (targetNegatives + numberOfStates * 2 - 2);
+                                        // all states are negative except 1 for p wave and 1 for t wave
+                                        targetNegatives += numberOfStates * 2 - 2;
+                                    }
+
+                                    // Initialize values for next beat
+                                    prevBeatName = currentBeatName;
+                                    numberOfStates = 0;
+                                    pPrediction = (-1, 0);
+                                    tPrediction = (-1, 0);
+
+                                    // Break the for loop here if this is the last state
+                                    if (j == validationSize - 1)
+                                        break;
+                                }
+                                numberOfStates++;
+
+                                // Check if p probability is greater than previous predicted sample
+                                if (predictedOutput[0] > pPrediction.predicted)
+                                    pPrediction = (predictedOutput[0], actualOutput[0]);
+
+                                // Check if t probability is greater than previous predicted sample
+                                if (predictedOutput[1] > tPrediction.predicted)
+                                    tPrediction = (predictedOutput[1], actualOutput[1]);
+                            }
+                            else
+                            {
+                                // Set validation data for other steps
+                                for (int i = 0; i < predictedOutput.Length; i++)
+                                {
+                                    // Get curretn step threshold
+                                    float threshold = _aRTHTModels.ARTHTModelsDic[stepName].OutputsThresholds[i];
+                                    // Regulate output value
+                                    predictedOutput[i] = predictedOutput[i] >= threshold ? 1 : 0;
+
+                                    // Calculate accuracy
+                                    if (predictedOutput[i] == actualOutput[i])
+                                        accuracy = (accuracy * possibilities + 1) / (possibilities + 1);
+                                    else
+                                        accuracy = (accuracy * possibilities + 0) / (possibilities + 1);
+                                    possibilities++;
+
+                                    // Calculate sensitivity and specificity
+                                    if (actualOutput[i] == 1)
+                                    {
+                                        // This is for sensitivity
+                                        if (predictedOutput[i] == 1)
+                                            sensitivity = (sensitivity * targetPositives + 1) / (targetPositives + 1);
+                                        else
+                                            sensitivity = (sensitivity * targetPositives + 0) / (targetPositives + 1);
+                                        targetPositives++;
+                                    }
                                     else
                                     {
-                                        // Set validation data for other steps
-                                        for (int i = 0; i < predictedOutput.Length; i++)
-                                        {
-                                            // Get curretn step threshold
-                                            float threshold = _aRTHTModels.ARTHTModelsDic[stepName].OutputsThresholds[i];
-                                            // Regulate output value
-                                            predictedOutput[i] = predictedOutput[i] >= threshold ? 1 : 0;
-
-                                            // Calculate accuracy
-                                            if (predictedOutput[i] == actualOutput[i])
-                                                accuracy = (accuracy * possibilities + 1) / (possibilities + 1);
-                                            else
-                                                accuracy = (accuracy * possibilities + 0) / (possibilities + 1);
-                                            possibilities++;
-
-                                            // Calculate sensitivity and specificity
-                                            if (actualOutput[i] == 1)
-                                            {
-                                                // This is for sensitivity
-                                                if (predictedOutput[i] == 1)
-                                                    sensitivity = (sensitivity * targetPositives + 1) / (targetPositives + 1);
-                                                else
-                                                    sensitivity = (sensitivity * targetPositives + 0) / (targetPositives + 1);
-                                                targetPositives++;
-                                            }
-                                            else
-                                            {
-                                                // This is for specificity
-                                                if (predictedOutput[i] == 0)
-                                                    specificity = (specificity * targetNegatives + 1) / (targetNegatives + 1);
-                                                else
-                                                    specificity = (specificity * targetNegatives + 0) / (targetNegatives + 1);
-                                                targetNegatives++;
-                                            }
-                                        }
+                                        // This is for specificity
+                                        if (predictedOutput[i] == 0)
+                                            specificity = (specificity * targetNegatives + 1) / (targetNegatives + 1);
+                                        else
+                                            specificity = (specificity * targetNegatives + 0) / (targetNegatives + 1);
+                                        targetNegatives++;
                                     }
                                 }
                             }
                         }
-
-                        // Update fitProgressBar
-                        fitProgress++;
-                        this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Value = fitProgress; }));
-
-                        // Insert new validation data in validationFlowLayoutPanel
-                        insertValidatoinData(trainingSize, validationSize, accuracy, sensitivity, specificity, stepName);
-                        refreshValidationData(stepName, false);
                     }
                 }
+
+                // Update fitProgressBar
+                fitProgress++;
+                this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Value = fitProgress; }));
+
+                // Insert new validation data in validationFlowLayoutPanel
+                insertValidatoinData(trainingSize, validationSize, accuracy, sensitivity, specificity, stepName);
+                refreshValidationData(stepName, false);
+            }
+        }
+        public void ValidateModel(List<ModelData> valModelsData, string validationInfo)
+        {
+            // Clear validationFlowLayoutPanel
+            this.Invoke(new MethodInvoker(delegate () { EventHandlers.fastClearFlowLayout(ref validationFlowLayoutPanel); }));
+            // Set validation info
+            _aRTHTModels._ValidationInfo = validationInfo;
+
+            // Initialize lists of features for each step
+            List <Sample> trainingSamples;
+            List<Sample> validationSamples;
+
+            // Check if data is sufficient
+            bool showError = false;
+            if (valModelsData.Count == 0) showError = true;
+            else if (valModelsData[0].TrainingData.Count == 0 || valModelsData[0].ValidationData.Count == 0) showError = true;
+            if (showError)
+            {
+                // If yes then data is not sufficient for validation
+                // Show a message aboutit and return
+                MessageBox.Show("Datasize not sufficient", "Warning \"Unexpected data\"", MessageBoxButtons.OK);
+                return;
+            }
+
+            ////////////////////////// Start validation for each step model (7 steps)
+            int fitProgress = 0;
+            // Set maximum of progress bar
+            this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Maximum = _aRTHTModels.ARTHTModelsDic.Count * valModelsData.Count; }));
+            // Initialize _validationData
+            foreach (CustomBaseModel model in _aRTHTModels.ARTHTModelsDic.Values)
+                model.ValidationData = new ValidationData();
+
+            double accuracy, sensitivity, specificity;
+            int trainingSize, validationSize, possibilities, targetPositives, targetNegatives;
+            double totalTrainingSize, totalValidationSize;
+            // Calculate number of data to be processed
+            _data = 0;
+            foreach (ModelData modelData in valModelsData)
+                foreach (ARTHTFeatures aRTHTFeatures in modelData.ValidationData)
+                    foreach (Data data in aRTHTFeatures.StepsDataDic.Values)
+                        _data += data.Samples.Count;
+            _remainingData = _data;
+
+            // Start validation process for each step model
+            calculateTimeToFinish();
+            foreach (string stepName in _aRTHTModels.ARTHTModelsDic.Keys)
+            {
+                trainingSize = 0;
+                totalTrainingSize = 0;
+                validationSize = 0;
+                totalValidationSize = 0;
+                accuracy = 0;
+                sensitivity = 0;
+                specificity = 0;
+                possibilities = 0;
+                targetPositives = 0;
+                targetNegatives = 0;
+
+                foreach (ModelData modelData in valModelsData)
+                {
+                    // Iterate through each signal features
+                    trainingSamples = new List<Sample>();
+                    validationSamples = new List<Sample>();
+                    List<int> selectedBeatLastState = new List<int>();
+                    // Set vallidation samples
+                    foreach (ARTHTFeatures aRTHTFeatures in modelData.ValidationData)
+                        foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
+                            validationSamples.Add(sample);
+                    // and training samples
+                    foreach (ARTHTFeatures aRTHTFeatures in modelData.TrainingData)
+                        foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
+                            trainingSamples.Add(sample);
+
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // Create The model from trainingFeatures
+                    // Send features for fitting
+                    // Check which model is selected
+                    //trainingSize += trainingFeatures.Count;
+                    trainingSize = trainingSamples.Count;
+                    totalTrainingSize += trainingSamples.Count / (double)valModelsData.Count;
+                    //validationSize += validationFeatures.Count;
+                    validationSize = validationSamples.Count;
+                    totalValidationSize += validationSamples.Count / (double)valModelsData.Count;
+                    KNNModel knnModel = new KNNModel { };
+                    NaiveBayesModel nbModel = new NaiveBayesModel { };
+                    if (_aRTHTModels.Name.Contains("Neural network"))
+                    {
+                        // This is for neural network
+                        _tFBackThread._queue.Enqueue(new QueueSignalInfo()
+                        {
+                            TargetFunc = "fit",
+                            CallingClass = this.Name,
+                            DataList = trainingSamples,
+                            ModelsName = _aRTHTModels.Name,
+                            StepName = stepName
+                        });
+                        _tFBackThread._signal.Set();
+                    }
+                    else if (_aRTHTModels.Name.Contains("K-Nearest neighbor"))
+                    {
+                        // This is for knn
+                        // Create a KNN model structure with the initial optimum K, which is "3"
+                        knnModel = KNNBackThread.createKNNModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
+
+                        // Fit features
+                        knnModel = KNNBackThread.fit(knnModel, trainingSamples);
+                    }
+                    else if (_aRTHTModels.Name.Contains("Naive bayes"))
+                    {
+                        // This is for naive bayes
+                        nbModel = NaiveBayesBackThread.createNBModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
+
+                        // Fit features
+                        nbModel = NaiveBayesBackThread.fit(nbModel, trainingSamples);
+                    }
+
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // Calculate validation metrics
+                    double[] predictedOutput;
+                    double[] actualOutput;
+                    // the follosing is used for computing MASE
+                    double[] previousActualOutput = null;
+                    double mae = 0;
+                    double maeNaive = 0;
+
+                    string currentBeatName = "";
+                    string prevBeatName = "";
+                    int numberOfStates = 0;
+                    (double predicted, double actual) pPrediction = (-1, 0);
+                    (double predicted, double actual) tPrediction = (-1, 0);
+                    for (int j = 0; j < validationSize; j++)
+                    {
+                        Sample sample = validationSamples[j];
+                        actualOutput = sample.getOutputs();
+                        // Get prediction output for current feature
+                        predictedOutput = askForPrediction(sample.getFeatures(), _aRTHTModels.Name, knnModel, nbModel, stepName);
+                        _remainingData--;
+
+                        // Check which type of validation metrics is this
+                        if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                        {
+                            // If yes then this is for regression metrics
+                            // Check if there is previousActualOutput
+                            if (j > 0)
+                                for (int i = 0; i < predictedOutput.Length; i++)
+                                {
+                                    /*// Calculate accuracy using Mean Absolute Percentage Error formula
+                                    // where accuracy should be (1 - mape)
+                                    double mape = Math.Abs((actualOutput[i] - predictedOutput[i]) / actualOutput[i]);
+                                    accuracy = (accuracy * possibilities + (1 - mape)) / (possibilities + 1);
+                                    possibilities++;*/
+
+                                    // Compute accuracy using Mean Absolute Scaled Error
+                                    mae = (mae * possibilities + Math.Abs(actualOutput[i] - predictedOutput[i])) / (possibilities + 1);
+                                    maeNaive = (maeNaive * possibilities + Math.Abs(actualOutput[i] - previousActualOutput[i])) / (possibilities + 1);
+                                    double mase = mae / maeNaive;
+                                    //accuracy = 1 - mase;
+                                    if (!double.IsInfinity(mase))
+                                        accuracy = mase;
+                                    possibilities++;
+                                }
+                            previousActualOutput = actualOutput;
+                        }
+                        else
+                        {
+                            // This is for classification metrics
+                            // Check if this is for P and T selection
+                            if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
+                            {
+                                // If yes then prediction should be rearanged for each beat states
+                                // Check if beat name is changed
+                                // or if this is the last state in validationSamples
+                                currentBeatName = sample.Name.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries)[0];
+                                if (!currentBeatName.Equals(prevBeatName) || j == validationSize - 1)
+                                {
+                                    // Check if this is the last state
+                                    if (j == validationSize - 1)
+                                    {
+                                        // Compute last state's values
+                                        numberOfStates++;
+
+                                        // Check if p probability is greater than previous predicted sample
+                                        if (predictedOutput[0] > pPrediction.predicted)
+                                            pPrediction = (predictedOutput[0], actualOutput[0]);
+
+                                        // Check if t probability is greater than previous predicted sample
+                                        if (predictedOutput[1] > tPrediction.predicted)
+                                            tPrediction = (predictedOutput[1], actualOutput[1]);
+                                    }
+
+                                    // Check if there exist predicted states
+                                    if (numberOfStates > 0)
+                                    {
+                                        // Cumpute the accuracy, sensitivity, and specificity of previous beat
+
+                                        // Compute accuracy
+                                        double trueVals = numberOfStates * 2;
+                                        trueVals -= pPrediction.actual == 1 ? 0 : 2;
+                                        trueVals -= tPrediction.actual == 1 ? 0 : 2;
+                                        accuracy = (accuracy * possibilities + trueVals) / (possibilities + numberOfStates * 2);
+                                        // possibilities of all of the otputs (2) --> predictedOutput.Length
+                                        possibilities += numberOfStates * 2;
+
+                                        // Compute sensitivity
+                                        double truePositives = pPrediction.actual + tPrediction.actual;
+                                        sensitivity = (sensitivity * targetPositives + truePositives) / (targetPositives + 2);
+                                        // only 1 p wave and 1 t wave (2 target positive) for each beat
+                                        targetPositives += 2;
+
+                                        // Compute specificity
+                                        double trueNegatives = trueVals - truePositives;
+                                        specificity = (specificity * targetNegatives + trueNegatives) / (targetNegatives + numberOfStates * 2 - 2);
+                                        // all states are negative except 1 for p wave and 1 for t wave
+                                        targetNegatives += numberOfStates * 2 - 2;
+                                    }
+
+                                    // Initialize values for next beat
+                                    prevBeatName = currentBeatName;
+                                    numberOfStates = 0;
+                                    pPrediction = (-1, 0);
+                                    tPrediction = (-1, 0);
+
+                                    // Break the for loop here if this is the last state
+                                    if (j == validationSize - 1)
+                                        break;
+                                }
+                                numberOfStates++;
+
+                                // Check if p probability is greater than previous predicted sample
+                                if (predictedOutput[0] > pPrediction.predicted)
+                                    pPrediction = (predictedOutput[0], actualOutput[0]);
+
+                                // Check if t probability is greater than previous predicted sample
+                                if (predictedOutput[1] > tPrediction.predicted)
+                                    tPrediction = (predictedOutput[1], actualOutput[1]);
+                            }
+                            else
+                            {
+                                // Set validation data for other steps
+                                for (int i = 0; i < predictedOutput.Length; i++)
+                                {
+                                    // Get curretn step threshold
+                                    float threshold = _aRTHTModels.ARTHTModelsDic[stepName].OutputsThresholds[i];
+                                    // Regulate output value
+                                    predictedOutput[i] = predictedOutput[i] >= threshold ? 1 : 0;
+
+                                    // Calculate accuracy
+                                    if (predictedOutput[i] == actualOutput[i])
+                                        accuracy = (accuracy * possibilities + 1) / (possibilities + 1);
+                                    else
+                                        accuracy = (accuracy * possibilities + 0) / (possibilities + 1);
+                                    possibilities++;
+
+                                    // Calculate sensitivity and specificity
+                                    if (actualOutput[i] == 1)
+                                    {
+                                        // This is for sensitivity
+                                        if (predictedOutput[i] == 1)
+                                            sensitivity = (sensitivity * targetPositives + 1) / (targetPositives + 1);
+                                        else
+                                            sensitivity = (sensitivity * targetPositives + 0) / (targetPositives + 1);
+                                        targetPositives++;
+                                    }
+                                    else
+                                    {
+                                        // This is for specificity
+                                        if (predictedOutput[i] == 0)
+                                            specificity = (specificity * targetNegatives + 1) / (targetNegatives + 1);
+                                        else
+                                            specificity = (specificity * targetNegatives + 0) / (targetNegatives + 1);
+                                        targetNegatives++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Update fitProgressBar
+                    fitProgress++;
+                    this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Value = fitProgress; }));
+                }
+
+                // Insert new validation data in validationFlowLayoutPanel
+                insertValidatoinData(totalTrainingSize, totalValidationSize, accuracy, sensitivity, specificity, stepName);
+                refreshValidationData(stepName, false);
             }
         }
     }

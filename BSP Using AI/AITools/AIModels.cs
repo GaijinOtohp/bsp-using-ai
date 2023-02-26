@@ -35,12 +35,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             };
 
             public long _validationTimeCompelxity { get; set; }
+            public string _ValidationInfo { get; set; }
 
             public ARTHTModels Clone()
             {
                 ARTHTModels aRTHTModels = new ARTHTModels();
                 aRTHTModels.Name = Name;
                 aRTHTModels._validationTimeCompelxity = _validationTimeCompelxity;
+                aRTHTModels._ValidationInfo = _ValidationInfo;
 
                 aRTHTModels.DataIdsIntervalsList = new List<List<long[]>>();
                 foreach (List<long[]> clonedUpdateIntervals in DataIdsIntervalsList)
@@ -69,8 +71,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         {
             public string AlgorithmType { get; set; }
             public int _datasetSize { get; set; }
-            public int _trainingDatasetSize { get; set; }
-            public int _validationDatasetSize { get; set; }
+            public double _trainingDatasetSize { get; set; }
+            public double _validationDatasetSize { get; set; }
             public double _accuracy { get; set; }
             public double _sensitivity { get; set; }
             public double _specificity { get; set; }

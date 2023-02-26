@@ -210,11 +210,28 @@ namespace BSP_Using_AI
         }
 
         //*******************************************************************************************************//
-        //***********************************************INPUT FORM**********************************************//
+        //*******************************************Clear flow layout*******************************************//
         //*******************************************************************************************************//
-        public static void okButton_Click(object sender, EventArgs e)
+        public static void fastClearFlowLayout(ref CustomFlowLayoutPanel flowLayoutPanel)
         {
-            
+            // Get parent control of this flowLayoutPanel
+            Control parentControl = flowLayoutPanel.Parent;
+            // Create a new flowLayout with the sampe properties as curent one
+            CustomFlowLayoutPanel newFlowLayoutPanel = new CustomFlowLayoutPanel();
+            newFlowLayoutPanel.Name = flowLayoutPanel.Name;
+            newFlowLayoutPanel.Anchor = flowLayoutPanel.Anchor;
+            newFlowLayoutPanel.AutoScroll = flowLayoutPanel.AutoScroll;
+            newFlowLayoutPanel.Margin = flowLayoutPanel.Margin;
+            newFlowLayoutPanel.Size = flowLayoutPanel.Size;
+            newFlowLayoutPanel.Location = flowLayoutPanel.Location;
+            newFlowLayoutPanel.BackColor = flowLayoutPanel.BackColor;
+            newFlowLayoutPanel.ForeColor = flowLayoutPanel.ForeColor;
+            // Dispose recordsFflowLayoutçRTpSrTp for faster clearing its controls
+            flowLayoutPanel.Dispose();
+            // Inser the new flowLayout in recordsFflowLayoutçRTpSrTp
+            flowLayoutPanel = newFlowLayoutPanel;
+
+            parentControl.Controls.Add(flowLayoutPanel);
         }
 
         //*******************************************************************************************************//

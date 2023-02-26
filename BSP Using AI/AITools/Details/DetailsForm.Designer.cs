@@ -33,19 +33,22 @@ namespace BSP_Using_AI.AITools.Details
             this.trainingsDetailsListBox = new System.Windows.Forms.ListBox();
             this.separatorLabel = new System.Windows.Forms.Label();
             this.validationDetailsLabel = new System.Windows.Forms.Label();
-            this.validateButton = new System.Windows.Forms.Button();
+            this.selectValidationDataButton = new System.Windows.Forms.Button();
             this.validationProgressBar = new System.Windows.Forms.ProgressBar();
             this.timeToFinishLabel = new System.Windows.Forms.Label();
             this.resultsLabel = new System.Windows.Forms.Label();
-            this.enableCrossValidationCheckBox = new System.Windows.Forms.CheckBox();
-            this.validationFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.signalsFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.samplingRateLabel = new System.Windows.Forms.Label();
             this.startingIndexLabel = new System.Windows.Forms.Label();
             this.signalNameLabel = new System.Windows.Forms.Label();
             this.optimizeThresholdsButton = new System.Windows.Forms.Button();
             this.saveChangesButton = new System.Windows.Forms.Button();
+            this.overallAccuracyLabel = new System.Windows.Forms.Label();
+            this.overallSensitivityLabel = new System.Windows.Forms.Label();
+            this.overallSpecificityLabel = new System.Windows.Forms.Label();
+            this.overallMASELabel = new System.Windows.Forms.Label();
             this.validationFlowLayoutPanelUserControlTitles1 = new BSP_Using_AI.AITools.Details.ValidationFlowLayoutPanelUserControlTitles();
+            this.validationFlowLayoutPanel = new BSP_Using_AI.CustomFlowLayoutPanel();
             this.SuspendLayout();
             // 
             // trainingsDetailsLabel
@@ -86,16 +89,16 @@ namespace BSP_Using_AI.AITools.Details
             this.validationDetailsLabel.TabIndex = 23;
             this.validationDetailsLabel.Text = "Validation details";
             // 
-            // validateButton
+            // selectValidationDataButton
             // 
-            this.validateButton.Location = new System.Drawing.Point(506, 250);
-            this.validateButton.Margin = new System.Windows.Forms.Padding(2);
-            this.validateButton.Name = "validateButton";
-            this.validateButton.Size = new System.Drawing.Size(62, 24);
-            this.validateButton.TabIndex = 25;
-            this.validateButton.Text = "Validate";
-            this.validateButton.UseVisualStyleBackColor = true;
-            this.validateButton.Click += new System.EventHandler(this.validateButton_Click);
+            this.selectValidationDataButton.Location = new System.Drawing.Point(506, 250);
+            this.selectValidationDataButton.Margin = new System.Windows.Forms.Padding(2);
+            this.selectValidationDataButton.Name = "selectValidationDataButton";
+            this.selectValidationDataButton.Size = new System.Drawing.Size(117, 24);
+            this.selectValidationDataButton.TabIndex = 25;
+            this.selectValidationDataButton.Text = "Select validation data";
+            this.selectValidationDataButton.UseVisualStyleBackColor = true;
+            this.selectValidationDataButton.Click += new System.EventHandler(this.validateButton_Click);
             // 
             // validationProgressBar
             // 
@@ -125,27 +128,6 @@ namespace BSP_Using_AI.AITools.Details
             this.resultsLabel.Size = new System.Drawing.Size(42, 13);
             this.resultsLabel.TabIndex = 27;
             this.resultsLabel.Text = "Results";
-            // 
-            // enableCrossValidationCheckBox
-            // 
-            this.enableCrossValidationCheckBox.AutoSize = true;
-            this.enableCrossValidationCheckBox.Location = new System.Drawing.Point(573, 255);
-            this.enableCrossValidationCheckBox.Name = "enableCrossValidationCheckBox";
-            this.enableCrossValidationCheckBox.Size = new System.Drawing.Size(135, 17);
-            this.enableCrossValidationCheckBox.TabIndex = 28;
-            this.enableCrossValidationCheckBox.Text = "Enable cross validation";
-            this.enableCrossValidationCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // validationFlowLayoutPanel
-            // 
-            this.validationFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.validationFlowLayoutPanel.AutoScroll = true;
-            this.validationFlowLayoutPanel.Location = new System.Drawing.Point(8, 365);
-            this.validationFlowLayoutPanel.Name = "validationFlowLayoutPanel";
-            this.validationFlowLayoutPanel.Size = new System.Drawing.Size(1046, 370);
-            this.validationFlowLayoutPanel.TabIndex = 30;
             // 
             // signalsFlowLayoutPanel
             // 
@@ -212,18 +194,82 @@ namespace BSP_Using_AI.AITools.Details
             this.saveChangesButton.UseVisualStyleBackColor = true;
             this.saveChangesButton.Click += new System.EventHandler(this.saveChangesButton_Click);
             // 
+            // overallAccuracyLabel
+            // 
+            this.overallAccuracyLabel.AutoSize = true;
+            this.overallAccuracyLabel.Location = new System.Drawing.Point(5, 741);
+            this.overallAccuracyLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.overallAccuracyLabel.MinimumSize = new System.Drawing.Size(120, 0);
+            this.overallAccuracyLabel.Name = "overallAccuracyLabel";
+            this.overallAccuracyLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallAccuracyLabel.Size = new System.Drawing.Size(120, 13);
+            this.overallAccuracyLabel.TabIndex = 39;
+            this.overallAccuracyLabel.Text = "Overall accuracy:";
+            // 
+            // overallSensitivityLabel
+            // 
+            this.overallSensitivityLabel.AutoSize = true;
+            this.overallSensitivityLabel.Location = new System.Drawing.Point(131, 741);
+            this.overallSensitivityLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.overallSensitivityLabel.MinimumSize = new System.Drawing.Size(120, 0);
+            this.overallSensitivityLabel.Name = "overallSensitivityLabel";
+            this.overallSensitivityLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallSensitivityLabel.Size = new System.Drawing.Size(120, 13);
+            this.overallSensitivityLabel.TabIndex = 40;
+            this.overallSensitivityLabel.Text = "Overall sensitivity:";
+            // 
+            // overallSpecificityLabel
+            // 
+            this.overallSpecificityLabel.AutoSize = true;
+            this.overallSpecificityLabel.Location = new System.Drawing.Point(257, 741);
+            this.overallSpecificityLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.overallSpecificityLabel.MinimumSize = new System.Drawing.Size(120, 0);
+            this.overallSpecificityLabel.Name = "overallSpecificityLabel";
+            this.overallSpecificityLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallSpecificityLabel.Size = new System.Drawing.Size(120, 13);
+            this.overallSpecificityLabel.TabIndex = 41;
+            this.overallSpecificityLabel.Text = "Overall specificity:";
+            // 
+            // overallMASELabel
+            // 
+            this.overallMASELabel.AutoSize = true;
+            this.overallMASELabel.Location = new System.Drawing.Point(383, 741);
+            this.overallMASELabel.Margin = new System.Windows.Forms.Padding(3);
+            this.overallMASELabel.MinimumSize = new System.Drawing.Size(120, 0);
+            this.overallMASELabel.Name = "overallMASELabel";
+            this.overallMASELabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallMASELabel.Size = new System.Drawing.Size(120, 13);
+            this.overallMASELabel.TabIndex = 42;
+            this.overallMASELabel.Text = "Overall MASE:";
+            // 
             // validationFlowLayoutPanelUserControlTitles1
             // 
             this.validationFlowLayoutPanelUserControlTitles1.Location = new System.Drawing.Point(8, 329);
+            this.validationFlowLayoutPanelUserControlTitles1.Margin = new System.Windows.Forms.Padding(4);
             this.validationFlowLayoutPanelUserControlTitles1.Name = "validationFlowLayoutPanelUserControlTitles1";
             this.validationFlowLayoutPanelUserControlTitles1.Size = new System.Drawing.Size(1020, 30);
             this.validationFlowLayoutPanelUserControlTitles1.TabIndex = 38;
+            // 
+            // validationFlowLayoutPanel
+            // 
+            this.validationFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.validationFlowLayoutPanel.AutoScroll = true;
+            this.validationFlowLayoutPanel.Location = new System.Drawing.Point(8, 365);
+            this.validationFlowLayoutPanel.Name = "validationFlowLayoutPanel";
+            this.validationFlowLayoutPanel.Size = new System.Drawing.Size(1046, 370);
+            this.validationFlowLayoutPanel.TabIndex = 30;
             // 
             // DetailsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1060, 806);
+            this.Controls.Add(this.overallMASELabel);
+            this.Controls.Add(this.overallSpecificityLabel);
+            this.Controls.Add(this.overallSensitivityLabel);
+            this.Controls.Add(this.overallAccuracyLabel);
             this.Controls.Add(this.validationFlowLayoutPanelUserControlTitles1);
             this.Controls.Add(this.saveChangesButton);
             this.Controls.Add(this.optimizeThresholdsButton);
@@ -232,10 +278,9 @@ namespace BSP_Using_AI.AITools.Details
             this.Controls.Add(this.signalNameLabel);
             this.Controls.Add(this.signalsFlowLayoutPanel);
             this.Controls.Add(this.validationFlowLayoutPanel);
-            this.Controls.Add(this.enableCrossValidationCheckBox);
             this.Controls.Add(this.resultsLabel);
             this.Controls.Add(this.timeToFinishLabel);
-            this.Controls.Add(this.validateButton);
+            this.Controls.Add(this.selectValidationDataButton);
             this.Controls.Add(this.validationProgressBar);
             this.Controls.Add(this.validationDetailsLabel);
             this.Controls.Add(this.separatorLabel);
@@ -253,12 +298,11 @@ namespace BSP_Using_AI.AITools.Details
         private System.Windows.Forms.Label trainingsDetailsLabel;
         private System.Windows.Forms.Label separatorLabel;
         private System.Windows.Forms.Label validationDetailsLabel;
-        private System.Windows.Forms.Button validateButton;
+        private System.Windows.Forms.Button selectValidationDataButton;
         public System.Windows.Forms.ProgressBar validationProgressBar;
         private System.Windows.Forms.Label timeToFinishLabel;
         private System.Windows.Forms.Label resultsLabel;
-        private System.Windows.Forms.CheckBox enableCrossValidationCheckBox;
-        private System.Windows.Forms.FlowLayoutPanel validationFlowLayoutPanel;
+        private CustomFlowLayoutPanel validationFlowLayoutPanel;
         public System.Windows.Forms.ListBox trainingsDetailsListBox;
         private System.Windows.Forms.FlowLayoutPanel signalsFlowLayoutPanel;
         private System.Windows.Forms.Label samplingRateLabel;
@@ -267,5 +311,9 @@ namespace BSP_Using_AI.AITools.Details
         private System.Windows.Forms.Button optimizeThresholdsButton;
         private System.Windows.Forms.Button saveChangesButton;
         private ValidationFlowLayoutPanelUserControlTitles validationFlowLayoutPanelUserControlTitles1;
+        private System.Windows.Forms.Label overallAccuracyLabel;
+        private System.Windows.Forms.Label overallSensitivityLabel;
+        private System.Windows.Forms.Label overallSpecificityLabel;
+        private System.Windows.Forms.Label overallMASELabel;
     }
 }
