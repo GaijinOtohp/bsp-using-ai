@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows.Forms;
@@ -1218,6 +1219,118 @@ namespace BSP_Using_AI
             }
 
             return input;
+        }
+
+        //*******************************************************************************************************//
+        //**************************************REARRANGE INPUT OF FEATURES**************************************//
+        public static List<T> OrderByTextWithNumbers<T>(List<T> objectsList, List<string> namesList)
+        {
+            // Get elements to order from textsList
+            List<(int originalOrder, List<object> elements)> elementsToOrder = GetTextsElements(namesList);
+
+            // Order objectsList according to the number of elements in elementsToOrder
+            List<T> orderedObjectsList = new List<T>();
+            OrderByElements(elementsToOrder, objectsList, orderedObjectsList);
+
+            return orderedObjectsList;
+        }
+
+        private static void OrderByElements<T>(List<(int originalOrder, List<object> elements)> elementsToOrder, List<T> originalObjectsList, List<T> orderedObjectsList)
+        {
+            // Group elements by variable type
+            List<IGrouping<string, (int, List<object>)>> elementsGroupsByType = elementsToOrder.GroupBy(element => element.elements[0].GetType().Name).ToList();
+            // Check if there exist more than one type
+            if (elementsGroupsByType.Count > 1)
+            {
+                // If yes then order each group separated according to its type
+                // Sort groups by key
+                elementsGroupsByType = elementsGroupsByType.OrderBy(group => group.Key).ToList();
+                foreach (IGrouping<string, (int, List<object>)> group in elementsGroupsByType)
+                    OrderByElements(group.ToList(), originalObjectsList, orderedObjectsList);
+
+                // return
+                return;
+            }
+
+            // Start grouping elementsToOrder by the first element type
+            List<IGrouping<object, (int, List<object>)>> elementsGroups = elementsToOrder.GroupBy(element => element.elements[0]).ToList();
+            // Sort groups by key
+            elementsGroups = elementsGroups.OrderBy(group => group.Key).ToList();
+            // Reorder each group
+            foreach (IGrouping<object, (int, List<object>)> group in elementsGroups)
+            {
+                // Remove the first sorting element from the group sorting elements
+                List<(int, List<object>)> newElementsToOrder = new List<(int, List<object>)>();
+                List<(int, List<object>)> elmentsToInsert = new List<(int, List<object>)>();
+                foreach ((int originalOrder, List<object> elements) elements in group)
+                {
+                    if (elements.elements.Count > 1)
+                    {
+                        elements.elements.RemoveAt(0);
+                        newElementsToOrder.Add(elements);
+                    }
+                    else
+                        elmentsToInsert.Add(elements);
+                }
+                // Insert elmentsToInsert in orderedObjectsList
+                foreach ((int originalOrder, List<object> elements) in elmentsToInsert)
+                    orderedObjectsList.Add(originalObjectsList[originalOrder]);
+                // Order the newElementsToOrder
+                if (newElementsToOrder.Count > 0)
+                    OrderByElements(newElementsToOrder, originalObjectsList, orderedObjectsList);
+            }
+        }
+
+        private static List<(int originalOrder, List<object> elements)> GetTextsElements(List<string> textsList)
+        {
+            List<(int originalOrder, List<object> elements) > elementsToOrder = new List<(int, List<object>)>(textsList.Count);
+            for (int i = 0; i < textsList.Count; i++)
+            {
+                string text = textsList[i];
+
+                List<object> elements = new List<object>();
+                bool isString = false, isDigit = false;
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int j = 0; j < text.Length; j++)
+                {
+                    char c = text[j];
+                    // Check if the previous char type was string and is different than current one
+                    if (char.IsDigit(c) && isString)
+                    {
+                        // If yes then insert previous string in elements
+                        elements.Add(stringBuilder.ToString());
+                        // Clear the string builder
+                        stringBuilder.Clear();
+                        isString = false;
+                    }
+                    // Check if the previous char type was digit and is different than current one
+                    if (!char.IsDigit(c) && isDigit)
+                    {
+                        // If yes then insert previous number in elements
+                        elements.Add(int.Parse(stringBuilder.ToString()));
+                        // Clear the string builder
+                        stringBuilder.Clear();
+                        isDigit = false;
+                    }
+
+                    // Update stringBuilder
+                    stringBuilder.Append(c);
+                    if (char.IsDigit(c))
+                        isDigit = true;
+                    else
+                        isString = true;
+
+                    // Check if this is the last character
+                    if (j == text.Length - 1)
+                        if (isDigit)
+                            elements.Add(int.Parse(stringBuilder.ToString()));
+                        else if (isString)
+                            elements.Add(stringBuilder.ToString());
+                }
+                // Insert text elements in elementsToOrder
+                elementsToOrder.Add((i, elements));
+            }
+            return elementsToOrder;
         }
     }
 }
