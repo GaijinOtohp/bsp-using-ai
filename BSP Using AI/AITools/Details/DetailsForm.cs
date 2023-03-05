@@ -110,10 +110,12 @@ namespace BSP_Using_AI.AITools.Details
                     overallSpecificity += model.ValidationData._specificity / 4;
                 }
             }
-            overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAccuracy * 100, 2).ToString() + "%";
-            overallSensitivityLabel.Text = "Overall sensitivity: " + Math.Round(overAllSensitivity * 100, 2).ToString() + "%";
-            overallSpecificityLabel.Text = "Overall specificity: " + Math.Round(overallSpecificity * 100, 2).ToString() + "%";
-            overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
+            this.Invoke(new MethodInvoker(delegate () {
+                overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAccuracy * 100, 2).ToString() + "%";
+                overallSensitivityLabel.Text = "Overall sensitivity: " + Math.Round(overAllSensitivity * 100, 2).ToString() + "%";
+                overallSpecificityLabel.Text = "Overall specificity: " + Math.Round(overallSpecificity * 100, 2).ToString() + "%";
+                overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
+            }));
         }
 
         private void insertValidatoinData(double trainingSize, double validationSize, double accuracy, double sensitivity, double specificity, string stepName)
@@ -309,8 +311,15 @@ namespace BSP_Using_AI.AITools.Details
                         this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Add(datasetFlowLayoutPanelItem2UserControl); }));
                     }
 
+                    // Order datatable by name
+                    List<DataRow> rowsList = new List<DataRow>(dataTable.AsEnumerable());
+                    List<string> namesList = new List<string>();
+                    foreach (DataRow row in rowsList)
+                        namesList.Add(row.Field<string>("sginal_name"));
+                    rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
+
                     // Insert new items from records
-                    foreach (DataRow row in dataTable.AsEnumerable())
+                    foreach (DataRow row in rowsList)
                     {
                         // Check which update does this signal belong to
                         for (int i = 0; i < _aRTHTModels.DataIdsIntervalsList.Count; i++)

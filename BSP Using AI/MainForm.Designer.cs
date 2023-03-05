@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biological_Signal_Processing_Using_AI;
+using System;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 
 namespace BSP_Using_AI
@@ -41,7 +42,7 @@ namespace BSP_Using_AI
             this.aiToolsButton = new System.Windows.Forms.Button();
             this.signalsComparatorButton = new System.Windows.Forms.Button();
             this.signalsCollectorButton = new System.Windows.Forms.Button();
-            this.vScrollBar = new System.Windows.Forms.VScrollBar();
+            this.vScrollBar = new CustomVScrollBar();
             this.signalsFlowLayout = new BSP_Using_AI.CustomFlowLayoutPanel();
             this.SuspendLayout();
             // 
@@ -126,7 +127,7 @@ namespace BSP_Using_AI
         private System.Windows.Forms.Button aiToolsButton;
         private System.Windows.Forms.Button signalsComparatorButton;
         private System.Windows.Forms.Button signalsCollectorButton;
-        public System.Windows.Forms.VScrollBar vScrollBar;
+        public CustomVScrollBar vScrollBar;
         private CustomFlowLayoutPanel signalsFlowLayout;
     }
 }

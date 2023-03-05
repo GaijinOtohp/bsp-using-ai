@@ -144,8 +144,15 @@ namespace BSP_Using_AI
                 // Check if this report is from model table
                 if (callingClassName.Equals("MainFormForModels"))
                 {
+                    // Order datatable by name
+                    List<DataRow> rowsList = new List<DataRow>(dataTable.AsEnumerable());
+                    List<string> namesList = new List<string>();
+                    foreach (DataRow row in rowsList)
+                        namesList.Add(((ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"))).Name);
+                    rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
+
                     // Set models ready and get last_signal_id of the highest model size
-                    foreach (DataRow row in dataTable.AsEnumerable())
+                    foreach (DataRow row in rowsList)
                     {
                         // Check which model for which terget is this record "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size"
                         if (row.Field<long>("dataset_size") > _largestDatasetSize)

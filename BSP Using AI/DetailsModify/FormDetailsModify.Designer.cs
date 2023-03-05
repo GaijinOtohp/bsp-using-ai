@@ -471,6 +471,7 @@
             // 
             // saveAsImageButton
             // 
+            this.saveAsImageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.saveAsImageButton.Location = new System.Drawing.Point(548, 239);
             this.saveAsImageButton.Margin = new System.Windows.Forms.Padding(2);
             this.saveAsImageButton.Name = "saveAsImageButton";

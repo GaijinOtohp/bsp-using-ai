@@ -77,7 +77,7 @@ namespace BSP_Using_AI.DetailsModify
             List<string> modelsList = new List<string>();
             foreach (string model in ((MainForm)signalHolder.FindForm())._arthtModelsDic.Keys)
                 modelsList.Add(model);
-            modelsList.Sort();
+            modelsList = Garage.OrderByTextWithNumbers(modelsList, modelsList);
             modelTypeComboBox.DataSource = modelsList;
         }
 

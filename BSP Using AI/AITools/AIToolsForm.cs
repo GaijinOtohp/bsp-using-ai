@@ -117,8 +117,15 @@ namespace BSP_Using_AI
             if (modelsFlowLayoutPanel.Controls.Count > 0)
                 if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Clear(); }));
 
+            // Order datatable by name
+            List<DataRow> rowsList = new List<DataRow>(dataTable.AsEnumerable());
+            List<string> namesList = new List<string>();
+            foreach (DataRow row in rowsList)
+                namesList.Add(((ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"))).Name);
+            rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
+
             // Insert new items from records
-            foreach (DataRow row in dataTable.AsEnumerable())
+            foreach (DataRow row in rowsList)
             {
                 // Create an item of the model
                 ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl();

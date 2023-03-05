@@ -40,29 +40,29 @@ namespace BSP_Using_AI.SignalHolderFolder
             // Check if the signal is more than 10 secs
             if ((_samples.Length / _FilteringTools._samplingRate) > 10)
             {
-                int truncPeriod = 10;
+                double truncPeriod = 10;
                 // If yes then plot only 10 secs of the signal
                 // Check if the inserted starting param is negative number
-                if (startingInSecs < 0D)
+                if (startingInSecs < 0)
                     // If yes then set the starting param as 0
-                    startingInSecs = 0D;
+                    startingInSecs = 0;
 
                 // starting from the inserted param as in secs
                 int starting = (int)(startingInSecs * _FilteringTools._samplingRate);
-                int ending = starting + (truncPeriod * _FilteringTools._samplingRate);
+                int ending = starting + (int)(truncPeriod * _FilteringTools._samplingRate);
                 // Check if _samples contains enogh samples for 10 sec starting from the starting index
                 if (ending > _samples.Length)
                 {
                     // If yes then set the ending as the length of _samples
                     ending = _samples.Length;
                     // and the starting as 10 secs from the ending
-                    starting = ending - (truncPeriod * _FilteringTools._samplingRate);
+                    starting = ending - (int)(truncPeriod * _FilteringTools._samplingRate);
                 }
 
                 // Set the new startingInSec
-                _FilteringTools.SetStartingInSecond(starting / _FilteringTools._samplingRate);
+                _FilteringTools.SetStartingInSecond(starting / (double)_FilteringTools._samplingRate);
 
-                int numSamples = truncPeriod * _FilteringTools._samplingRate;
+                int numSamples = ending - starting;
                 truncatedSamples = new double[numSamples];
 
                 for (int i = 0; i < numSamples; i++)

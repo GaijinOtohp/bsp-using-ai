@@ -208,8 +208,15 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 if (signalsFlowLayoutPanel.Controls.Count > 0)
                     if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Clear(); }));
 
+                // Order datatable by name
+                List<DataRow> rowsList = new List<DataRow>(dataTable.AsEnumerable());
+                List<string> namesList = new List<string>();
+                foreach (DataRow row in rowsList)
+                    namesList.Add(row.Field<string>("sginal_name"));
+                rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
+
                 // Insert new items from records
-                foreach (DataRow row in dataTable.AsEnumerable())
+                foreach (DataRow row in rowsList)
                 {
                     // Create an item of the model
                     DatasetFlowLayoutPanelItemUserControl datasetFlowLayoutPanelItemUserControl = new DatasetFlowLayoutPanelItemUserControl();
