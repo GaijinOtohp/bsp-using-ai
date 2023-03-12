@@ -228,96 +228,65 @@ namespace Biological_Signal_Processing_Using_AI
         }
         public class ARTHTNamings
         {
-            [DataMember]
             public static string Features = "Features";
-            [DataMember]
             public static string Outputs = "Outputs";
 
-            [DataMember]
             public static string Step1RPeaksScanData { get; } = "R-peaks scan";
-            [DataMember]
             public static string Step2RPeaksSelectionData { get; } = "R-peaks selection";
-            [DataMember]
             public static string Step3BeatPeaksScanData { get; } = "Beat peaks scan";
-            [DataMember]
             public static string Step4PTSelectionData { get; } = "P and T selection";
-            [DataMember]
             public static string Step5ShortPRScanData { get; } = "Short PR scan";
-            [DataMember]
             public static string Step6UpstrokesScanData { get; } = "Upstrokes scan";
-            [DataMember]
             public static string Step7DeltaExaminationData { get; } = "Delta examination";
 
-            [DataMember]
             public static string Mean = "mean";
-            [DataMember]
             public static string Min = "min";
-            [DataMember]
             public static string Max = "max";
-            [DataMember]
             public static string StdDev = "STD_DEV";
-            [DataMember]
             public static string IQR = "IQR";
 
             /// <summary>
             /// Amplitude ratio threshold
             /// </summary>
-            [DataMember]
             public static string ART = "ART"; // Amplitude Ratio Threshold
             /// <summary>
             /// Horizontal threshold
             /// </summary>
-            [DataMember]
             public static string HT = "HT"; // Horizontal Threshold
 
 
-            [DataMember]
             public static string RIntrvl = "RpRcur/RRav";
-            [DataMember]
             public static string RAmp = "ampRcur/ampRp";
 
-            [DataMember]
             public static string RemoveR = "Remove R";
 
 
-            [DataMember]
             public static string Beat = "Beat";
 
 
-            [DataMember]
             public static string State = "State";
 
-            [DataMember]
             public static string Stx = "Stx";
-            [DataMember]
             public static string StRIntrvl = "(Stx - Rk) / (Rk - Rk-1)";
-            [DataMember]
             public static string StAmp = "((ampStx - ampStx-1) + (ampStx - ampStx+1)) / 2";
 
-            [DataMember]
             public static string PWave = "P wave";
-            [DataMember]
             public static string TWave = "T wave";
 
 
-            [DataMember]
             public static string PQIntrvl = "(Q - P) / (R - P)";
 
-            [DataMember]
             public static string ShortPR = "Short PR";
 
 
             /// <summary>
             /// Tangent deviation threshold
             /// </summary>
-            [DataMember]
             public static string TDT = "TDT"; // Tangent Deviation Threshold
 
 
-            [DataMember]
             public static string DeltaAmp = "(ampDelta - ampQ) / (ampR - ampQ)";
 
-            [DataMember]
             public static string WPWPattern = "WPW pattern";
         }
         //____________________________________________________________________________________//
