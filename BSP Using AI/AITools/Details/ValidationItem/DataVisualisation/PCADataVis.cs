@@ -53,6 +53,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
+        private void saveAsImageButton_Click(object sender, EventArgs e)
+        {
+            Garage.saveChartAsImage(pcaChart);
+        }
+
         private void pcaChart_MouseMove(object sender, MouseEventArgs e)
         {
             if (_mouseDown)

@@ -92,5 +92,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             EventHandlers.signalExhibitor_MouseWheel(sender, e, _previousMouseX, _previousMouseY);
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Garage.saveChartAsImage(rawChart);
+        }
     }
 }
