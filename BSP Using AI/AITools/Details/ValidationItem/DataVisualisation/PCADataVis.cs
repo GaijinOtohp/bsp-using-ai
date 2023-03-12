@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -19,11 +20,15 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
     // https://medium.com/analytics-vidhya/understanding-principle-component-analysis-pca-step-by-step-e7a4bb4031d9
 
     [Serializable]
+    [DataContract(IsReference = true)]
     public class PCAitem
     {
+        [DataMember]
         public double _eigenValue;
+        [DataMember]
         public EigenVectorItem[] EigenVector; // PC loading scores
 
+        [DataMember]
         public bool _selected = true;
 
         public PCAitem Clone()
@@ -39,9 +44,12 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         }
     }
     [Serializable]
+    [DataContract(IsReference = true)]
     public class EigenVectorItem
     {
+        [DataMember]
         public string FeatureLabel;
+        [DataMember]
         public double loadingScore;
     }
 

@@ -16,57 +16,7 @@ namespace BSP_Using_AI.DetailsModify
         //********************************************EVENT HANDLERS*********************************************//
         private void saveButton_Click(object sender, EventArgs e)
         {
-            // Open file dialogue to choose the path where to save the image
-            using (SaveFileDialog sfd = new SaveFileDialog() { Title = "Save an Image File", ValidateNames = true, Filter = "PNG Image|*.png", RestoreDirectory = true })
-            {
-                // Check if the user clicked OK button
-                if (sfd.ShowDialog() == DialogResult.OK)
-                {
-                    // If yes then save teh chart in the selected path
-
-                    // Get the path of specified file
-                    String filePath = sfd.FileName;
-
-                    saveChartAsImage(filePath);
-                }
-            }
-        }
-
-        private void saveChartAsImage(string filePath)
-        {
-            // Scale the size of the chart
-            int scaling = 20;
-            System.IO.MemoryStream myStream = new System.IO.MemoryStream();
-            Chart chart2 = new Chart();
-            signalChart.Serializer.Save(myStream);
-            chart2.Serializer.Load(myStream);
-            chart2.Height = chart2.Height * scaling;
-            chart2.Width = chart2.Width * scaling;
-            foreach (Series serie in chart2.Series)
-            {
-                serie.BorderWidth = serie.BorderWidth * scaling;
-                serie.MarkerSize = serie.MarkerSize * 15;
-                serie.Font = new System.Drawing.Font("Microsoft Sans Serif", serie.Font.Size * 15);
-                serie.SmartLabelStyle.CalloutLineWidth = serie.SmartLabelStyle.CalloutLineWidth * 10;
-            }
-            chart2.ChartAreas[0].AxisX.MajorGrid.LineWidth = chart2.ChartAreas[0].AxisX.MajorGrid.LineWidth * scaling;
-            chart2.ChartAreas[0].AxisY.MajorGrid.LineWidth = chart2.ChartAreas[0].AxisY.MajorGrid.LineWidth * scaling;
-            chart2.ChartAreas[0].AxisX.MajorTickMark.LineWidth = chart2.ChartAreas[0].AxisX.MajorTickMark.LineWidth * scaling;
-            chart2.ChartAreas[0].AxisY.MajorTickMark.LineWidth = chart2.ChartAreas[0].AxisY.MajorTickMark.LineWidth * scaling;
-            chart2.ChartAreas[0].AxisX.LineWidth = chart2.ChartAreas[0].AxisX.LineWidth * scaling;
-            chart2.ChartAreas[0].AxisY.LineWidth = chart2.ChartAreas[0].AxisY.LineWidth * scaling;
-            chart2.ChartAreas[0].AxisX.LabelAutoFitMinFontSize = chart2.ChartAreas[0].AxisX.LabelAutoFitMinFontSize * scaling;
-            chart2.ChartAreas[0].AxisY.LabelAutoFitMinFontSize = chart2.ChartAreas[0].AxisY.LabelAutoFitMinFontSize * scaling;
-            chart2.ChartAreas[0].AxisX.LabelAutoFitMaxFontSize = chart2.ChartAreas[0].AxisX.LabelAutoFitMaxFontSize * scaling;
-            chart2.ChartAreas[0].AxisY.LabelAutoFitMaxFontSize = chart2.ChartAreas[0].AxisY.LabelAutoFitMaxFontSize * scaling;
-            chart2.ChartAreas[0].AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", chart2.ChartAreas[0].AxisX.TitleFont.Size * scaling);
-            chart2.ChartAreas[0].AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", chart2.ChartAreas[0].AxisY.TitleFont.Size * scaling);
-            chart2.Legends[0].Font = new System.Drawing.Font("Microsoft Sans Serif", chart2.Legends[0].Font.Size * scaling);
-            if (chart2.Titles.Count > 0)
-                chart2.Titles[0].Font = new System.Drawing.Font("Microsoft Sans Serif", chart2.Titles[0].Font.Size * scaling);
-
-            // Save the image from the scaled chart
-            chart2.SaveImage(filePath, ChartImageFormat.Png);
+            Garage.saveChartAsImage(signalChart);
         }
 
         private void signalExhibitor_MouseDown(object sender, MouseEventArgs e)

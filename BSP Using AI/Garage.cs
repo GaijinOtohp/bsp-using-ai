@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows.Forms;
@@ -998,34 +999,37 @@ namespace BSP_Using_AI
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //::::::::::::::::::::::::::::::::SERIALIZE/DESERIALIZE OBJECT::::::::::::::::::::::::::::::://
         // Convert an object to a byte array
-        public static byte[] ObjectToByteArray(Object obj)
+        public static byte[] ObjectToByteArray<T>(T obj)
         {
-            BinaryFormatter bf = new BinaryFormatter();
+            DataContractSerializer dcs = new DataContractSerializer(typeof(T));
+            
             using (var ms = new MemoryStream())
             {
-                bf.Serialize(ms, obj);
+                dcs.WriteObject(ms, obj);
                 return ms.ToArray();
             }
         }
 
-        // Convert a byte array to an Object
-        public static Object ByteArrayToObject(byte[] arrBytes)
+        // Convert a byte array to an object
+        public static T ByteArrayToObject<T>(byte[] arrBytes)
         {
             using (var memStream = new MemoryStream())
             {
                 var binForm = new BinaryFormatter();
                 memStream.Write(arrBytes, 0, arrBytes.Length);
                 memStream.Seek(0, SeekOrigin.Begin);
+
+                DataContractSerializer dcs = new DataContractSerializer(typeof(T));
+
                 try
                 {
-                    var obj = binForm.Deserialize(memStream);
-                    return obj;
+                    return (T)dcs.ReadObject(memStream);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                 }
-                return null;
+                return default(T);
             }
         }
 
@@ -1222,7 +1226,7 @@ namespace BSP_Using_AI
         }
 
         //*******************************************************************************************************//
-        //**************************************REARRANGE INPUT OF FEATURES**************************************//
+        //**********************************Order list by string with numbers************************************//
         public static List<T> OrderByTextWithNumbers<T>(List<T> objectsList, List<string> namesList)
         {
             // Get elements to order from textsList
@@ -1331,6 +1335,58 @@ namespace BSP_Using_AI
                 elementsToOrder.Add((i, elements));
             }
             return elementsToOrder;
+        }
+
+        //*******************************************************************************************************//
+        //****************************************Save chart as HD image*****************************************//
+        public static void saveChartAsImage(Chart signalChart)
+        {
+            // Open file dialogue to choose the path where to save the image
+            using (SaveFileDialog sfd = new SaveFileDialog() { Title = "Save an Image File", ValidateNames = true, Filter = "PNG Image|*.png", RestoreDirectory = true })
+            {
+                // Check if the user clicked OK button
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    // If yes then save teh chart in the selected path
+
+                    // Get the path of specified file
+                    string filePath = sfd.FileName;
+
+                    // Scale the size of the chart
+                    int scaling = 20;
+                    System.IO.MemoryStream myStream = new System.IO.MemoryStream();
+                    Chart scaledChart = new Chart();
+                    signalChart.Serializer.Save(myStream);
+                    scaledChart.Serializer.Load(myStream);
+                    scaledChart.Height = scaledChart.Height * scaling;
+                    scaledChart.Width = scaledChart.Width * scaling;
+                    foreach (Series serie in scaledChart.Series)
+                    {
+                        serie.BorderWidth = serie.BorderWidth * scaling;
+                        serie.MarkerSize = serie.MarkerSize * 15;
+                        serie.Font = new System.Drawing.Font("Microsoft Sans Serif", serie.Font.Size * 15);
+                        serie.SmartLabelStyle.CalloutLineWidth = serie.SmartLabelStyle.CalloutLineWidth * 10;
+                    }
+                    scaledChart.ChartAreas[0].AxisX.MajorGrid.LineWidth = scaledChart.ChartAreas[0].AxisX.MajorGrid.LineWidth * scaling;
+                    scaledChart.ChartAreas[0].AxisY.MajorGrid.LineWidth = scaledChart.ChartAreas[0].AxisY.MajorGrid.LineWidth * scaling;
+                    scaledChart.ChartAreas[0].AxisX.MajorTickMark.LineWidth = scaledChart.ChartAreas[0].AxisX.MajorTickMark.LineWidth * scaling;
+                    scaledChart.ChartAreas[0].AxisY.MajorTickMark.LineWidth = scaledChart.ChartAreas[0].AxisY.MajorTickMark.LineWidth * scaling;
+                    scaledChart.ChartAreas[0].AxisX.LineWidth = scaledChart.ChartAreas[0].AxisX.LineWidth * scaling;
+                    scaledChart.ChartAreas[0].AxisY.LineWidth = scaledChart.ChartAreas[0].AxisY.LineWidth * scaling;
+                    scaledChart.ChartAreas[0].AxisX.LabelAutoFitMinFontSize = scaledChart.ChartAreas[0].AxisX.LabelAutoFitMinFontSize * scaling;
+                    scaledChart.ChartAreas[0].AxisY.LabelAutoFitMinFontSize = scaledChart.ChartAreas[0].AxisY.LabelAutoFitMinFontSize * scaling;
+                    scaledChart.ChartAreas[0].AxisX.LabelAutoFitMaxFontSize = scaledChart.ChartAreas[0].AxisX.LabelAutoFitMaxFontSize * scaling;
+                    scaledChart.ChartAreas[0].AxisY.LabelAutoFitMaxFontSize = scaledChart.ChartAreas[0].AxisY.LabelAutoFitMaxFontSize * scaling;
+                    scaledChart.ChartAreas[0].AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.ChartAreas[0].AxisX.TitleFont.Size * scaling);
+                    scaledChart.ChartAreas[0].AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.ChartAreas[0].AxisY.TitleFont.Size * scaling);
+                    scaledChart.Legends[0].Font = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.Legends[0].Font.Size * scaling);
+                    if (scaledChart.Titles.Count > 0)
+                        scaledChart.Titles[0].Font = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.Titles[0].Font.Size * scaling);
+
+                    // Save the image from the scaled chart
+                    scaledChart.SaveImage(filePath, ChartImageFormat.Png);
+                }
+            }
         }
     }
 }

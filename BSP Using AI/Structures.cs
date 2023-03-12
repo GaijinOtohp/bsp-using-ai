@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Biological_Signal_Processing_Using_AI
 {
@@ -63,28 +64,44 @@ namespace Biological_Signal_Processing_Using_AI
         }
         //____________________________________________________________________________________//
         [Serializable]
+        [DataContract(IsReference = true)]
         public class Beat
         {
+            [DataMember]
             public int _startingIndex { get; set; } = int.MinValue;
+            [DataMember]
             public int _pIndex { get; set; } = int.MinValue;
+            [DataMember]
             public int _qIndex { get; set; } = int.MinValue;
+            [DataMember]
             public int _slurredUpstrokeIndex { get; set; } = int.MinValue;
+            [DataMember]
             public int _rIndex { get; set; } = int.MinValue;
+            [DataMember]
             public int _sIndex { get; set; } = int.MinValue;
+            [DataMember]
             public int _tIndex { get; set; } = int.MinValue;
+            [DataMember]
             public int _endingIndex { get; set; } = int.MinValue;
+            [DataMember]
             public bool _deltaDetected { get; set; } = false;
+            [DataMember]
             public bool _wpwDetected { get; set; } = false;
         }
 
         [Serializable]
+        [DataContract(IsReference = true)]
         public class Data
         {
+            [DataMember]
             public string Name { get; set; }
 
+            [DataMember]
             public Dictionary<string, int> FeaturesLabelsIndx { get; set; } = new Dictionary<string, int>();
+            [DataMember]
             public Dictionary<string, int> OutputsLabelsIndx { get; set; } = new Dictionary<string, int>();
 
+            [DataMember]
             public List<Sample> Samples { get; set; } = new List<Sample>();
 
             public Data(string name) { Name = name; }
@@ -109,11 +126,16 @@ namespace Biological_Signal_Processing_Using_AI
             }
         }
         [Serializable]
+        [DataContract(IsReference = true)]
         public class Sample
         {
+            [DataMember]
             public Data DataParent { get; set; }
+            [DataMember]
             public string Name { get; set; }
+            [DataMember]
             private double[] Features { get; set; }
+            [DataMember]
             private double[] Outputs { get; set; }
 
             public Sample(string name, int numberOfFeatures, int numberOfOutputs, Data dataParent)
@@ -170,13 +192,17 @@ namespace Biological_Signal_Processing_Using_AI
         }
 
         [Serializable]
+        [DataContract(IsReference = true)]
         public class ARTHTFeatures
         {
+            [DataMember]
             public int _processedStep { get; set; } = 0;
 
+            [DataMember]
             public List<Beat> SignalBeats { get; set; } = new List<Beat>();
 
-            public Dictionary<string, Data> StepsDataDic { get; } = new Dictionary<string, Data>(7)
+            [DataMember]
+            public Dictionary<string, Data> StepsDataDic { get; set; } = new Dictionary<string, Data>(7)
             {
                 {ARTHTNamings.Step1RPeaksScanData, new Data(ARTHTNamings.Step1RPeaksScanData) },
                 {ARTHTNamings.Step2RPeaksSelectionData, new Data(ARTHTNamings.Step2RPeaksSelectionData) },
@@ -200,68 +226,98 @@ namespace Biological_Signal_Processing_Using_AI
                 StepsDataDic[ARTHTNamings.Step7DeltaExaminationData].Clear();
             }
         }
-        [Serializable]
         public class ARTHTNamings
         {
+            [DataMember]
             public static string Features = "Features";
+            [DataMember]
             public static string Outputs = "Outputs";
 
+            [DataMember]
             public static string Step1RPeaksScanData { get; } = "R-peaks scan";
+            [DataMember]
             public static string Step2RPeaksSelectionData { get; } = "R-peaks selection";
+            [DataMember]
             public static string Step3BeatPeaksScanData { get; } = "Beat peaks scan";
+            [DataMember]
             public static string Step4PTSelectionData { get; } = "P and T selection";
+            [DataMember]
             public static string Step5ShortPRScanData { get; } = "Short PR scan";
+            [DataMember]
             public static string Step6UpstrokesScanData { get; } = "Upstrokes scan";
+            [DataMember]
             public static string Step7DeltaExaminationData { get; } = "Delta examination";
 
+            [DataMember]
             public static string Mean = "mean";
+            [DataMember]
             public static string Min = "min";
+            [DataMember]
             public static string Max = "max";
+            [DataMember]
             public static string StdDev = "STD_DEV";
+            [DataMember]
             public static string IQR = "IQR";
 
             /// <summary>
             /// Amplitude ratio threshold
             /// </summary>
+            [DataMember]
             public static string ART = "ART"; // Amplitude Ratio Threshold
             /// <summary>
             /// Horizontal threshold
             /// </summary>
+            [DataMember]
             public static string HT = "HT"; // Horizontal Threshold
 
 
+            [DataMember]
             public static string RIntrvl = "RpRcur/RRav";
+            [DataMember]
             public static string RAmp = "ampRcur/ampRp";
 
+            [DataMember]
             public static string RemoveR = "Remove R";
 
 
+            [DataMember]
             public static string Beat = "Beat";
 
 
+            [DataMember]
             public static string State = "State";
 
+            [DataMember]
             public static string Stx = "Stx";
+            [DataMember]
             public static string StRIntrvl = "(Stx - Rk) / (Rk - Rk-1)";
+            [DataMember]
             public static string StAmp = "((ampStx - ampStx-1) + (ampStx - ampStx+1)) / 2";
 
+            [DataMember]
             public static string PWave = "P wave";
+            [DataMember]
             public static string TWave = "T wave";
 
 
+            [DataMember]
             public static string PQIntrvl = "(Q - P) / (R - P)";
 
+            [DataMember]
             public static string ShortPR = "Short PR";
 
 
             /// <summary>
             /// Tangent deviation threshold
             /// </summary>
+            [DataMember]
             public static string TDT = "TDT"; // Tangent Deviation Threshold
 
 
+            [DataMember]
             public static string DeltaAmp = "(ampDelta - ampQ) / (ampR - ampQ)";
 
+            [DataMember]
             public static string WPWPattern = "WPW pattern";
         }
         //____________________________________________________________________________________//

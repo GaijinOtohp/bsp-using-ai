@@ -254,7 +254,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 ARTHTFeatures aRTHTFeatures = null;
                 foreach (DataRow row in dataTable.AsEnumerable())
                 {
-                    aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                    aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
                     foreach (string stepName in aRTHTFeatures.StepsDataDic.Keys)
                     {
                         if (!dataLists.ContainsKey(stepName))

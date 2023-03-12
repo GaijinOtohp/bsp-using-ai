@@ -4,6 +4,7 @@ using Keras.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Threading;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -14,15 +15,24 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //_______________________________________________________//
         //::::::::::::::::::::::ARTHT models::::::::::::::::::::://
         [Serializable]
+        [KnownType(typeof(CustomBaseModel))]
+        [KnownType(typeof(KNNModel))]
+        [KnownType(typeof(NeuralNetworkModel))]
+        [KnownType(typeof(ModelLessNeuralNetwork))]
+        [KnownType(typeof(NaiveBayesModel))]
+        [DataContract(IsReference = true)]
         public class ARTHTModels
         {
+            [DataMember]
             public string Name { get; set; }
             /// <summary>
             /// Training Details:
             /// Each train update creates a list of intervals (List<long[]>) of the _ids of the selected data
             /// </summary>
+            [DataMember]
             public List<List<long[]>> DataIdsIntervalsList { get; set; } = new List<List<long[]>>();
 
+            [DataMember]
             public Dictionary<string, CustomBaseModel> ARTHTModelsDic = new Dictionary<string, CustomBaseModel>(7)
             {
                 { ARTHTNamings.Step1RPeaksScanData, new CustomBaseModel() },
@@ -34,7 +44,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 { ARTHTNamings.Step7DeltaExaminationData, new CustomBaseModel() },
             };
 
+            [DataMember]
             public long _validationTimeCompelxity { get; set; }
+            [DataMember]
             public string _ValidationInfo { get; set; }
 
             public ARTHTModels Clone()
@@ -67,14 +79,22 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //_______________________________________________________//
         //::::::::::::::::::::::ARTHT models::::::::::::::::::::://
         [Serializable]
+        [DataContract(IsReference = true)]
         public class ValidationData
         {
+            [DataMember]
             public string AlgorithmType { get; set; }
+            [DataMember]
             public int _datasetSize { get; set; }
+            [DataMember]
             public double _trainingDatasetSize { get; set; }
+            [DataMember]
             public double _validationDatasetSize { get; set; }
+            [DataMember]
             public double _accuracy { get; set; }
+            [DataMember]
             public double _sensitivity { get; set; }
+            [DataMember]
             public double _specificity { get; set; }
 
             public ValidationData Clone()
@@ -93,12 +113,18 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //_______________________________________________________//
         //::::::::::::::::::::::Base model::::::::::::::::::::::://
         [Serializable]
+        [DataContract(IsReference = true)]
         public class CustomBaseModel
         {
+            [DataMember]
             public string Name { get; set; }
+            [DataMember]
             public bool _pcaActive { get; set; } = false;
+            [DataMember]
             public List<PCAitem> PCA { get; set; } = new List<PCAitem>();
+            [DataMember]
             public float[] OutputsThresholds { get; set; }
+            [DataMember]
             public ValidationData ValidationData = new ValidationData();
 
             public object CloneBase()
@@ -127,9 +153,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //_______________________________________________________//
         //:::::::::::::::::::::::::::KNN::::::::::::::::::::::::://
         [Serializable]
+        [DataContract(IsReference = true)]
         public class KNNModel : CustomBaseModel
         {
+            [DataMember]
             public int k;
+            [DataMember]
             public List<Sample> DataList = new List<Sample>();
 
             public KNNModel Clone()
@@ -155,9 +184,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //_______________________________________________________//
         //::::::::::::::::::::Neural Network::::::::::::::::::::://
         [Serializable]
+        [DataContract(IsReference = true)]
         public class NeuralNetworkModel : CustomBaseModel
         {
+            [DataMember]
             public string ModelPath;
+            [DataMember]
             public BaseModel Model = new Sequential();
 
             public ModelLessNeuralNetwork Clone()
@@ -169,8 +201,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             }
         }
         [Serializable]
+        [DataContract(IsReference = true)]
         public class ModelLessNeuralNetwork : CustomBaseModel
         {
+            [DataMember]
             public string ModelPath;
 
             public NeuralNetworkModel Clone()
@@ -209,9 +243,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //_______________________________________________________//
         //:::::::::::::::::::::::Naive Bayes::::::::::::::::::::://
         [Serializable]
+        [DataContract(IsReference = true)]
         public class NaiveBayesModel : CustomBaseModel
         {
+            [DataMember]
             public bool _regression;
+            [DataMember]
             public List<Partition[]> OutputsProbaList = new List<Partition[]>();
 
             public NaiveBayesModel Clone()
@@ -233,9 +270,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         }
 
         [Serializable]
+        [DataContract(IsReference = true)]
         public class Partition
         {
+            [DataMember]
             public double _value, _partitionSize, _frequency, _proba;
+            [DataMember]
             public gausParamsInputGivenOutput[] GausParamsInputsGivenOutput;
 
             public Partition Clone()
@@ -256,9 +296,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         }
 
         [Serializable]
+        [DataContract(IsReference = true)]
         public class gausParamsInputGivenOutput
         {
+            [DataMember]
             public double _mean, _variance;
+            [DataMember]
             public List<double> ValuesList;
 
             public gausParamsInputGivenOutput Clone()

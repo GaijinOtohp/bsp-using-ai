@@ -126,8 +126,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // Get signal and features
             foreach (DataRow row in dataTable.Rows)
             {
-                double[] signal = (double[])Garage.ByteArrayToObject(row.Field<byte[]>("signal"));
-                ARTHTFeatures artHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                double[] signal = Garage.ByteArrayToObject<double[]>(row.Field<byte[]>("signal"));
+                ARTHTFeatures artHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
 
                 FilteringTools filteringTools = new FilteringTools((int)row.Field<long>("sampling_rate"), row.Field<long>("quantisation_step"), null);
                 filteringTools.SetStartingInSecond(row.Field<long>("starting_index"));

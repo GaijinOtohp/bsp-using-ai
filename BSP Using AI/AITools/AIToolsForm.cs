@@ -121,7 +121,7 @@ namespace BSP_Using_AI
             List<DataRow> rowsList = new List<DataRow>(dataTable.AsEnumerable());
             List<string> namesList = new List<string>();
             foreach (DataRow row in rowsList)
-                namesList.Add(((ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"))).Name);
+                namesList.Add((Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))).Name);
             rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
 
             // Insert new items from records
@@ -130,7 +130,7 @@ namespace BSP_Using_AI
                 // Create an item of the model
                 ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl();
 
-                ARTHTModels aRTHTModels = (ARTHTModels)Garage.ByteArrayToObject(row.Field<byte[]>("the_model"));
+                ARTHTModels aRTHTModels = Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
 
                 modelsFlowLayoutPanelItemUserControl.Name = aRTHTModels.Name;
                 modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = aRTHTModels.Name;

@@ -269,7 +269,7 @@ namespace BSP_Using_AI.AITools
             ARTHTFeatures aRTHTFeatures;
             foreach (DataRow row in dataTable.AsEnumerable())
             {
-                aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
                 foreach (string stepName in aRTHTFeatures.StepsDataDic.Keys)
                 {
                     foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)

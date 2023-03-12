@@ -373,7 +373,7 @@ namespace BSP_Using_AI.AITools.Details
 
                             foreach (DataRow row in dataTable.AsEnumerable())
                             {
-                                ARTHTFeatures aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                                ARTHTFeatures aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
 
                                 foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
                                 {
@@ -464,7 +464,7 @@ namespace BSP_Using_AI.AITools.Details
                     if ((x * partSamplesNmbr <= j && j < (x + 1) * partSamplesNmbr) || (x == parts - 1 && x * partSamplesNmbr <= j))
                     {
                         DataRow row = dataTable.Rows[j];
-                        ARTHTFeatures aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                        ARTHTFeatures aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
                         foreach (Data data in aRTHTFeatures.StepsDataDic.Values)
                             //_data += data.Samples.Count * data.OutputsLabelsIndx.Count;
                             _data += data.Samples.Count;
@@ -494,7 +494,7 @@ namespace BSP_Using_AI.AITools.Details
                     for (int j = 0; j < dataTable.Rows.Count; j++)
                     {
                         DataRow row = dataTable.Rows[j];
-                        ARTHTFeatures aRTHTFeatures = (ARTHTFeatures)Garage.ByteArrayToObject(row.Field<byte[]>("features"));
+                        ARTHTFeatures aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
 
                         if ((x * partSamplesNmbr <= j && j < (x + 1) * partSamplesNmbr) || (x == parts - 1 && x * partSamplesNmbr <= j))
                             foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
