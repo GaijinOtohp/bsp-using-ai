@@ -65,7 +65,7 @@ namespace BSP_Using_AI
             // createNewModelButton
             // 
             this.createNewModelButton.Location = new System.Drawing.Point(11, 11);
-            this.createNewModelButton.Margin = new System.Windows.Forms.Padding(2);
+            this.createNewModelButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.createNewModelButton.Name = "createNewModelButton";
             this.createNewModelButton.Size = new System.Drawing.Size(108, 22);
             this.createNewModelButton.TabIndex = 18;
@@ -80,11 +80,12 @@ namespace BSP_Using_AI
             this.modelTypeComboBox.FormattingEnabled = true;
             this.modelTypeComboBox.Items.AddRange(new object[] {
             "Neural network",
-            "K-Nearest neighbour",
+            "K-Nearest neighbors",
             "Naive bayes",
+            "CNTK Neural network",
             "Reinforecment learning"});
             this.modelTypeComboBox.Location = new System.Drawing.Point(124, 12);
-            this.modelTypeComboBox.Margin = new System.Windows.Forms.Padding(2);
+            this.modelTypeComboBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.modelTypeComboBox.Name = "modelTypeComboBox";
             this.modelTypeComboBox.Size = new System.Drawing.Size(129, 21);
             this.modelTypeComboBox.TabIndex = 17;
@@ -94,7 +95,7 @@ namespace BSP_Using_AI
             // 
             this.unfittedDataLabel.AutoSize = true;
             this.unfittedDataLabel.Location = new System.Drawing.Point(321, 90);
-            this.unfittedDataLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.unfittedDataLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.unfittedDataLabel.MaximumSize = new System.Drawing.Size(90, 0);
             this.unfittedDataLabel.MinimumSize = new System.Drawing.Size(90, 23);
             this.unfittedDataLabel.Name = "unfittedDataLabel";
@@ -106,7 +107,7 @@ namespace BSP_Using_AI
             // updatesLabel
             // 
             this.updatesLabel.Location = new System.Drawing.Point(262, 90);
-            this.updatesLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.updatesLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.updatesLabel.Name = "updatesLabel";
             this.updatesLabel.Size = new System.Drawing.Size(53, 23);
             this.updatesLabel.TabIndex = 23;
@@ -116,7 +117,7 @@ namespace BSP_Using_AI
             // datasetSizeLabel
             // 
             this.datasetSizeLabel.Location = new System.Drawing.Point(169, 90);
-            this.datasetSizeLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.datasetSizeLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.datasetSizeLabel.Name = "datasetSizeLabel";
             this.datasetSizeLabel.Size = new System.Drawing.Size(87, 23);
             this.datasetSizeLabel.TabIndex = 22;
@@ -127,7 +128,7 @@ namespace BSP_Using_AI
             // 
             this.modelNameLabel.AutoSize = true;
             this.modelNameLabel.Location = new System.Drawing.Point(0, 90);
-            this.modelNameLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.modelNameLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.modelNameLabel.MaximumSize = new System.Drawing.Size(163, 0);
             this.modelNameLabel.MinimumSize = new System.Drawing.Size(163, 23);
             this.modelNameLabel.Name = "modelNameLabel";
@@ -140,7 +141,7 @@ namespace BSP_Using_AI
             // 
             this.DatasetExplorerButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.DatasetExplorerButton.Location = new System.Drawing.Point(959, 10);
-            this.DatasetExplorerButton.Margin = new System.Windows.Forms.Padding(2);
+            this.DatasetExplorerButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.DatasetExplorerButton.Name = "DatasetExplorerButton";
             this.DatasetExplorerButton.Size = new System.Drawing.Size(108, 22);
             this.DatasetExplorerButton.TabIndex = 25;
@@ -156,7 +157,7 @@ namespace BSP_Using_AI
             this.aiGoalComboBox.Items.AddRange(new object[] {
             "WPW syndrome detection"});
             this.aiGoalComboBox.Location = new System.Drawing.Point(257, 12);
-            this.aiGoalComboBox.Margin = new System.Windows.Forms.Padding(2);
+            this.aiGoalComboBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.aiGoalComboBox.Name = "aiGoalComboBox";
             this.aiGoalComboBox.Size = new System.Drawing.Size(129, 21);
             this.aiGoalComboBox.TabIndex = 28;
@@ -177,7 +178,7 @@ namespace BSP_Using_AI
             this.Controls.Add(this.modelTypeComboBox);
             this.Controls.Add(this.availableModelsListLabel);
             this.Controls.Add(this.modelsFlowLayoutPanel);
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "AIToolsForm";
             this.Text = "AI tools";
             this.ResumeLayout(false);

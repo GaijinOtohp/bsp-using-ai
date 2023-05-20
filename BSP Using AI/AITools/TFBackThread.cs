@@ -98,10 +98,10 @@ namespace BSP_Using_AI.AITools
             // Fit features
             if (!stepName.Equals(""))
             {
-                NeuralNetworkModel model = createTempNeuralNetworkModelForWPW(stepName, dataLists[stepName], _arthtModelsDic[modelsName].ARTHTModelsDic[stepName]._pcaActive,
+                _arthtModelsDic[modelsName].ARTHTModelsDic[stepName] = createTempNeuralNetworkModelForWPW(stepName, dataLists[stepName], _arthtModelsDic[modelsName].ARTHTModelsDic[stepName]._pcaActive,
                                                         ((NeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName]).ModelPath);
                 // Fit features in model
-                fit(model, dataLists[stepName], true);
+                fit((NeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName], dataLists[stepName], true);
             }
             else
                 foreach (string stepNa in _arthtModelsDic[modelsName].ARTHTModelsDic.Keys)
@@ -200,8 +200,9 @@ namespace BSP_Using_AI.AITools
             arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createNeuralNetModel(ARTHTNamings.Step6UpstrokesScanData, modelPath + 5, 6, 1); // For delta detection
             arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createNeuralNetModel(ARTHTNamings.Step7DeltaExaminationData, modelPath + 6, 6, 1); // For WPW syndrome declaration
 
-            arthtModels.Name = "Neural network for WPW syndrome detection" + modelIndx;
-            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
+            arthtModels.ModelName = NeuralNetworkModel.ModelName;
+            arthtModels.ProblemName = " for WPW syndrome detection" + modelIndx;
+            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
 
             // Save path in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -215,46 +216,9 @@ namespace BSP_Using_AI.AITools
 
         private NeuralNetworkModel createTempNeuralNetworkModelForWPW(string stepName, List<Sample> dataList, bool pcaActive, string modelPath)
         {
-            // Compute PCA loading scores if PCA is active
-            List<PCAitem> pca = new List<PCAitem>();
-            if (pcaActive)
-                // If yes then compute PCA loading scores
-                pca = DataVisualisationForm.getPCA(dataList);
-            int input = pca.Count > 0 ? pca.Count : 0;
-            int output;
+            (int inputDim, int outputDim, List<PCAitem> pca) = GetStepDimensions(stepName, dataList, pcaActive);
 
-            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData))
-            {
-                if (input == 0) input = 15;
-                output = 2;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData))
-            {
-                if (input == 0) input = 2;
-                output = 1;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData))
-            {
-                if (input == 0) input = 5;
-                output = 2;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
-            {
-                if (input == 0) input = 3;
-                output = 2;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step5ShortPRScanData))
-            {
-                if (input == 0) input = 1;
-                output = 1;
-            }
-            else // For upstroke scan and delta examination
-            {
-                if (input == 0) input = 6;
-                output = 1;
-            }
-
-            NeuralNetworkModel tempModel = createNeuralNetModel(stepName, modelPath, input, output);
+            NeuralNetworkModel tempModel = createNeuralNetModel(stepName, modelPath, inputDim, outputDim);
             tempModel._pcaActive = pcaActive;
             tempModel.PCA = pca;
 
@@ -297,7 +261,7 @@ namespace BSP_Using_AI.AITools
             }
 
             // Insert models in _arthtModelsDic
-            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
+            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.DetailsModify.Filters;
 using System;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
@@ -164,10 +166,14 @@ namespace BSP_Using_AI.DetailsModify
         private double[] askForPrediction(double[] features, string stepName)
         {
             // Send information to TFBackThread
-            string modelsName = null;
-            this.Invoke(new MethodInvoker(delegate () { modelsName = modelTypeComboBox.Text; }));
+            string modelName = null;
+            string modelNameProblem = null;
+            this.Invoke(new MethodInvoker(delegate () {
+                modelName = (modelTypeComboBox.SelectedItem as dynamic).modelName;
+                modelNameProblem = (modelTypeComboBox.SelectedItem as dynamic).modelNameProblem;
+            }));
             // Check which model is selected
-            if (modelsName.Contains("Neural network"))
+            if (modelName.Equals(NeuralNetworkModel.ModelName))
             {
                 // This is for neural network
                 _tFBackThread._queue.Enqueue(new QueueSignalInfo()
@@ -175,7 +181,7 @@ namespace BSP_Using_AI.DetailsModify
                     TargetFunc = "predict",
                     CallingClass = "FormDetailsModify",
                     Features = features,
-                    ModelsName = modelsName,
+                    ModelsName = modelNameProblem,
                     StepName = stepName,
                     Signal = _signal,
                     Queue = _queue
@@ -190,15 +196,15 @@ namespace BSP_Using_AI.DetailsModify
                     // Check which function is selected
                     return item.Outputs;
             }
-            else if (modelsName.Contains("K-Nearest neighbor"))
+            else if (modelName.Equals(KNNModel.ModelName))
             {
                 // This is for knn
-                return KNNBackThread.predict(features, (KNNModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName]);
+                return KNNBackThread.predict(features, (KNNModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
             }
-            else if (modelsName.Contains("Naive bayes"))
+            else if (modelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes
-                return NaiveBayesBackThread.predict(features, (NaiveBayesModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName]);
+                return NaiveBayesBackThread.predict(features, (NaiveBayesModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
             }
 
             return null;

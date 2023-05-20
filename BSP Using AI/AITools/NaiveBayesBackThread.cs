@@ -36,8 +36,12 @@ namespace BSP_Using_AI.AITools
             ARTHTModels arthtModels = _arthtModelsDic[modelsName];
 
             if (!stepName.Equals(""))
+            {
+                _arthtModelsDic[modelsName].ARTHTModelsDic[stepName] = createNBModel(stepName, dataLists[stepName], _arthtModelsDic[modelsName].ARTHTModelsDic[stepName]._pcaActive);
+                // Fit features in model
                 fit((NaiveBayesModel)arthtModels.ARTHTModelsDic[stepName],
                                                       dataLists[stepName]);
+            }
             else
                 foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
                 {
@@ -132,10 +136,12 @@ namespace BSP_Using_AI.AITools
 
             // Insert models in _targetsModelsHashtable
             int modelIndx = 0;
-            while (_arthtModelsDic.ContainsKey("Naive bayes for WPW syndrome detection" + modelIndx))
+            arthtModels.ModelName = NaiveBayesModel.ModelName;
+            arthtModels.ProblemName = " for WPW syndrome detection";
+            while (_arthtModelsDic.ContainsKey(arthtModels.ModelName + arthtModels.ProblemName + modelIndx))
                 modelIndx++;
-            arthtModels.Name = "Naive bayes for WPW syndrome detection" + modelIndx;
-            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
+            arthtModels.ProblemName = " for WPW syndrome detection" + modelIndx;
+            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
 
             // Save models in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -187,7 +193,7 @@ namespace BSP_Using_AI.AITools
         public void initializeNeuralNetworkModelsForWPW(ARTHTModels arthtModels)
         {
             // Insert models in _arthtModelsDic
-            _arthtModelsDic.Add(arthtModels.Name, arthtModels);
+            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
         }
 
         //*******************************************************************************************************//

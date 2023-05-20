@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biological_Signal_Processing_Using_AI;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -140,14 +141,15 @@ namespace BSP_Using_AI.SignalHolderFolder.Input
 
                 signalsFlowLayout.Controls.Add(signalHolder);
 
-                VScrollBar vScrollBar = ((MainForm)signalsFlowLayout.FindForm()).vScrollBar;
+                CustomVScrollBar vScrollBar = ((MainForm)signalsFlowLayout.FindForm()).vScrollBar;
                 if (signalHolder.Height * signalsFlowLayout.Controls.Count > signalsFlowLayout.Height)
                 {
                     vScrollBar.LargeChange = signalsFlowLayout.Height;
-                    vScrollBar.Maximum = signalHolder.Height * signalsFlowLayout.Controls.Count;
+                    vScrollBar.SetMax(signalHolder.Height * signalsFlowLayout.Controls.Count);
 
-                    signalsFlowLayout.VerticalScroll.LargeChange = signalsFlowLayout.Height;
-                    signalsFlowLayout.VerticalScroll.Maximum = signalHolder.Height * signalsFlowLayout.Controls.Count;
+                    signalsFlowLayout.VerticalScroll.SmallChange = vScrollBar.SmallChange;
+                    signalsFlowLayout.VerticalScroll.LargeChange = vScrollBar.LargeChange;
+                    signalsFlowLayout.VerticalScroll.Maximum = vScrollBar.Maximum;
                 }
             }
 

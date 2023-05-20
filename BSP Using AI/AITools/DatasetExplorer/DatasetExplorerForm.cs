@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.Database;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using BSP_Using_AI.Database;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -267,14 +268,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 // Send features for fitting
                 // Check which model is selected
                 long datasetSize = _datasetSize + dataTable.Rows.Count;
-                if (_aRTHTModels.Name.Contains("Neural network"))
+                if (_aRTHTModels.ModelName.Equals(NeuralNetworkModel.ModelName))
                 {
                     // This is for neural network
                     _aIToolsForm._tFBackThread._queue.Enqueue(new QueueSignalInfo()
                     {
                         TargetFunc = "fit",
                         CallingClass = "DatasetExplorerForm",
-                        ModelsName = _aRTHTModels.Name,
+                        ModelsName = _aRTHTModels.ModelName + _aRTHTModels.ProblemName,
                         DataLists = dataLists,
                         _datasetSize = datasetSize,
                         _modelId = _id,
@@ -282,18 +283,18 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     });
                     _aIToolsForm._tFBackThread._signal.Set();
                 }
-                else if (_aRTHTModels.Name.Contains("K-Nearest neighbor"))
+                else if (_aRTHTModels.ModelName.Equals(KNNModel.ModelName))
                 {
                     // This is for knn
                     KNNBackThread kNNBackThread = new KNNBackThread(_aIToolsForm._arthtModelsDic, _aIToolsForm);
-                    Thread knnThread = new Thread(() => kNNBackThread.fit(_aRTHTModels.Name, dataLists, datasetSize, _id, ""));
+                    Thread knnThread = new Thread(() => kNNBackThread.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
                     knnThread.Start();
                 }
-                else if (_aRTHTModels.Name.Contains("Naive bayes"))
+                else if (_aRTHTModels.ModelName.Equals(NaiveBayesModel.ModelName))
                 {
                     // This is for naive bayes
                     NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_aIToolsForm._arthtModelsDic, _aIToolsForm);
-                    Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_aRTHTModels.Name, dataLists, datasetSize, _id, ""));
+                    Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
                     nbThread.Start();
                 }
             }

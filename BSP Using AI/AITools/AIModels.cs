@@ -24,7 +24,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         public class ARTHTModels
         {
             [DataMember]
-            public string Name { get; set; }
+            public string ModelName { get; set; }
+            [DataMember]
+            public string ProblemName { get; set; }
             /// <summary>
             /// Training Details:
             /// Each train update creates a list of intervals (List<long[]>) of the _ids of the selected data
@@ -52,7 +54,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public ARTHTModels Clone()
             {
                 ARTHTModels aRTHTModels = new ARTHTModels();
-                aRTHTModels.Name = Name;
+                aRTHTModels.ModelName = ModelName;
+                aRTHTModels.ProblemName = ProblemName;
                 aRTHTModels._validationTimeCompelxity = _validationTimeCompelxity;
                 aRTHTModels._ValidationInfo = _ValidationInfo;
 
@@ -77,7 +80,52 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             }
         }
         //_______________________________________________________//
-        //::::::::::::::::::::::ARTHT models::::::::::::::::::::://
+        //:::::::::::::Steps input/output dimensions::::::::::::://
+        public static (int inputDim, int outputDim, List<PCAitem> PCA) GetStepDimensions(string stepName, List<Sample> dataList, bool pcaActive)
+        {
+            // Compute PCA loading scores if PCA is active
+            List<PCAitem> pca = new List<PCAitem>();
+            if (pcaActive)
+                // If yes then compute PCA loading scores
+                pca = DataVisualisationForm.getPCA(dataList);
+            int input = pca.Count > 0 ? pca.Count : 0;
+            int output;
+
+            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData))
+            {
+                if (input == 0) input = 15;
+                output = 2;
+            }
+            else if (stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData))
+            {
+                if (input == 0) input = 2;
+                output = 1;
+            }
+            else if (stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData))
+            {
+                if (input == 0) input = 5;
+                output = 2;
+            }
+            else if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
+            {
+                if (input == 0) input = 3;
+                output = 2;
+            }
+            else if (stepName.Equals(ARTHTNamings.Step5ShortPRScanData))
+            {
+                if (input == 0) input = 1;
+                output = 1;
+            }
+            else // For upstroke scan and delta examination
+            {
+                if (input == 0) input = 6;
+                output = 1;
+            }
+
+            return (input, output, pca);
+        }
+        //_______________________________________________________//
+        //:::::::::::::::::::::ValidationData:::::::::::::::::::://
         [Serializable]
         [DataContract(IsReference = true)]
         public class ValidationData
@@ -157,6 +205,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         public class KNNModel : CustomBaseModel
         {
             [DataMember]
+            public static string ModelName = "K-Nearest neighbors";
+            [DataMember]
             public int k;
             [DataMember]
             public List<Sample> DataList = new List<Sample>();
@@ -187,6 +237,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         [DataContract(IsReference = true)]
         public class NeuralNetworkModel : CustomBaseModel
         {
+            [DataMember]
+            public static string ModelName = "Neural network";
             [DataMember]
             public string ModelPath;
             [DataMember]
@@ -246,6 +298,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         [DataContract(IsReference = true)]
         public class NaiveBayesModel : CustomBaseModel
         {
+            [DataMember]
+            public static string ModelName = "Naive bayes";
             [DataMember]
             public bool _regression;
             [DataMember]

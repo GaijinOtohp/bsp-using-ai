@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.AITools;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using BSP_Using_AI.AITools;
 using BSP_Using_AI.Database;
 using BSP_Using_AI.SignalHolderFolder;
 using System;
@@ -149,7 +150,10 @@ namespace BSP_Using_AI
                     List<DataRow> rowsList = new List<DataRow>(dataTable.AsEnumerable());
                     List<string> namesList = new List<string>();
                     foreach (DataRow row in rowsList)
-                        namesList.Add((Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))).Name);
+                    {
+                        ARTHTModels aRTHTModels = Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
+                        namesList.Add(aRTHTModels.ModelName + aRTHTModels.ProblemName);
+                    }
                     rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
 
                     // Set models ready and get last_signal_id of the highest model size

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -137,15 +138,15 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private void saveChangesButton_Click(object sender, EventArgs e)
         {
             // Remove previous selection of eigenvectors
-            _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA.Clear();
+            _arthtModelsDic[_ModelName + _ProblemName].ARTHTModelsDic[_stepName].PCA.Clear();
             // Save selected eigenvectors in _pcLoadingScoresArray
             foreach (PCAitem pcaItem in PCA)
-                _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA.Add(pcaItem.Clone());
+                _arthtModelsDic[_ModelName + _ProblemName].ARTHTModelsDic[_stepName].PCA.Add(pcaItem.Clone());
 
             // Update model in models table with the new eigenvectors
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Update("models", new string[] { "the_model" },
-                new Object[] { Garage.ObjectToByteArray(_arthtModelsDic[_modelName].Clone()) }, _modelId, "PCADataVis");
+                new Object[] { Garage.ObjectToByteArray(_arthtModelsDic[_ModelName + _ProblemName].Clone()) }, _modelId, "PCADataVis");
 
             // Update the model
             // Initialize features lists
@@ -158,14 +159,14 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             if (Application.OpenForms.OfType<AIToolsForm>().Count() == 1)
                 aIToolsForm = Application.OpenForms.OfType<AIToolsForm>().First();
             // Check which model is selected
-            if (_modelName.Contains("Neural network"))
+            if (_ModelName.Equals(NeuralNetworkModel.ModelName))
             {
                 // This is for neural network
                 aIToolsForm._tFBackThread._queue.Enqueue(new QueueSignalInfo()
                 {
                     TargetFunc = "fit",
                     CallingClass = "PCADataVis",
-                    ModelsName = _modelName,
+                    ModelsName = _ModelName + _ProblemName,
                     DataLists = dataLists,
                     _datasetSize = -1,
                     _modelId = _modelId,
@@ -173,18 +174,18 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 });
                 aIToolsForm._tFBackThread._signal.Set();
             }
-            else if (_modelName.Contains("K-Nearest neighbor"))
+            else if (_ModelName.Equals(KNNModel.ModelName))
             {
                 // This is for knn
                 KNNBackThread kNNBackThread = new KNNBackThread(_arthtModelsDic, aIToolsForm);
-                Thread knnThread = new Thread(() => kNNBackThread.fit(_modelName, dataLists, -1, _modelId, _stepName));
+                Thread knnThread = new Thread(() => kNNBackThread.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
                 knnThread.Start();
             }
-            else if (_modelName.Contains("Naive bayes"))
+            else if (_ModelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes
                 NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, aIToolsForm);
-                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_modelName, dataLists, -1, _modelId, _stepName));
+                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
                 nbThread.Start();
             }
         }
@@ -210,9 +211,9 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             }
 
             // Check the previously selected PCs
-            for (int i = 0; i < _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA.Count; i++)
+            for (int i = 0; i < _arthtModelsDic[_ModelName + _ProblemName].ARTHTModelsDic[_stepName].PCA.Count; i++)
             {
-                PCAitem pcaItem = _arthtModelsDic[_modelName].ARTHTModelsDic[_stepName].PCA[i];
+                PCAitem pcaItem = _arthtModelsDic[_ModelName + _ProblemName].ARTHTModelsDic[_stepName].PCA[i];
                 if (pcaItem._selected)
                     ((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked = true;
             }

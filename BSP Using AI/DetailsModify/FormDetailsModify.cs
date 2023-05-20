@@ -11,6 +11,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Threading;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
@@ -74,11 +75,14 @@ namespace BSP_Using_AI.DetailsModify
             }
 
             // Add AI prediction models in modelTypeComboBox
-            List<string> modelsList = new List<string>();
-            foreach (string model in ((MainForm)signalHolder.FindForm())._arthtModelsDic.Keys)
-                modelsList.Add(model);
-            modelsList = Garage.OrderByTextWithNumbers(modelsList, modelsList);
-            modelTypeComboBox.DataSource = modelsList;
+            List<(string modelName, string modelNameProblem)> modelsNamesList = new List<(string, string)>();
+            foreach (ARTHTModels model in ((MainForm)signalHolder.FindForm())._arthtModelsDic.Values)
+                modelsNamesList.Add((model.ModelName, model.ModelName + model.ProblemName));
+            modelsNamesList = Garage.OrderByTextWithNumbers(modelsNamesList, modelsNamesList.Select(item => item.modelNameProblem).ToList());
+            modelTypeComboBox.DisplayMember = "modelNameProblem";
+            modelTypeComboBox.ValueMember = "modelName";
+            foreach ((string modelName, string modelNameProblem) modelsNames in modelsNamesList)
+                modelTypeComboBox.Items.Add(new { modelName = modelsNames.modelName, modelNameProblem = modelsNames.modelNameProblem });
         }
 
         private void loadSignal(double[] samples, double samplingRate, double startingInSec)

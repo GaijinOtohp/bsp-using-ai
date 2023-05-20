@@ -12,7 +12,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
     {
         public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
 
-        string _modelName;
+        string _ModelName;
+        string _ProblemName;
         long _modelId;
         string _stepName;
 
@@ -24,12 +25,13 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         int _firstMouseX;
         int _firstMouseY;
 
-        public DataVisualisationForm(Dictionary<string, ARTHTModels> arthtModelsDic, string modelName, long modelId, string stepName, List<Sample> dataList)
+        public DataVisualisationForm(Dictionary<string, ARTHTModels> arthtModelsDic, string modelName, string problemName, long modelId, string stepName, List<Sample> dataList)
         {
             InitializeComponent();
 
             _arthtModelsDic = arthtModelsDic;
-            _modelName = modelName;
+            _ModelName = modelName;
+            _ProblemName = problemName;
             _modelId = modelId;
             _stepName = stepName;
             DataList = dataList;

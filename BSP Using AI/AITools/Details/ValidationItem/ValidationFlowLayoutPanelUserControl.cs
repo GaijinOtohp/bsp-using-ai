@@ -94,7 +94,8 @@ namespace BSP_Using_AI.AITools.Details
             }
 
             // Send data to DataVisualisationForm
-            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._arthtModelsDic, ((DetailsForm)this.FindForm())._aRTHTModels.Name,
+            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._arthtModelsDic,
+                                                                                    ((DetailsForm)this.FindForm())._aRTHTModels.ModelName, ((DetailsForm)this.FindForm())._aRTHTModels.ProblemName,
                                                                                     ((DetailsForm)this.FindForm())._modelId, stepName, dataList);
             dataVisualisationForm.stepLabel.Text = modelTargetLabel.Text;
             this.Invoke(new MethodInvoker(delegate () { dataVisualisationForm.Show(); }));

@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.AITools;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.Database;
 using System;
@@ -73,7 +74,7 @@ namespace BSP_Using_AI
             }
             else if (modelTypeComboBox.SelectedIndex == 2 && aiGoalComboBox.SelectedIndex == 0)
             {
-                // If yes then this is for KNN models
+                // If yes then this is for Naive Bayes models
                 NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, this);
                 Thread nbThread = new Thread(() => naiveBayesBackThread.createNBModelForWPW());
                 nbThread.Start();
@@ -121,7 +122,10 @@ namespace BSP_Using_AI
             List<DataRow> rowsList = new List<DataRow>(dataTable.AsEnumerable());
             List<string> namesList = new List<string>();
             foreach (DataRow row in rowsList)
-                namesList.Add((Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))).Name);
+            {
+                ARTHTModels aRTHTModels = Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
+                namesList.Add(aRTHTModels.ModelName + aRTHTModels.ProblemName);
+            }
             rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
 
             // Insert new items from records
@@ -132,18 +136,18 @@ namespace BSP_Using_AI
 
                 ARTHTModels aRTHTModels = Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
 
-                modelsFlowLayoutPanelItemUserControl.Name = aRTHTModels.Name;
-                modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = aRTHTModels.Name;
+                modelsFlowLayoutPanelItemUserControl.Name = aRTHTModels.ModelName + aRTHTModels.ProblemName;
+                modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = aRTHTModels.ModelName + aRTHTModels.ProblemName;
                 modelsFlowLayoutPanelItemUserControl.datasetSizeLabel.Text = row.Field<long>("dataset_size").ToString();
                 modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = aRTHTModels.DataIdsIntervalsList.Count().ToString();
                 modelsFlowLayoutPanelItemUserControl.unfittedDataLabel.Text = "0";
                 modelsFlowLayoutPanelItemUserControl._id = row.Field<long>("_id");
                 for (int i = 0; i < 240; i++)
-                    if (!_arthtModelsDic.ContainsKey(aRTHTModels.Name))
+                    if (!_arthtModelsDic.ContainsKey(aRTHTModels.ModelName + aRTHTModels.ProblemName))
                         Thread.Sleep(500);
                     else
                         break;
-                modelsFlowLayoutPanelItemUserControl._aRTHTModels = _arthtModelsDic[aRTHTModels.Name];
+                modelsFlowLayoutPanelItemUserControl._aRTHTModels = _arthtModelsDic[aRTHTModels.ModelName + aRTHTModels.ProblemName];
 
                 if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Add(modelsFlowLayoutPanelItemUserControl); }));
             }
