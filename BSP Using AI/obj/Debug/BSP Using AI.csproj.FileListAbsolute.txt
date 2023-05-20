@@ -138,7 +138,6 @@ D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP us
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Python.Runtime.dll
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Buffers.dll
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Data.SQLite.dll
-D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Memory.dll
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Numerics.Vectors.dll
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Accord.xml
@@ -148,7 +147,6 @@ D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP us
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Python.Runtime.xml
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Buffers.xml
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Data.SQLite.xml
-D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Memory.xml
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Numerics.Vectors.xml
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\obj\Debug\BSP Using AI.csproj.AssemblyReference.cache
@@ -188,3 +186,100 @@ D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP us
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\obj\Debug\Biological Signal Processing Using AI.pdb
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\obj\Debug\Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValidationDataItemUserControl.resources
 D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\obj\Debug\Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValidationDataSelectionForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Cntk.Core.Managed-2.7.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Threading.Tasks.Extensions.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Threading.Tasks.Extensions.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Google.Protobuf.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\MethodBoundaryAspect.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Newtonsoft.Json.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\OneOf.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Protobuf.Text.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Serilog.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Serilog.Sinks.Console.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Memory.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Google.Protobuf.pdb
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Google.Protobuf.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Newtonsoft.Json.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Serilog.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\Serilog.Sinks.Console.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\bin\Debug\System.Memory.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.4\BSP Using AI\obj\Debug\BSP Using AI.csproj.Fody.CopyLocal.cache
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.dll.config
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Biological Signal Processing Using AI.exe.config
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Biological Signal Processing Using AI.exe
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Biological Signal Processing Using AI.pdb
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.Math.Core.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.Math.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.Statistics.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Google.Protobuf.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Keras.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\MethodBoundaryAspect.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Newtonsoft.Json.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Numpy.Bare.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\NWaves.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\OneOf.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Protobuf.Text.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Python.Runtime.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Serilog.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Serilog.Sinks.Console.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Buffers.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Data.SQLite.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Memory.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Numerics.Vectors.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Threading.Tasks.Extensions.dll
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.Math.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.Math.Core.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Accord.Statistics.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Google.Protobuf.pdb
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Google.Protobuf.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Newtonsoft.Json.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Python.Runtime.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Serilog.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\Serilog.Sinks.Console.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Buffers.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Data.SQLite.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Memory.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Numerics.Vectors.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\bin\Debug\System.Threading.Tasks.Extensions.xml
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP Using AI.csproj.AssemblyReference.cache
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP Using AI.csproj.SuggestedBindingRedirects.cache
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP Using AI.csproj.ResolveComReference.cache
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.DatasetExplorer.DatasetExplorerForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.DatasetExplorer.DatasetFlowLayoutPanelItemUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.Details.DatasetFlowLayoutPanelItem2UserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.Details.DetailsForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValidationDataItemUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValidationDataSelectionForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.Details.ValidationFlowLayoutPanelUserControlTitles.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.DataVisualisationForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.RawVisItemUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.Details.ValidationFlowLayoutPanelUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AITools.ModelsFlowLayoutPanelItemUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.Filters.AbsoluteSignalUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.Filters.CheckExistanceUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\Biological_Signal_Processing_Using_AI.DetailsModify.Filters.DWTUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.Filters.IIRFilters.IIRFilterUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.Filters.DCRemovalUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.Filters.NormalizedSignalUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.Filters.SignalStatesViewerUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.SignalFusion.FormSignalFusion.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.MainForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.DetailsModify.FormDetailsModify.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.MainFormFolder.SignalsCollectionFolder.FormSignalsCollector.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.MainFormFolder.SignalsCollectionFolder.UserControlSignalPower.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.MainFormFolder.SignalsComparisonFolder.FormSignalsComparison.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\Biological_Signal_Processing_Using_AI.Properties.Resources.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.SignalHolderFolder.Input.InputForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.SignalHolderFolder.Input.InputValueUserControl.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.SignalHolderFolder.SignalHolder.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP_Using_AI.AIToolsForm.resources
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP Using AI.csproj.GenerateResource.cache
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP Using AI.csproj.CoreCompileInputs.cache
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP Using AI.csproj.Fody.CopyLocal.cache
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\BSP Using AI.csproj.CopyComplete
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\Biological Signal Processing Using AI.exe
+D:\Education\University\Abd MIRA of Bejaia\6 - Doctora - Com Sys\Research BSP using AI\App\BSP Using AI V1.5\BSP Using AI\obj\Debug\Biological Signal Processing Using AI.pdb
