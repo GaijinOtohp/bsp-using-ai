@@ -2,6 +2,7 @@
 using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.SignalFusion;
 using BSP_Using_AI.SignalHolderFolder;
+using ScottPlot.Plottable;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -13,7 +14,6 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -21,6 +21,8 @@ namespace BSP_Using_AI.DetailsModify
 {
     public partial class FormDetailsModify : Form
     {
+        public Dictionary <string, IPlottable> _Plots = new Dictionary<string, IPlottable>();
+
         public SignalHolder _signalHolder { get; set; }
 
         public ARTHTFeatures _arthtFeatures = new ARTHTFeatures();
@@ -47,6 +49,15 @@ namespace BSP_Using_AI.DetailsModify
 
             signalsPickerComboBox.SelectedIndex = 1;
             aiGoalComboBox.SelectedIndex = 0;
+
+            // Insert signal, up, down, stable, selection, and labels plots in signalChart
+            _Plots.Add(SANamings.Signal, signalChart.Plot.GetPlottables()[0]);
+            _Plots.Add(SANamings.UpPeaks, Garage.AddScatterPlot(signalChart, Color.Blue, label: SANamings.UpPeaks));
+            _Plots.Add(SANamings.DownPeaks, Garage.AddScatterPlot(signalChart, Color.Red, label: SANamings.DownPeaks));
+            _Plots.Add(SANamings.StableStates, Garage.AddScatterPlot(signalChart, Color.Black, label: SANamings.StableStates));
+            _Plots.Add(SANamings.Selection, signalChart.Plot.AddBubblePlot());
+            _Plots.Add(SANamings.Labels, Garage.AddScatterPlot(signalChart, Color.Blue, label: SANamings.Labels));
+
             _FilteringTools.SetAutoApply(true);
         }
 

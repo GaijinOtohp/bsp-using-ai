@@ -1,8 +1,9 @@
-﻿using System;
+﻿using ScottPlot;
+using ScottPlot.Plottable;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
@@ -122,20 +123,30 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                 // Set the signals in their charts
                 Garage.loadSignalInChart(comparisonChart, pathSignal, meanSampRate, 0, "FormSignalsComparison");
                 Garage.loadSignalInChart(distanceValueChart, distanceValue, meanSampRate, 0, "FormSignalsComparison");
-                Garage.loadXYInChart(pathChart, pathX, pathY, null, 0d, 0, "FormSignalsComparison");
+                Garage.loadSignalInChart(pathChart, pathX, pathY, 0d, "FormSignalsComparison");
             }
 
             // Set signal power
 
             // Get samples from signal chart
-            double[] samples = new double[comparisonChart.Series[0].Points.Count];
-            for (int i = 0; i < samples.Length; i++)
-                samples[i] = comparisonChart.Series[0].Points[i].YValues[0];
+            IPlottable[] plottable = comparisonChart.Plot.GetPlottables();
+            if (plottable.Length == 0)
+                return;
 
-            double signalPower = 0D;
-            foreach (double sample in samples)
-                signalPower += Math.Pow(sample / meanQuanStep, 2) / samples.Length;
-            comparisonSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
+            if (plottable[0] is SignalPlot comparisonSignalPlot)
+            {
+                if (comparisonSignalPlot.PointCount < 1)
+                    return;
+
+                double[] samples = new double[comparisonSignalPlot.PointCount];
+                for (int i = 0; i < samples.Length; i++)
+                    samples[i] = comparisonSignalPlot.Ys[i];
+
+                double signalPower = 0D;
+                foreach (double sample in samples)
+                    signalPower += Math.Pow(sample / meanQuanStep, 2) / samples.Length;
+                comparisonSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
+            }            
         }
 
         //*******************************************************************************************************//
@@ -145,8 +156,8 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             if (crosscorrelationRadioButton.Checked)
             {
                 // Change the form vertival size
-                this.MinimumSize = new Size(1004, 469);
-                this.MaximumSize = new Size(1004, 469);
+                this.MinimumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
+                this.MaximumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
 
                 compareSignals();
             }
@@ -157,8 +168,8 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             if (minimumSubtractionRadioButton.Checked)
             {
                 // Change the form vertival size
-                this.MinimumSize = new Size(1004, 469);
-                this.MaximumSize = new Size(1004, 469);
+                this.MinimumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
+                this.MaximumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
 
                 compareSignals();
             }
@@ -169,77 +180,64 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             if (dynamicTimeWrapingRadioButton.Checked)
             {
                 // Change the form vertival size
-                this.MinimumSize = new Size(1004, 672);
-                this.MaximumSize = new Size(1004, 672);
+                this.MinimumSize = new Size(1169, pathChart.Location.Y + pathChart.Size.Height + 36);
+                this.MaximumSize = new Size(1169, pathChart.Location.Y + pathChart.Size.Height + 36);
 
                 compareSignals();
             }
         }
 
-        private void signalExhibitor_MouseDown(object sender, MouseEventArgs e)
-        {
-            _mouseDown = true;
-            _previousMouseX = e.X;
-            _previousMouseY = e.Y;
-        }
-
-        private void signalExhibitor_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_mouseDown)
-            {
-                EventHandlers.signalExhibitor_MouseMove(sender, e, _previousMouseX, _previousMouseY);
-                _previousMouseX = e.X;
-                _previousMouseY = e.Y;
-            }
-        }
-
-        private void signalExhibitor_MouseUp(object sender, MouseEventArgs e)
-        {
-            _mouseDown = false;
-        }
-
-        private void signalExhibitor_MouseWheel(object sender, MouseEventArgs e)
-        {
-            EventHandlers.signalExhibitor_MouseWheel(sender, e, _previousMouseX, _previousMouseY);
-        }
-
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (comparisonChart.Series[0].Points.Count < 1)
+            IPlottable[] plottable = comparisonChart.Plot.GetPlottables();
+            if (plottable.Length == 0)
                 return;
 
-            // Get samples from signal chart
-            double[] samples = new double[comparisonChart.Series[0].Points.Count];
-            for (int i = 0; i < samples.Length; i++)
-                samples[i] = comparisonChart.Series[0].Points[i].YValues[0];
-            // Create new filteringTools for the signal
-            int meanSampRate = (int)(_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate / 2d);
-            double meanQuanStep = _Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep / 2d;
-            FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
-            filteringTools.SetStartingInSecond(_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec / 2);
-            filteringTools.SetOriginalSamples(samples);
+            if (plottable[0] is SignalPlot comparisonSignalPlot)
+            {
+                if (comparisonSignalPlot.PointCount < 1)
+                    return;
 
-            EventHandlers.sendSignalTool(filteringTools, "\\Comparator\\Collector");
+                // Get samples from signal chart
+                double[] samples = new double[comparisonSignalPlot.PointCount];
+                for (int i = 0; i < samples.Length; i++)
+                    samples[i] = comparisonSignalPlot.Ys[i];
+                // Create new filteringTools for the signal
+                int meanSampRate = (int)((_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate) / 2d);
+                double meanQuanStep = (_Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep) / 2d;
+                FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
+                filteringTools.SetStartingInSecond((_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec) / 2);
+                filteringTools.SetOriginalSamples(samples);
+
+                EventHandlers.sendSignalTool(filteringTools, "\\Comparator\\Collector");
+            }
         }
 
         private void analyseToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Chart senderChart = (Chart)((sender as ToolStripItem).Owner as ContextMenuStrip).SourceControl;
-            if (senderChart.Series[0].Points.Count < 1)
+            FormsPlot senderChart = (FormsPlot)((sender as ToolStripItem).Owner as ContextMenuStrip).SourceControl;
+            IPlottable[] plottable = senderChart.Plot.GetPlottables();
+            if (plottable.Length == 0)
                 return;
 
-            // Get samples from signal chart
-            double[] samples = new double[senderChart.Series[0].Points.Count];
-            for (int i = 0; i < samples.Length; i++)
-                samples[i] = senderChart.Series[0].Points[i].YValues[0];
-            // Create new filteringTools for the signal
-            int meanSampRate = (int)(_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate / 2d);
-            double meanQuanStep = _Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep / 2d;
-            FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
-            filteringTools.SetStartingInSecond(_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec / 2);
-            filteringTools.SetOriginalSamples(samples);
+            if (plottable[0] is SignalPlot comparisonSignalPlot)
+            {
+                if (comparisonSignalPlot.PointCount < 1)
+                    return;
 
-            EventHandlers.analyseSignalTool(filteringTools, "\\Comparator\\Analyser");
+                // Get samples from signal chart
+                double[] samples = new double[comparisonSignalPlot.PointCount];
+                for (int i = 0; i < samples.Length; i++)
+                    samples[i] = comparisonSignalPlot.Ys[i];
+                // Create new filteringTools for the signal
+                int meanSampRate = (int)((_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate) / 2d);
+                double meanQuanStep = (_Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep) / 2d;
+                FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
+                filteringTools.SetStartingInSecond((_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec) / 2);
+                filteringTools.SetOriginalSamples(samples);
+
+                EventHandlers.analyseSignalTool(filteringTools, "\\Comparator\\Analyser");
+            }
         }
     }
 }

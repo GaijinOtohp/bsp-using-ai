@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ScottPlot.Plottable;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -80,10 +81,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             double[] yAxisVals = new double[DataList.Count];
             double[] xAxisVals = new double[DataList.Count];
-            float[] colorVals = new float[DataList.Count];
+            double[] colorVals = new double[DataList.Count];
 
             // Remove all series from the chart
-            rawChart.Series.Clear();
+            rawChart.Plot.Title("Raw data scatterplot");
+            rawChart.Plot.Clear();
             // Enable outputsFlowLayoutPanel
             outputFlowLayoutPanel.Enabled = true;
 
@@ -128,7 +130,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             if (yOutputSelected || xOutputSelected)
             {
                 // If yes then there will be only one series with "output" as label
-                addNewSeries(rawChart, xInputSelectedCheckBox.Tag + " -> " + yInputSelectedCheckBox.Tag, Color.FromArgb(0, 0, 0), Color.FromArgb(0, 0, 0));
+                string seriesName = xInputSelectedCheckBox.Tag + " -> " + yInputSelectedCheckBox.Tag;
                 // Copy values to yAxisVals and xAxisVals
                 if (yOutputSelected && xOutputSelected)
                     for (int i = 0; i < yAxisVals.Length; i++)
@@ -149,7 +151,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                         xAxisVals[i] = DataList[i].getOutputByLabel((string)xInputSelectedCheckBox.Tag);
                     }
                 // Insert values in chart
-                Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, null, 0, 0, "DataVisualisationForm");
+                if (xAxisVals.Length > 0)
+                    addNewSeries(rawChart, xAxisVals, yAxisVals, null, seriesName, Color.FromArgb(0, 0, 0), Color.FromArgb(0, 0, 0));
             }
             else
             {
@@ -178,9 +181,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                             }
 
                             // Set the new series of the selected output
-                            addNewSeries(rawChart, rawVisItemUserControl.outputCheckBox.Text, rawVisItemUserControl.primaryColorButton.BackColor, rawVisItemUserControl.secondaryColorButton.BackColor);
+                            string seriesName = rawVisItemUserControl.outputCheckBox.Text;
                             // Insert values in chart
-                            Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, null, 0, rawChart.Series.Count - 1, "DataVisualisationForm");
+                            if (xAxisVals.Length > 0)
+                                addNewSeries(rawChart, xAxisVals, yAxisVals, null, seriesName, rawVisItemUserControl.primaryColorButton.BackColor, rawVisItemUserControl.secondaryColorButton.BackColor);
                         }
                 }
                 else
@@ -198,18 +202,21 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                             }
 
                             // Normalize colorVals
-                            (float mean, float min, float max) meanMinMax = Garage.MeanMinMax(colorVals);
-                            float interval = meanMinMax.max - meanMinMax.min;
+                            (double mean, double min, double max) meanMinMax = Garage.MeanMinMax(colorVals);
+                            double interval = meanMinMax.max - meanMinMax.min;
                             for (int i = 0; i < colorVals.Length; i++)
                                 colorVals[i] = (colorVals[i] - meanMinMax.min) / interval;
 
                             // Set the new series of the selected output
-                            addNewSeries(rawChart, rawVisItemUserControl.outputCheckBox.Text, rawVisItemUserControl.primaryColorButton.BackColor, rawVisItemUserControl.secondaryColorButton.BackColor);
+                            string seriesName = rawVisItemUserControl.outputCheckBox.Text;
+                            rawChart.Plot.Title(seriesName);
                             // Insert values in chart
-                            Garage.loadXYInChart(rawChart, xAxisVals, yAxisVals, colorVals, 0, rawChart.Series.Count - 1);
+                            if (xAxisVals.Length > 0)
+                                addNewSeries(rawChart, xAxisVals, yAxisVals, colorVals, seriesName, rawVisItemUserControl.primaryColorButton.BackColor, rawVisItemUserControl.secondaryColorButton.BackColor);
                         }
                 }
             }
+            rawChart.Refresh();
         }
     }
 }

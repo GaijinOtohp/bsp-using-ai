@@ -11,4 +11,54 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="AITools\AIToolsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\DatasetExplorer\DatasetExplorerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\DetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationDataSelection\ValDataSelectionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\DataVisualisationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\RawDataVis.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\ARTHTFormDetailsModify.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\EventsHandlersFormDetailsModify.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\FormDetailsModify.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\FormDetailsModifyFilters.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\FormDetailsModifyFiltersClone.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\SignalFusion\FormSignalFusion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainFormFolder\SignalsCollectionFolder\FormSignalsCollector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainFormFolder\SignalsComparisonFolder\FormSignalsComparison.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="SignalHolderFolder\InputFolder\InputForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
 </Project>

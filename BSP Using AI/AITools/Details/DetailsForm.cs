@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValidationDataSelectionForm;
+using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValDataSelectionForm;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details
@@ -397,7 +397,7 @@ namespace BSP_Using_AI.AITools.Details
                 {
                     // Open ValidationDataSelectionForm
                     Invoke(new MethodInvoker(delegate () {
-                        ValidationDataSelectionForm validationDataSelectionForm = new ValidationDataSelectionForm(dataTable, ValidateModel);
+                        ValDataSelectionForm validationDataSelectionForm = new ValDataSelectionForm(dataTable, ValidateModel);
                         validationDataSelectionForm.Show();
                     }));
 
@@ -552,17 +552,10 @@ namespace BSP_Using_AI.AITools.Details
                             if (j > 0)
                                 for (int i = 0; i < predictedOutput.Length; i++)
                                 {
-                                    /*// Calculate accuracy using Mean Absolute Percentage Error formula
-                                    // where accuracy should be (1 - mape)
-                                    double mape = Math.Abs((actualOutput[i] - predictedOutput[i]) / actualOutput[i]);
-                                    accuracy = (accuracy * possibilities + (1 - mape)) / (possibilities + 1);
-                                    possibilities++;*/
-
                                     // Compute accuracy using Mean Absolute Scaled Error
                                     mae = (mae * possibilities + Math.Abs(actualOutput[i] - predictedOutput[i])) / (possibilities + 1);
                                     maeNaive = (maeNaive * possibilities + Math.Abs(actualOutput[i] - previousActualOutput[i])) / (possibilities + 1);
                                     double mase = mae / maeNaive;
-                                    //accuracy = 1 - mase;
                                     if (!double.IsInfinity(mase))
                                         accuracy = mase;
                                     possibilities++;

@@ -1,14 +1,18 @@
 ﻿using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+using ScottPlot;
+using ScottPlot.Plottable;
+using ScottPlot.Renderable;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI
@@ -17,55 +21,103 @@ namespace BSP_Using_AI
     {
         //*******************************************************************************************************//
         //*************************************INSERT SIGNAL VECTOR IN CHART*************************************//
-        public static void loadXYInChart(Chart chart, double[] xValues, double[] yValues, string[] labels, double startingInSec, int selectedSeries, String reference)
+        public static void loadXYInChart(FormsPlot chart, IPlottable plottable, double[] xValues, double[] yValues, string[] labels, double startingInSec, string reference)
         {
-            Series series = chart.Series[selectedSeries];
-
-            series.Points.Clear();
-
-            // Insert the signal in the chart
-            int indx = 0;
-            for (int i = 0; i < xValues.Length; i++)
+            if (plottable is ScatterPlot scatterPlot)
             {
-                indx = series.Points.AddXY(startingInSec + xValues[i], yValues[i]);
-                if (labels != null)
-                    series.Points[indx].Label = labels[i];
-            }
-
-            chart.Series[selectedSeries] = series;
-        }
-
-        public static void loadXYInChart(Chart chart, double[] xValues, double[] yValues, float[] colorVals, double startingInSec, int selectedSeries)
-        {
-            Series series = chart.Series[selectedSeries];
-
-            series.Points.Clear();
-
-            // Insert the signal in the chart
-            int indx = 0;
-            for (int i = 0; i < xValues.Length; i++)
-            {
-                indx = series.Points.AddXY(startingInSec + xValues[i], yValues[i]);
-                if (colorVals != null)
+                if (xValues != null && xValues.Length > 0)
                 {
-                    series.Points[indx].MarkerColor = ControlPaint.Light(series.Points[indx].MarkerColor, colorVals[i]);
-                    series.Points[indx].MarkerBorderColor = ControlPaint.Light(series.Points[indx].MarkerBorderColor, colorVals[i]);
+                    scatterPlot.OffsetX = startingInSec;
+                    scatterPlot.Update(xValues, yValues);
+                    scatterPlot.DataPointLabels = CreateEmptyStrings(scatterPlot.PointCount);
+                    if (labels != null)
+                    {
+                        scatterPlot.DataPointLabels = labels;
+                        scatterPlot.DataPointLabelFont.Color = Color.Black;
+                    }
+                    else
+                        scatterPlot.DataPointLabelFont.Color = Color.Transparent;
+                    scatterPlot.IsVisible = true;
+                }
+                else
+                {
+                    scatterPlot.Update(new double[] { 0 }, new double[] { 0 });
+                    scatterPlot.DataPointLabels = CreateEmptyStrings(scatterPlot.PointCount);
+                    scatterPlot.IsVisible = false;
                 }
             }
-
-            chart.Series[selectedSeries] = series;
+            chart.Refresh();
         }
 
-        public static void loadSignalInChart(Chart chart, double[] samples, double samplingRate, double startingIndex, String reference)
+        public static string[] CreateEmptyStrings(int length)
         {
-            Series series = chart.Series[0];
+            string[] strings = new string[length];
+            for (int i = 0; i < length; i++)
+                strings[i] = "";
+            return strings;
+        }
 
-            series.Points.Clear();
+        public static ScatterPlot AddScatterPlot(FormsPlot chart, Color color, string label)
+        {
+            ScatterPlot scatterPlot = chart.Plot.AddScatterPoints(new double[] { 0 }, new double[] { 0 }, color, label: label);
+            scatterPlot.IsVisible = false;
+            Legend legend = chart.Plot.Legend();
+            legend.Orientation = ScottPlot.Orientation.Horizontal;
+            return scatterPlot;
+        }
 
-            // Insert the signal in the chart
-            for (int i = 0; i < samples.Length; i++)
-                series.Points.AddXY(startingIndex + (i / samplingRate), samples[i]);
-            chart.Series[0] = series;
+        public static void loadSignalInChart(FormsPlot chart, double[] samples, double samplingRate, double startingInSec, string reference)
+        {
+            // Get all non signal plottables and clear the plot
+            List<IPlottable> nonSignalPlotables = new List<IPlottable>();
+            IPlottable[] plottables = chart.Plot.GetPlottables();
+            if (plottables.Length > 0)
+                foreach (IPlottable plottable in plottables)
+                    if (plottable is not SignalPlot)
+                        nonSignalPlotables.Add(plottable);
+            chart.Plot.Clear();
+
+            // Insert the new signal
+            SignalPlot signalPlot = chart.Plot.AddSignal(samples, samplingRate, color: Color.FromArgb(255, 31, 119, 180));
+            signalPlot.OffsetX = startingInSec;
+            signalPlot.MarkerSize = 0;
+            signalPlot.LineWidth = 0.7;
+
+            // Insert the non signal plottables
+            foreach (IPlottable plottable in nonSignalPlotables)
+                chart.Plot.Add(plottable);
+
+            // Set the axis limits automatically to fit the data on the plot
+            chart.Plot.AxisAuto();
+
+            chart.Refresh();
+        }
+        public static void loadSignalInChart(FormsPlot chart, double[] xValues, double[] yValues, double startingInSec, string reference)
+        {
+            // Check if the chart has an only one scatter plot
+            IPlottable[] plottables = chart.Plot.GetPlottables();
+            ScatterPlot scatterPlot = null;
+            bool resetPlot = true;
+            if (plottables.Length == 1)
+                if (plottables[0] is ScatterPlot)
+                {
+                    scatterPlot = (ScatterPlot)plottables[0];
+                    resetPlot = false;
+                }
+
+            // Check if it does not have a scatter plot
+            if (resetPlot)
+            {
+                // Then create one
+                chart.Plot.Clear();
+                scatterPlot = chart.Plot.AddScatterLines(xValues, yValues);
+                scatterPlot.OffsetX = startingInSec;
+                scatterPlot.LineWidth = 0.7;
+                chart.Refresh();
+            }
+            else
+                // Else update the existen scatterplot
+                loadXYInChart(chart, scatterPlot, xValues, yValues, null, startingInSec, reference);
         }
 
         //*******************************************************************************************************//
@@ -1339,7 +1391,7 @@ namespace BSP_Using_AI
 
         //*******************************************************************************************************//
         //****************************************Save chart as HD image*****************************************//
-        public static void saveChartAsImage(Chart signalChart)
+        public static void saveChartAsImage(FormsPlot signalChart)
         {
             // Open file dialogue to choose the path where to save the image
             using (SaveFileDialog sfd = new SaveFileDialog() { Title = "Save an Image File", ValidateNames = true, Filter = "PNG Image|*.png", RestoreDirectory = true })
@@ -1354,37 +1406,42 @@ namespace BSP_Using_AI
 
                     // Scale the size of the chart
                     int scaling = 20;
-                    System.IO.MemoryStream myStream = new System.IO.MemoryStream();
-                    Chart scaledChart = new Chart();
-                    signalChart.Serializer.Save(myStream);
-                    scaledChart.Serializer.Load(myStream);
-                    scaledChart.Height = scaledChart.Height * scaling;
-                    scaledChart.Width = scaledChart.Width * scaling;
-                    foreach (Series serie in scaledChart.Series)
+                    FormsPlot scaledChart = new FormsPlot();
+                    scaledChart.Size = signalChart.Size;
+                    scaledChart.Plot.XLabel(signalChart.Plot.XAxis.AxisLabel.Label);
+                    scaledChart.Plot.YLabel(signalChart.Plot.YAxis.AxisLabel.Label);
+                    scaledChart.Plot.SetAxisLimits(signalChart.Plot.GetAxisLimits());
+                    Legend legend = scaledChart.Plot.Legend();
+                    legend.Orientation = ScottPlot.Orientation.Horizontal;
+                    foreach (IPlottable plottable in signalChart.Plot.GetPlottables())
                     {
-                        serie.BorderWidth = serie.BorderWidth * scaling;
-                        serie.MarkerSize = serie.MarkerSize * 15;
-                        serie.Font = new System.Drawing.Font("Microsoft Sans Serif", serie.Font.Size * 15);
-                        serie.SmartLabelStyle.CalloutLineWidth = serie.SmartLabelStyle.CalloutLineWidth * 10;
+                        if (plottable is ScatterPlot scatterPlot)
+                        {
+                            ScatterPlot scalScatterPlot = scaledChart.Plot.AddScatter(scatterPlot.Xs, scatterPlot.Ys, scatterPlot.Color, (float)(scatterPlot.LineWidth),
+                                                                                                                                         scatterPlot.MarkerSize * 3/ 4,
+                                                                                                                                         scatterPlot.MarkerShape, scatterPlot.LineStyle, scatterPlot.Label);
+                            scalScatterPlot.OffsetX = scatterPlot.OffsetX;
+                            scalScatterPlot.DataPointLabels = scatterPlot.DataPointLabels;
+                            scalScatterPlot.DataPointLabelFont = scatterPlot.DataPointLabelFont;
+                            scalScatterPlot.DataPointLabelFont.Size = scalScatterPlot.DataPointLabelFont.Size * 3 / 4;
+                            scalScatterPlot.IsVisible = scatterPlot.IsVisible;
+                        }
+                        // Convert signals to scatterplots to keep their resolution
+                        else if (plottable is SignalPlot signalPlot)
+                        {
+                            double[] Xs = new double[signalPlot.Ys.Length];
+                            for (int i = 0; i < Xs.Length; i++)
+                                Xs[i] = i / signalPlot.SampleRate;
+                            ScatterPlot scalScatterPlot = scaledChart.Plot.AddScatter(Xs, signalPlot.Ys, signalPlot.Color, (float)(signalPlot.LineWidth),
+                                                                                                                                         signalPlot.MarkerSize,
+                                                                                                                                         signalPlot.MarkerShape, signalPlot.LineStyle, signalPlot.Label);
+                            scalScatterPlot.OffsetX = signalPlot.OffsetX;
+                            scalScatterPlot.IsVisible = signalPlot.IsVisible;
+                        }
                     }
-                    scaledChart.ChartAreas[0].AxisX.MajorGrid.LineWidth = scaledChart.ChartAreas[0].AxisX.MajorGrid.LineWidth * scaling;
-                    scaledChart.ChartAreas[0].AxisY.MajorGrid.LineWidth = scaledChart.ChartAreas[0].AxisY.MajorGrid.LineWidth * scaling;
-                    scaledChart.ChartAreas[0].AxisX.MajorTickMark.LineWidth = scaledChart.ChartAreas[0].AxisX.MajorTickMark.LineWidth * scaling;
-                    scaledChart.ChartAreas[0].AxisY.MajorTickMark.LineWidth = scaledChart.ChartAreas[0].AxisY.MajorTickMark.LineWidth * scaling;
-                    scaledChart.ChartAreas[0].AxisX.LineWidth = scaledChart.ChartAreas[0].AxisX.LineWidth * scaling;
-                    scaledChart.ChartAreas[0].AxisY.LineWidth = scaledChart.ChartAreas[0].AxisY.LineWidth * scaling;
-                    scaledChart.ChartAreas[0].AxisX.LabelAutoFitMinFontSize = scaledChart.ChartAreas[0].AxisX.LabelAutoFitMinFontSize * scaling;
-                    scaledChart.ChartAreas[0].AxisY.LabelAutoFitMinFontSize = scaledChart.ChartAreas[0].AxisY.LabelAutoFitMinFontSize * scaling;
-                    scaledChart.ChartAreas[0].AxisX.LabelAutoFitMaxFontSize = scaledChart.ChartAreas[0].AxisX.LabelAutoFitMaxFontSize * scaling;
-                    scaledChart.ChartAreas[0].AxisY.LabelAutoFitMaxFontSize = scaledChart.ChartAreas[0].AxisY.LabelAutoFitMaxFontSize * scaling;
-                    scaledChart.ChartAreas[0].AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.ChartAreas[0].AxisX.TitleFont.Size * scaling);
-                    scaledChart.ChartAreas[0].AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.ChartAreas[0].AxisY.TitleFont.Size * scaling);
-                    scaledChart.Legends[0].Font = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.Legends[0].Font.Size * scaling);
-                    if (scaledChart.Titles.Count > 0)
-                        scaledChart.Titles[0].Font = new System.Drawing.Font("Microsoft Sans Serif", scaledChart.Titles[0].Font.Size * scaling);
 
                     // Save the image from the scaled chart
-                    scaledChart.SaveImage(filePath, ChartImageFormat.Png);
+                    scaledChart.Plot.SaveFig(filePath, scale: scaling);
                 }
             }
         }

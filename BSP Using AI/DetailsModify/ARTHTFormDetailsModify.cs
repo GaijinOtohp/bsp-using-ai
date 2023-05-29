@@ -2,6 +2,8 @@
 using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.DetailsModify.Filters;
+using ScottPlot;
+using ScottPlot.Plottable;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -34,56 +35,46 @@ namespace BSP_Using_AI.DetailsModify
         private void signalExhibitor_MouseMove_ARTHT(object sender, MouseEventArgs e)
         {
             // Check if AI tool is activated and in R selection step
-            if ((_arthtFeatures._processedStep == 2 || _arthtFeatures._processedStep == 4) && (sender as Chart).Name.Equals("signalChart"))
+            if ((_arthtFeatures._processedStep == 2 || _arthtFeatures._processedStep == 4))
             {
                 // If yes then it is activated
-                Chart chart = sender as Chart;
-                // Check if cursor is inside the chart
-                if (e.X >= chart.Width || e.Y >= chart.Height)
-                    return;
-                // Check if mouse cursor is near to a any state by 20% to the nearest state
-                // Calculate x interval and y interval
-                double xInterval = ((sender as Chart).ChartAreas[0].AxisX.Maximum - (sender as Chart).ChartAreas[0].AxisX.Minimum) * _FilteringTools._samplingRate;
-                double yInterval = (sender as Chart).ChartAreas[0].AxisY.Maximum - (sender as Chart).ChartAreas[0].AxisY.Minimum;
 
-                // Get values of the position
-                double xValue = ((sender as Chart).ChartAreas[0].AxisX.PixelPositionToValue(e.X) - _FilteringTools._startingInSec) * _FilteringTools._samplingRate;
-                double yValue = (sender as Chart).ChartAreas[0].AxisY.PixelPositionToValue(e.Y);
+                // Get the states plots
+                Plot chartPlot = signalChart.Plot;
+                ScatterPlot upScatPlot = (ScatterPlot)_Plots[SANamings.UpPeaks];
+                ScatterPlot downScatPlot = (ScatterPlot)_Plots[SANamings.DownPeaks];
+                ScatterPlot stableScatPlot = (ScatterPlot)_Plots[SANamings.StableStates];
+                BubblePlot selectionBubble = (BubblePlot)_Plots[SANamings.Selection];
 
-                // Get all up points
-                // Take the nearest point of up points in X
+                // Get the cursor coordinates
+                (double curXCor, double curYCor) = chartPlot.GetCoordinate(e.X, e.Y);
+
+                // Get the nearest states coordinates
+                (double upX, double upY, int upIndx) = upScatPlot.GetPointNearest(curXCor, curYCor);
+                (double downX, double downY, int downIndx) = downScatPlot.GetPointNearest(curXCor, curYCor);
+                (double stableX, double stableY, int stableIndx) = stableScatPlot.GetPointNearest(curXCor, curYCor);
+
+                // Get the nearest state to the cursor
+                (double x, double y, int index, string stateLabel) = Math.Abs(curXCor - upX) + Math.Abs(curYCor - upY) < Math.Abs(curXCor - downX) + Math.Abs(curYCor - downY) ? (upX, upY, upIndx, SANamings.UpPeaks) : (downX, downY, downIndx, SANamings.DownPeaks);
+                (x, y, index, stateLabel) = Math.Abs(curXCor - x) + Math.Abs(curYCor - y) < Math.Abs(curXCor - stableX) + Math.Abs(curYCor - stableY) ? (x, y, index, stateLabel) : (stableX, stableY, stableIndx, SANamings.StableStates);
+
+                // Get the pixel of the nearest state
+                (float xPic, float yPic) = chartPlot.GetPixel(x, y);
+
+                // Clear the old selection
                 Dictionary<string, List<State>> statesDic = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._StatesDIc;
-                State nearestState = new State();
-                double nearestStateMag = double.PositiveInfinity;
-                foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                    foreach (State xState in statesDic[statesLabel])
-                    {
-                        // Compute magnitude between the state and the cursor position
-                        double mag = Math.Sqrt(Math.Pow((xValue - xState._index) / xInterval, 2) + Math.Pow((yValue - xState._value) / yInterval, 2));
-                        // Compare it with the previous nearest state
-                        if (mag < nearestStateMag)
-                        {
-                            nearestState = xState;
-                            nearestStateMag = mag;
-                        }
-                    }
-
-                // Check if cursor is near to the point by less than 20% in X and Y
                 if (!statesDic.ContainsKey(SANamings.Selection))
                     statesDic.Add(SANamings.Selection, new List<State>());
-                if (nearestStateMag < 0.2)
+                statesDic[SANamings.Selection].Clear();
+                selectionBubble.Clear();
+                // Check if the nearest state is less than 20 pixels from the cursor
+                if (Math.Abs(e.X - xPic) < 20 && Math.Abs(e.Y - yPic) < 20 && statesDic[stateLabel].Count > 0)
                 {
-                    // If yes then make a selection point at this position
-                    Garage.loadXYInChart(signalChart, new double[1] { (nearestState._index / (double)_FilteringTools._samplingRate) + _FilteringTools._startingInSec }, new double[1] { nearestState._value }, null, 0, 4, "FormDetailModify");
-                    // Set selection state's index
-                    statesDic[SANamings.Selection].Clear();
-                    statesDic[SANamings.Selection].Add(nearestState);
+                    // If yes then insert the new selection
+                    selectionBubble.Add(x, y, 5, Color.Red, 2, ForeColor);
+                    statesDic[SANamings.Selection].Add(statesDic[stateLabel][index]);
                 }
-                else
-                {
-                    (sender as Chart).Series[SANamings.Selection].Points.Clear();
-                    statesDic[SANamings.Selection].Clear();
-                }
+                signalChart.Refresh();
             }
         }
 
@@ -93,8 +84,6 @@ namespace BSP_Using_AI.DetailsModify
             if ((_arthtFeatures._processedStep == 2 || _arthtFeatures._processedStep == 4))
             {
                 Dictionary<string, List<State>> statesDic = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._StatesDIc;
-                if (!statesDic.ContainsKey(SANamings.Selection))
-                    statesDic.Add(SANamings.Selection, new List<State>());
                 // If yes then it is activated
                 // Get the selcted point if it exists
                 if (statesDic[SANamings.Selection].Count > 0)
@@ -105,34 +94,36 @@ namespace BSP_Using_AI.DetailsModify
                             if (statesDic[SANamings.Selection][0]._index == statesDic[statesLabel][i]._index)
                             {
                                 // Check if it has a label then remove it, and if not add it
+                                ScatterPlot scatPlot = (ScatterPlot)_Plots[statesLabel];
                                 int selectedBeatIndx = 0;
                                 if (featuresTableLayoutPanel.Controls.ContainsKey(ARTHTNamings.Step4PTSelectionData))
                                     selectedBeatIndx = ((ToolStripMenuItem)((MenuStrip)featuresTableLayoutPanel.Controls[ARTHTNamings.Step4PTSelectionData]).Items[0]).DropDownItems.Count;
-                                if (!(sender as Chart).Series[statesLabel].Points[i].Label.Equals(""))
+                                if (!scatPlot.DataPointLabels[i].Equals(""))
                                 {
-                                    if ((sender as Chart).Series[statesLabel].Points[i].Label.Equals(SANamings.P))
+                                    if (scatPlot.DataPointLabels[i].Equals(SANamings.P))
                                         _arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex = int.MinValue;
-                                    else if ((sender as Chart).Series[statesLabel].Points[i].Label.Equals(SANamings.T))
+                                    else if (scatPlot.DataPointLabels[i].Equals(SANamings.T))
                                         _arthtFeatures.SignalBeats[selectedBeatIndx]._tIndex = int.MinValue;
-                                    (sender as Chart).Series[statesLabel].Points[i].Label = "";
+                                    scatPlot.DataPointLabels[i] = "";
                                 }
                                 else if (_arthtFeatures._processedStep == 2)
-                                    (sender as Chart).Series[statesLabel].Points[i].Label = SANamings.R;
+                                    scatPlot.DataPointLabels[i] = SANamings.R;
                                 else if (_arthtFeatures._processedStep == 4)
                                 {
                                     int selectedIndx = _arthtFeatures.SignalBeats[selectedBeatIndx]._startingIndex + statesDic[statesLabel][i]._index;
                                     if (_arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex == int.MinValue)
                                     {
-                                        (sender as Chart).Series[statesLabel].Points[i].Label = SANamings.P;
+                                        scatPlot.DataPointLabels[i] = SANamings.P;
                                         _arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex = selectedIndx;
                                     }
                                     else if (_arthtFeatures.SignalBeats[selectedBeatIndx]._tIndex == int.MinValue)
                                     {
-                                        (sender as Chart).Series[statesLabel].Points[i].Label = SANamings.T;
+                                        scatPlot.DataPointLabels[i] = SANamings.T;
                                         _arthtFeatures.SignalBeats[selectedBeatIndx]._tIndex = selectedIndx;
                                     }
                                 }
                             }
+                    signalChart.Refresh();
                 }
             }
         }
@@ -272,10 +263,9 @@ namespace BSP_Using_AI.DetailsModify
                 _arthtFeatures.Clear();
                 featuresTableLayoutPanel.Controls.Clear();
 
-                signalChart.Series[SANamings.UpPeaks].LabelForeColor = Color.Transparent;
-                foreach (Series series in signalChart.Series)
-                    if (!series.Name.Equals(SANamings.Signal))
-                        series.Points.Clear();
+                ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
+                foreach (string stateName in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Selection, SANamings.Labels })
+                    Garage.loadXYInChart(signalChart, _Plots[stateName], null, null, null, 0, "ARTHTFormDetailsModify");
 
                 // Reset the signal
                 _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
@@ -396,9 +386,9 @@ namespace BSP_Using_AI.DetailsModify
                         _FilteringTools.ApplyFilters(false);
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
                         // Set the up peaks labels ready
-                        signalChart.Series[SANamings.UpPeaks].LabelForeColor = Color.Black;
-                        for (int i = 0; i < signalChart.Series[SANamings.UpPeaks].Points.Count; i++)
-                            signalChart.Series[SANamings.UpPeaks].Points[i].Label = "";
+                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Black;
+                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = Garage.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
+                        signalChart.Refresh();
 
                         // Give the instruction for next goal, and enable previous button
                         featuresSettingInstructionsLabel.Text = "Select R peaks from the visible states in the chart.\nClick once on the peak to select, or click once again to unselect.\nPress next after you finish.";
@@ -502,13 +492,14 @@ namespace BSP_Using_AI.DetailsModify
                             {
                                 // Check if this R is selected
                                 // Start from the last saved qrs index in qrsList
-                                for (int j = 0; j < signalChart.Series[SANamings.UpPeaks].Points.Count; j++)
+                                ScatterPlot upScatPlot = ((ScatterPlot)_Plots[SANamings.UpPeaks]);
+                                for (int j = 0; j < upScatPlot.PointCount; j++)
                                 {
                                     // Check if the state is getting closer
                                     if (Math.Abs(signalUpStates[j]._index - orderedRPeaks[i]._index) == 0)
                                     {
                                         // If yes then the last state is the closest. Then check if this point's label is selected as R or not
-                                        if (signalChart.Series[SANamings.UpPeaks].Points[j].Label.Equals(SANamings.R))
+                                        if (upScatPlot.DataPointLabels[j].Equals(SANamings.R))
                                         {
                                             // If yes then set the output to 0 (do not remove state)
                                             rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RemoveR },
@@ -560,7 +551,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Make the form ready for next goal
                         _arthtFeatures._processedStep++;
-                        signalChart.Series[SANamings.Selection].Points.Clear();
+                        ((BubblePlot)_Plots[SANamings.Selection]).Clear();
                         // Show the first selected Beat
                         _FilteringTools._RawSamples = new double[(_arthtFeatures.SignalBeats[0]._endingIndex - _arthtFeatures.SignalBeats[0]._startingIndex) + 1];
                         for (int i = _arthtFeatures.SignalBeats[0]._startingIndex; i < _arthtFeatures.SignalBeats[0]._endingIndex + 1; i++)
@@ -569,8 +560,9 @@ namespace BSP_Using_AI.DetailsModify
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(0.2d);
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(0.01d);
                         // Refresh the apply button if autoApply is checked
-                        signalChart.Series["Up peaks"].LabelForeColor = Color.Transparent;
+                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
                         _FilteringTools.ApplyFilters(false);
+                        signalChart.Refresh();
 
                         // Give the instruction for next goal, and enable previous button
                         featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" for the segmentation of P and T waves.\n" + 1 + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
@@ -973,41 +965,6 @@ namespace BSP_Using_AI.DetailsModify
                             upstrokeScanSamp.insertOutputArray(new string[] { ARTHTNamings.TDT }, askForPrediction(upstrokeScanSamp.getFeatures(), ARTHTNamings.Step6UpstrokesScanData));
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
-
-                            /*// Calculate it automatically where tangent deviation of the state before R must be the highest
-                            // Iterate through all possible tangent deviations
-                            double[] selectedTdtVal = new double[10];
-                            double tdt = upstrokeScanSamp.getOutputByLabel(ARTHTNamings.TDT);
-                            int start = (tdt * 100000) - 5 > 0 ? (int)((tdt * 100000) - 5) : 1;
-                            int end = (tdt * 100000) + 5 < 100000 ? (int)((tdt * 100000) + 5) : 100000;
-                            for (int i = start; i < end; i++)
-                            {
-                                signalStates = Garage.scanPeaks(_filteredSamples, signalStatesViewerUserControl._thresholdRatio,
-                                                                signalStatesViewerUserControl.hThresholdScrollBar.Value, i / 100000d, _samplingRate, true);
-                                // Iterate through all states and take the one before R if existed
-                                int selectedSt = 0;
-                                for (int j = 0; j < signalStates.Count; j++)
-                                    if (signalStates[j]._index + _arthtFeatures.SignalBeats[shortPRBeatIndx]._startingIndex == _arthtFeatures.SignalBeats[shortPRBeatIndx]._rIndex)
-                                    {
-                                        if (j > 0)
-                                            selectedSt = j - 1;
-                                        break;
-                                    }
-                                // Check if its just Q state
-                                if (signalStates[selectedSt]._index + _arthtFeatures.SignalBeats[shortPRBeatIndx]._startingIndex == _arthtFeatures.SignalBeats[shortPRBeatIndx]._qIndex)
-                                {
-                                    // If yes then select R state
-                                    selectedTdtVal[i - start] = signalStates[selectedSt + 1]._deviantionAngle;
-                                }
-                            }
-                            // Now select the one with the highest deviation
-                            double highestNmbr = 0;
-                            for (int i = 0; i < 10; i++)
-                                if (selectedTdtVal[i] > highestNmbr)
-                                {
-                                    highestNmbr = selectedTdtVal[i];
-                                    upstrokeScanSamp.insertOutput(0, ARTHTNamings.TDT, (double)(i + start) / 100000d);
-                                }*/
                             // Set the selected _tdtThresholdRatio
                             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetTDT(upstrokeScanSamp.getOutputByLabel(ARTHTNamings.TDT));
                             // Apply peaks scan with the new tangent deviation threshold parameter
@@ -1185,8 +1142,9 @@ namespace BSP_Using_AI.DetailsModify
             for (int i = BeatInfo._startingIndex; i < BeatInfo._endingIndex + 1; i++)
                 _FilteringTools._RawSamples[i - BeatInfo._startingIndex] = _FilteringTools._OriginalRawSamples[i];
 
-            foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                signalChart.Series[statesLabel].Points.Clear();
+            foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Labels })
+                Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+            ((BubblePlot)_Plots[SANamings.Selection]).Clear();
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(ARTHTSample.getOutputByLabel(ARTHTNamings.ART));
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(ARTHTSample.getOutputByLabel(ARTHTNamings.HT));
             if (TDTSample != null)
@@ -1198,30 +1156,32 @@ namespace BSP_Using_AI.DetailsModify
             Dictionary<string, List<State>> statesDic = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._StatesDIc;
             foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
             {
-                signalChart.Series[statesLabel].LabelForeColor = Color.Black;
+                ScatterPlot scatPlot = (ScatterPlot)_Plots[statesLabel];
+                scatPlot.DataPointLabelFont.Color = Color.Black;
                 for (int j = 0; j < statesDic[statesLabel].Count; j++)
                 {
                     int stateIndx = statesDic[statesLabel][j]._index + BeatInfo._startingIndex;
                     if (stateIndx == BeatInfo._pIndex)
-                        signalChart.Series[statesLabel].Points[j].Label = SANamings.P;
+                        scatPlot.DataPointLabels[j] = SANamings.P;
                     else if (stateIndx == BeatInfo._qIndex)
-                        signalChart.Series[statesLabel].Points[j].Label = SANamings.Q;
+                        scatPlot.DataPointLabels[j] = SANamings.Q;
                     else if (stateIndx == BeatInfo._slurredUpstrokeIndex)
                     {
-                        signalChart.Series[statesLabel].Points[j].Label = SANamings.Delta;
+                        scatPlot.DataPointLabels[j] = SANamings.Delta;
                         if (BeatInfo._wpwDetected)
-                            signalChart.Series[statesLabel].Points[j].Label = SANamings.WPW;
+                            scatPlot.DataPointLabels[j] = SANamings.WPW;
                     }
                     else if (stateIndx == BeatInfo._rIndex)
-                        signalChart.Series[statesLabel].Points[j].Label = SANamings.R;
+                        scatPlot.DataPointLabels[j] = SANamings.R;
                     else if (stateIndx == BeatInfo._sIndex)
-                        signalChart.Series[statesLabel].Points[j].Label = SANamings.S;
+                        scatPlot.DataPointLabels[j] = SANamings.S;
                     else if (stateIndx == BeatInfo._tIndex)
-                        signalChart.Series[statesLabel].Points[j].Label = SANamings.T;
+                        scatPlot.DataPointLabels[j] = SANamings.T;
                     else
-                        signalChart.Series[statesLabel].Points[j].Label = "";
+                        scatPlot.DataPointLabels[j] = "";
                 }
             }
+            signalChart.Refresh();
         }
 
         public void finish()
@@ -1255,13 +1215,13 @@ namespace BSP_Using_AI.DetailsModify
                     peaksLabels.Add(new object[] { (double)beat._tIndex, samples[beat._tIndex], SANamings.T });
             }
 
-            for (int i = 1; i < 5; i++)
-                signalChart.Series[i].Points.Clear();
-            Garage.loadXYInChart(signalChart,
+            foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+            Garage.loadXYInChart(signalChart, _Plots[SANamings.Labels],
                                  peaksLabels.Select(labelX => (double)labelX[0] / _FilteringTools._samplingRate).ToArray(),
                                  peaksLabels.Select(labelY => (double)labelY[1]).ToArray(),
                                  peaksLabels.Select(label => (string)label[2]).ToArray(),
-                                 _FilteringTools._startingInSec, 5, "ARTHTFormDetailsModify");
+                                 _FilteringTools._startingInSec, "ARTHTFormDetailsModify");
 
             // Enable everything
             signalFusionButton.Enabled = true;
@@ -1375,8 +1335,8 @@ namespace BSP_Using_AI.DetailsModify
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._FilterControl.Enabled = true;
                     }
                     // Show the last beat with short PR
-                    for (int i = 1; i < 4; i++)
-                        signalChart.Series[i].Points.Clear();
+                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Labels })
+                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     setNextBeat(_arthtFeatures.SignalBeats[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[previousShortPRBeatIndx], null);
 
                     // Give the instruction for next goal, and enable previous button
@@ -1432,8 +1392,8 @@ namespace BSP_Using_AI.DetailsModify
                     // Uncheck short PR declaration in filtersFlowLayoutPanel
                     ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare]).SetExistance(false);
                     // Refresh the apply button if autoApply is checked
-                    for (int i = 1; i < 4; i++)
-                        signalChart.Series[i].Points.Clear();
+                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     int selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1453,8 +1413,8 @@ namespace BSP_Using_AI.DetailsModify
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
 
                     // Set the next beat for segmentation
-                    for (int i = 1; i < 4; i++)
-                        signalChart.Series[i].Points.Clear();
+                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1472,8 +1432,8 @@ namespace BSP_Using_AI.DetailsModify
                     // Set filters for this step
                     if (featuresItems.DropDownItems.Count + 1 == _arthtFeatures.SignalBeats.Count)
                     {
-                        for (int i = 1; i < 4; i++)
-                            signalChart.Series[i].LabelForeColor = Color.Transparent;
+                        foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                            ((ScatterPlot)_Plots[statesLabel]).DataPointLabelFont.Color = Color.Transparent;
 
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = true;
                         ((SignalStatesViewerUserControl)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl).amplitudeThresholdScrollBar.Enabled = true;
@@ -1488,8 +1448,8 @@ namespace BSP_Using_AI.DetailsModify
                     ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(0.01d);
 
                     // Refresh the apply button if autoApply is checked
-                    for (int i = 1; i < 4; i++)
-                        signalChart.Series[i].Points.Clear();
+                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     _FilteringTools.ApplyFilters(false);
 
                     // Give the instruction for next goal, and enable previous button
@@ -1504,8 +1464,8 @@ namespace BSP_Using_AI.DetailsModify
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step2RPeaksSelectionData].removeLastSample();
 
                     // Refresh the apply button if autoApply is checked
-                    for (int i = 1; i < 4; i++)
-                        signalChart.Series[i].Points.Clear();
+                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
                     for (int i = 0; i < _FilteringTools._OriginalRawSamples.Length; i++)
                         _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
@@ -1547,9 +1507,9 @@ namespace BSP_Using_AI.DetailsModify
                     _FilteringTools.ApplyFilters(false);
 
                     // Set the up peaks labels ready
-                    signalChart.Series[SANamings.UpPeaks].LabelForeColor = Color.Black;
-                    for (int i = 0; i < signalChart.Series[SANamings.UpPeaks].Points.Count; i++)
-                        signalChart.Series[SANamings.UpPeaks].Points[i].Label = "";
+                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Black;
+                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = Garage.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
+                    signalChart.Refresh();
 
                     // Give the instruction for next goal, and enable previous button
                     featuresSettingInstructionsLabel.Text = "Select R peaks from the visible states in the chart.\nClick once on the peak to select, or click once again to unselect.\nPress next after you finish.";
@@ -1578,9 +1538,9 @@ namespace BSP_Using_AI.DetailsModify
                     _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = true;
 
                     // Set the up peaks labels ready
-                    for (int i = 1; i < 4; i++)
-                        signalChart.Series[i].Points.Clear();
-                    signalChart.Series[SANamings.UpPeaks].LabelForeColor = Color.Transparent;
+                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
 
                     // Show the signal
                     _FilteringTools.ApplyFilters(false);

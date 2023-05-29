@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI
@@ -100,103 +99,6 @@ namespace BSP_Using_AI
             formSignalsCollector.Name = formName + formCopyNum.ToString();
 
             formSignalsCollector.Show();
-        }
-
-        //*******************************************************************************************************//
-        //*************************************SIGNAL HOLDER USER CONTROL****************************************//
-        //*******************************************************************************************************//
-        public static void signalExhibitor_MouseMove(object sender, MouseEventArgs e, int previousMouseX, int previousMouseY)
-        {
-            int offsetX = previousMouseX - e.X;
-            int offsetY = e.Y - previousMouseY;
-
-            Chart chart = sender as Chart;
-
-            Axis xAxis = chart.ChartAreas[0].AxisX;
-            Axis yAxis = chart.ChartAreas[0].AxisY;
-
-            double xMin = xAxis.Minimum;
-            double xMax = xAxis.Maximum;
-            double yMin = yAxis.Minimum;
-            double yMax = yAxis.Maximum;
-            double xScaledMin = xAxis.ScaleView.ViewMinimum;
-            double xScaledMax = xAxis.ScaleView.ViewMaximum;
-            double yScaledMin = yAxis.ScaleView.ViewMinimum;
-            double yScaledMax = yAxis.ScaleView.ViewMaximum;
-
-            xAxis.ScaleView.Position += offsetX / (((Chart)sender).Width / (xScaledMax - xScaledMin));
-
-            yAxis.ScaleView.Position += offsetY / (((Chart)sender).Height / (yScaledMax - yScaledMin));
-        }
-
-        public static void signalExhibitor_MouseWheel(object sender, MouseEventArgs e, int previousMouseX, int previousMouseY)
-        {
-            Chart chart = (Chart)sender;
-            Axis xAxis = chart.ChartAreas[0].AxisX;
-            Axis yAxis = chart.ChartAreas[0].AxisY;
-
-            int chartWidth = chart.Size.Width;
-            int chartHeight = chart.Size.Height;
-
-            double xMin = xAxis.Minimum;
-            double xMax = xAxis.Maximum;
-            double yMin = yAxis.Minimum;
-            double yMax = yAxis.Maximum;
-
-            double xScaledMin = xAxis.ScaleView.ViewMinimum;
-            double xScaledMax = xAxis.ScaleView.ViewMaximum;
-            double yScaledMin = yAxis.ScaleView.ViewMinimum;
-            double yScaledMax = yAxis.ScaleView.ViewMaximum;
-
-            double xCurrentPosition = xAxis.PixelPositionToValue(e.X);
-            double yCurrentPosition = yAxis.PixelPositionToValue(e.Y);
-
-            try
-            {
-                if (e.Delta < 0) // Scrolled down.
-                {
-                    double posXStart = xScaledMin - (xCurrentPosition - xScaledMin) / 8d;
-
-                    double xPreviousInterval = xScaledMax - xScaledMin;
-                    double xOffsetRatio = (xCurrentPosition - xScaledMin) * 100 / xPreviousInterval;
-                    double xNewInterval = 100 * (xCurrentPosition - posXStart) / xOffsetRatio;
-
-                    double posXFinish = posXStart + xNewInterval;
-
-                    double posYStart = yScaledMin - (yCurrentPosition - yScaledMin) / 8d;
-
-                    double yPreviousInterval = yScaledMax - yScaledMin;
-                    double yOffsetRatio = (yCurrentPosition - yScaledMin) * 100 / yPreviousInterval;
-                    double yNewInterval = 100 * (yCurrentPosition - posYStart) / yOffsetRatio;
-
-                    double posYFinish = posYStart + yNewInterval;
-
-                    xAxis.ScaleView.Zoom(posXStart, posXFinish);
-                    yAxis.ScaleView.Zoom(posYStart, posYFinish);
-                }
-                else if (e.Delta > 0) // Scrolled up.
-                {
-                    double posXStart = xCurrentPosition - (xCurrentPosition - xScaledMin) / 1.05d;
-
-                    double xPreviousInterval = xScaledMax - xScaledMin;
-                    double xOffsetRatio = (xCurrentPosition - xScaledMin) * 100 / xPreviousInterval;
-                    double xNewInterval = 100 * (xCurrentPosition - posXStart) / xOffsetRatio;
-
-                    double posXFinish = posXStart + xNewInterval;
-
-                    double posYStart = yCurrentPosition - (yCurrentPosition - yScaledMin) / 1.05d;
-
-                    double yPreviousInterval = yScaledMax - yScaledMin;
-                    double yOffsetRatio = (yCurrentPosition - yScaledMin) * 100 / yPreviousInterval;
-                    double yNewInterval = 100 * (yCurrentPosition - posYStart) / yOffsetRatio;
-
-                    double posYFinish = posYStart + yNewInterval;
-
-                    xAxis.ScaleView.Zoom(posXStart, posXFinish);
-                    yAxis.ScaleView.Zoom(posYStart, posYFinish);
-                }
-            }
-            catch { }
         }
 
         //*******************************************************************************************************//

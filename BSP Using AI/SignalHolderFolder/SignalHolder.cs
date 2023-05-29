@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Threading;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 

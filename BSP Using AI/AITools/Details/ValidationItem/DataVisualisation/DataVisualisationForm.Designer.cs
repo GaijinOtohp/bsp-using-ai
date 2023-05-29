@@ -29,14 +29,6 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title2 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.rawVisTabPage = new System.Windows.Forms.TabPage();
             this.button1 = new System.Windows.Forms.Button();
@@ -46,21 +38,19 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.outputLabel = new System.Windows.Forms.Label();
             this.xInputLabel = new System.Windows.Forms.Label();
             this.yInputLabel = new System.Windows.Forms.Label();
-            this.rawChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.rawChart = new ScottPlot.FormsPlot();
             this.pcaVisTabPage = new System.Windows.Forms.TabPage();
             this.saveAsImageButton = new System.Windows.Forms.Button();
             this.saveChangesButton = new System.Windows.Forms.Button();
             this.pcFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.selectedPricipalComponentsLabel = new System.Windows.Forms.Label();
-            this.pcaChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.pcaChart = new ScottPlot.FormsPlot();
             this.tsneVisTabPage = new System.Windows.Forms.TabPage();
             this.umapVisTabPage = new System.Windows.Forms.TabPage();
             this.stepLabel = new System.Windows.Forms.Label();
             this.tabControl.SuspendLayout();
             this.rawVisTabPage.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.rawChart)).BeginInit();
             this.pcaVisTabPage.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pcaChart)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl
@@ -72,10 +62,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tabControl.Controls.Add(this.pcaVisTabPage);
             this.tabControl.Controls.Add(this.tsneVisTabPage);
             this.tabControl.Controls.Add(this.umapVisTabPage);
-            this.tabControl.Location = new System.Drawing.Point(12, 135);
+            this.tabControl.Location = new System.Drawing.Point(14, 156);
+            this.tabControl.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(1082, 695);
+            this.tabControl.Size = new System.Drawing.Size(1262, 802);
             this.tabControl.TabIndex = 0;
             // 
             // rawVisTabPage
@@ -88,10 +79,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.rawVisTabPage.Controls.Add(this.xInputLabel);
             this.rawVisTabPage.Controls.Add(this.yInputLabel);
             this.rawVisTabPage.Controls.Add(this.rawChart);
-            this.rawVisTabPage.Location = new System.Drawing.Point(4, 22);
+            this.rawVisTabPage.Location = new System.Drawing.Point(4, 24);
+            this.rawVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.rawVisTabPage.Name = "rawVisTabPage";
-            this.rawVisTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.rawVisTabPage.Size = new System.Drawing.Size(1074, 669);
+            this.rawVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.rawVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.rawVisTabPage.TabIndex = 0;
             this.rawVisTabPage.Text = "Raw visualisation tab";
             this.rawVisTabPage.UseVisualStyleBackColor = true;
@@ -99,10 +91,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(688, 80);
+            this.button1.Location = new System.Drawing.Point(803, 92);
             this.button1.Margin = new System.Windows.Forms.Padding(2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(87, 20);
+            this.button1.Size = new System.Drawing.Size(102, 23);
             this.button1.TabIndex = 32;
             this.button1.Text = "Save as image";
             this.button1.UseVisualStyleBackColor = true;
@@ -112,35 +104,39 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             this.xInputFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.xInputFlowLayoutPanel.AutoScroll = true;
-            this.xInputFlowLayoutPanel.Location = new System.Drawing.Point(409, 527);
+            this.xInputFlowLayoutPanel.Location = new System.Drawing.Point(477, 608);
+            this.xInputFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.xInputFlowLayoutPanel.Name = "xInputFlowLayoutPanel";
-            this.xInputFlowLayoutPanel.Size = new System.Drawing.Size(208, 114);
+            this.xInputFlowLayoutPanel.Size = new System.Drawing.Size(243, 132);
             this.xInputFlowLayoutPanel.TabIndex = 9;
             // 
             // yInputFlowLayoutPanel
             // 
             this.yInputFlowLayoutPanel.AutoScroll = true;
-            this.yInputFlowLayoutPanel.Location = new System.Drawing.Point(16, 239);
+            this.yInputFlowLayoutPanel.Location = new System.Drawing.Point(19, 276);
+            this.yInputFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.yInputFlowLayoutPanel.Name = "yInputFlowLayoutPanel";
-            this.yInputFlowLayoutPanel.Size = new System.Drawing.Size(208, 114);
+            this.yInputFlowLayoutPanel.Size = new System.Drawing.Size(243, 132);
             this.yInputFlowLayoutPanel.TabIndex = 8;
             // 
             // outputFlowLayoutPanel
             // 
             this.outputFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.outputFlowLayoutPanel.AutoScroll = true;
-            this.outputFlowLayoutPanel.Location = new System.Drawing.Point(865, 127);
+            this.outputFlowLayoutPanel.Location = new System.Drawing.Point(1009, 147);
+            this.outputFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.outputFlowLayoutPanel.Name = "outputFlowLayoutPanel";
-            this.outputFlowLayoutPanel.Size = new System.Drawing.Size(190, 124);
+            this.outputFlowLayoutPanel.Size = new System.Drawing.Size(222, 143);
             this.outputFlowLayoutPanel.TabIndex = 7;
             // 
             // outputLabel
             // 
             this.outputLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.outputLabel.AutoSize = true;
-            this.outputLabel.Location = new System.Drawing.Point(862, 105);
+            this.outputLabel.Location = new System.Drawing.Point(1006, 121);
+            this.outputLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.outputLabel.Name = "outputLabel";
-            this.outputLabel.Size = new System.Drawing.Size(37, 13);
+            this.outputLabel.Size = new System.Drawing.Size(43, 15);
             this.outputLabel.TabIndex = 6;
             this.outputLabel.Text = "output";
             // 
@@ -148,18 +144,20 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             this.xInputLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.xInputLabel.AutoSize = true;
-            this.xInputLabel.Location = new System.Drawing.Point(406, 511);
+            this.xInputLabel.Location = new System.Drawing.Point(474, 590);
+            this.xInputLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.xInputLabel.Name = "xInputLabel";
-            this.xInputLabel.Size = new System.Drawing.Size(40, 13);
+            this.xInputLabel.Size = new System.Drawing.Size(45, 15);
             this.xInputLabel.TabIndex = 4;
             this.xInputLabel.Text = "X input";
             // 
             // yInputLabel
             // 
             this.yInputLabel.AutoSize = true;
-            this.yInputLabel.Location = new System.Drawing.Point(14, 223);
+            this.yInputLabel.Location = new System.Drawing.Point(16, 257);
+            this.yInputLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.yInputLabel.Name = "yInputLabel";
-            this.yInputLabel.Size = new System.Drawing.Size(40, 13);
+            this.yInputLabel.Size = new System.Drawing.Size(45, 15);
             this.yInputLabel.TabIndex = 2;
             this.yInputLabel.Text = "Y input";
             // 
@@ -168,36 +166,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.rawChart.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.rawChart.BorderlineColor = System.Drawing.Color.Black;
-            this.rawChart.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
-            chartArea1.AxisX.MajorGrid.Enabled = false;
-            chartArea1.AxisY.MajorGrid.Enabled = false;
-            chartArea1.Name = "ChartArea1";
-            this.rawChart.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            this.rawChart.Legends.Add(legend1);
-            this.rawChart.Location = new System.Drawing.Point(246, 105);
+            this.rawChart.Location = new System.Drawing.Point(287, 121);
+            this.rawChart.Margin = new System.Windows.Forms.Padding(5, 3, 5, 3);
             this.rawChart.Name = "rawChart";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series1.Legend = "Legend1";
-            series1.MarkerBorderColor = System.Drawing.Color.Blue;
-            series1.MarkerBorderWidth = 2;
-            series1.MarkerColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(255)))));
-            series1.MarkerSize = 10;
-            series1.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series1.Name = "Series1";
-            this.rawChart.Series.Add(series1);
-            this.rawChart.Size = new System.Drawing.Size(529, 388);
+            this.rawChart.Size = new System.Drawing.Size(617, 448);
             this.rawChart.TabIndex = 0;
-            this.rawChart.Text = "rawChart";
-            title1.Name = "RawScatterplot";
-            title1.Text = "Raw data scatterplot";
-            this.rawChart.Titles.Add(title1);
-            this.rawChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.rawChart_MouseDown);
-            this.rawChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.rawChart_MouseMove);
-            this.rawChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.rawChart_MouseUp);
-            this.rawChart.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseWheel);
             // 
             // pcaVisTabPage
             // 
@@ -206,10 +179,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.pcaVisTabPage.Controls.Add(this.pcFlowLayoutPanel);
             this.pcaVisTabPage.Controls.Add(this.selectedPricipalComponentsLabel);
             this.pcaVisTabPage.Controls.Add(this.pcaChart);
-            this.pcaVisTabPage.Location = new System.Drawing.Point(4, 22);
+            this.pcaVisTabPage.Location = new System.Drawing.Point(4, 24);
+            this.pcaVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.pcaVisTabPage.Name = "pcaVisTabPage";
-            this.pcaVisTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.pcaVisTabPage.Size = new System.Drawing.Size(1074, 669);
+            this.pcaVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.pcaVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.pcaVisTabPage.TabIndex = 1;
             this.pcaVisTabPage.Text = "PCA visualisation tab";
             this.pcaVisTabPage.UseVisualStyleBackColor = true;
@@ -217,10 +191,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // saveAsImageButton
             // 
             this.saveAsImageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.saveAsImageButton.Location = new System.Drawing.Point(715, 115);
+            this.saveAsImageButton.Location = new System.Drawing.Point(834, 133);
             this.saveAsImageButton.Margin = new System.Windows.Forms.Padding(2);
             this.saveAsImageButton.Name = "saveAsImageButton";
-            this.saveAsImageButton.Size = new System.Drawing.Size(87, 20);
+            this.saveAsImageButton.Size = new System.Drawing.Size(102, 23);
             this.saveAsImageButton.TabIndex = 32;
             this.saveAsImageButton.Text = "Save as image";
             this.saveAsImageButton.UseVisualStyleBackColor = true;
@@ -228,9 +202,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // saveChangesButton
             // 
-            this.saveChangesButton.Location = new System.Drawing.Point(949, 285);
+            this.saveChangesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.saveChangesButton.Location = new System.Drawing.Point(1107, 329);
+            this.saveChangesButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.saveChangesButton.Name = "saveChangesButton";
-            this.saveChangesButton.Size = new System.Drawing.Size(95, 23);
+            this.saveChangesButton.Size = new System.Drawing.Size(111, 27);
             this.saveChangesButton.TabIndex = 10;
             this.saveChangesButton.Text = "Save changes";
             this.saveChangesButton.UseVisualStyleBackColor = true;
@@ -240,18 +216,20 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             this.pcFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pcFlowLayoutPanel.AutoScroll = true;
-            this.pcFlowLayoutPanel.Location = new System.Drawing.Point(854, 140);
+            this.pcFlowLayoutPanel.Location = new System.Drawing.Point(996, 162);
+            this.pcFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.pcFlowLayoutPanel.Name = "pcFlowLayoutPanel";
-            this.pcFlowLayoutPanel.Size = new System.Drawing.Size(190, 124);
+            this.pcFlowLayoutPanel.Size = new System.Drawing.Size(222, 143);
             this.pcFlowLayoutPanel.TabIndex = 9;
             // 
             // selectedPricipalComponentsLabel
             // 
             this.selectedPricipalComponentsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.selectedPricipalComponentsLabel.AutoSize = true;
-            this.selectedPricipalComponentsLabel.Location = new System.Drawing.Point(851, 118);
+            this.selectedPricipalComponentsLabel.Location = new System.Drawing.Point(993, 136);
+            this.selectedPricipalComponentsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.selectedPricipalComponentsLabel.Name = "selectedPricipalComponentsLabel";
-            this.selectedPricipalComponentsLabel.Size = new System.Drawing.Size(152, 13);
+            this.selectedPricipalComponentsLabel.Size = new System.Drawing.Size(170, 15);
             this.selectedPricipalComponentsLabel.TabIndex = 8;
             this.selectedPricipalComponentsLabel.Text = "Selected principal components";
             // 
@@ -260,57 +238,33 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.pcaChart.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pcaChart.BorderlineColor = System.Drawing.Color.Black;
-            this.pcaChart.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
-            chartArea2.AxisX.Interval = 1D;
-            chartArea2.AxisX.LabelStyle.IsStaggered = true;
-            chartArea2.AxisX.MajorGrid.Enabled = false;
-            chartArea2.AxisY.MajorGrid.Enabled = false;
-            chartArea2.Name = "ChartArea1";
-            this.pcaChart.ChartAreas.Add(chartArea2);
-            legend2.Name = "Legend1";
-            this.pcaChart.Legends.Add(legend2);
-            this.pcaChart.Location = new System.Drawing.Point(273, 140);
+            this.pcaChart.Location = new System.Drawing.Point(318, 162);
+            this.pcaChart.Margin = new System.Windows.Forms.Padding(5, 3, 5, 3);
             this.pcaChart.Name = "pcaChart";
-            series2.ChartArea = "ChartArea1";
-            series2.IsValueShownAsLabel = true;
-            series2.IsVisibleInLegend = false;
-            series2.Legend = "Legend1";
-            series2.MarkerBorderColor = System.Drawing.Color.Blue;
-            series2.MarkerBorderWidth = 2;
-            series2.MarkerColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(255)))));
-            series2.MarkerSize = 10;
-            series2.Name = "Principal Components";
-            series2.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.String;
-            this.pcaChart.Series.Add(series2);
-            this.pcaChart.Size = new System.Drawing.Size(529, 388);
+            this.pcaChart.Size = new System.Drawing.Size(617, 448);
             this.pcaChart.TabIndex = 1;
-            this.pcaChart.Text = "pcaChart";
-            title2.Name = "PCA";
-            title2.Text = "PCA";
-            this.pcaChart.Titles.Add(title2);
-            this.pcaChart.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseClick);
-            this.pcaChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.rawChart_MouseDown);
+            this.pcaChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseDown);
+            this.pcaChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseUp);
             this.pcaChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseMove);
-            this.pcaChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.rawChart_MouseUp);
-            this.pcaChart.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseWheel);
             // 
             // tsneVisTabPage
             // 
-            this.tsneVisTabPage.Location = new System.Drawing.Point(4, 22);
+            this.tsneVisTabPage.Location = new System.Drawing.Point(4, 24);
+            this.tsneVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tsneVisTabPage.Name = "tsneVisTabPage";
-            this.tsneVisTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.tsneVisTabPage.Size = new System.Drawing.Size(1074, 669);
+            this.tsneVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.tsneVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.tsneVisTabPage.TabIndex = 2;
             this.tsneVisTabPage.Text = "t-SNE visualisation tab";
             this.tsneVisTabPage.UseVisualStyleBackColor = true;
             // 
             // umapVisTabPage
             // 
-            this.umapVisTabPage.Location = new System.Drawing.Point(4, 22);
+            this.umapVisTabPage.Location = new System.Drawing.Point(4, 24);
+            this.umapVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.umapVisTabPage.Name = "umapVisTabPage";
-            this.umapVisTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.umapVisTabPage.Size = new System.Drawing.Size(1074, 669);
+            this.umapVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.umapVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.umapVisTabPage.TabIndex = 3;
             this.umapVisTabPage.Text = "UMAP visualisation tab";
             this.umapVisTabPage.UseVisualStyleBackColor = true;
@@ -318,28 +272,28 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // stepLabel
             // 
             this.stepLabel.AutoSize = true;
-            this.stepLabel.Location = new System.Drawing.Point(9, 9);
+            this.stepLabel.Location = new System.Drawing.Point(10, 10);
+            this.stepLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.stepLabel.Name = "stepLabel";
-            this.stepLabel.Size = new System.Drawing.Size(56, 13);
+            this.stepLabel.Size = new System.Drawing.Size(60, 15);
             this.stepLabel.TabIndex = 1;
             this.stepLabel.Text = "step Label";
             // 
             // DataVisualisationForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1106, 833);
+            this.ClientSize = new System.Drawing.Size(1290, 961);
             this.Controls.Add(this.stepLabel);
             this.Controls.Add(this.tabControl);
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "DataVisualisationForm";
             this.Text = "DataVisualisationForm";
             this.tabControl.ResumeLayout(false);
             this.rawVisTabPage.ResumeLayout(false);
             this.rawVisTabPage.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.rawChart)).EndInit();
             this.pcaVisTabPage.ResumeLayout(false);
             this.pcaVisTabPage.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pcaChart)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -349,7 +303,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private System.Windows.Forms.TabControl tabControl;
         private System.Windows.Forms.TabPage rawVisTabPage;
-        private System.Windows.Forms.DataVisualization.Charting.Chart rawChart;
+        private ScottPlot.FormsPlot rawChart;
         private System.Windows.Forms.TabPage pcaVisTabPage;
         private System.Windows.Forms.TabPage tsneVisTabPage;
         private System.Windows.Forms.TabPage umapVisTabPage;
@@ -358,7 +312,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private System.Windows.Forms.Label yInputLabel;
         public System.Windows.Forms.Label stepLabel;
         private System.Windows.Forms.FlowLayoutPanel outputFlowLayoutPanel;
-        private System.Windows.Forms.DataVisualization.Charting.Chart pcaChart;
+        private ScottPlot.FormsPlot pcaChart;
         private System.Windows.Forms.FlowLayoutPanel pcFlowLayoutPanel;
         private System.Windows.Forms.Label selectedPricipalComponentsLabel;
         private System.Windows.Forms.Button saveChangesButton;

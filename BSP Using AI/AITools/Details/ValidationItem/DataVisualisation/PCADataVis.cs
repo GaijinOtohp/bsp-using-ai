@@ -1,4 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using ScottPlot;
+using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,7 +8,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -69,58 +70,58 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private void pcaChart_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_mouseDown)
+            // If yes then color the column where the mouse cursor is above
+            // Check which column is the mouse cursor above to
+
+            // Get value of x position of the mouse's cursor
+            Plot plot = pcaChart.Plot;
+            IPlottable[] plottable = plot.GetPlottables();
+            (double x, double y) = plot.GetCoordinate(e.X, e.Y);
+
+            // Check which column is the mouse above
+            // (each column is centered in a normal number (1, 2, 3,...) with a width of 0.8)
+            int selCol = (int)x;
+            double offset = x % 1;
+            // Check if the offset is inside current selected column or next column
+            if (offset < 0.4d && offset > -0.4d)
             {
-                EventHandlers.signalExhibitor_MouseMove(sender, e, _previousMouseX, _previousMouseY);
-                _previousMouseX = e.X;
-                _previousMouseY = e.Y;
+                // If yes then the cursor is inside current selected column
+            }
+            else if (offset > 0.6d)
+            {
+                // If yes then the next column is the selected one
+                selCol++;
             }
             else
             {
-                // If yes then color the column where the mouse cursor is above
-                // Check which column is the mouse cursor above to
-
-                // Get value of x position of the mouse's cursor
-                double xValue = ((sender as Chart).ChartAreas[0].AxisX.PixelPositionToValue(e.X));
-
-                // Check which column is the mouse above
-                // (each column is centered in a normal number (1, 2, 3,...) with a width of 0.8)
-                int selCol = (int)xValue - 1;
-                double offset = xValue % 1;
-                // Check if the offset is inside current selected column or next column
-                if (offset < 0.4d)
-                {
-                    // If yes then the cursor is inside current selected column
-                }
-                else if (offset > 0.6d)
-                {
-                    // If yes then the next column is the selected one
-                    selCol++;
-                }
-                else
-                {
-                    // If yes then unselect the previous selected column
-                    selCol = -1;
-                }
-
-                // Check which column is being selected
-                if (selCol > -1 && selCol < pcaChart.Series[0].Points.Count)
-                {
-                    // Change color of the selected column
-                    pcaChart.Series[0].Points[selCol].Color = System.Drawing.Color.Green;
-                    _selectedColumn = selCol;
-                }
-                else
-                {
-                    // Change color of all unselected columns
-                    foreach (DataPoint point in pcaChart.Series[0].Points)
-                        point.Color = System.Drawing.Color.DodgerBlue;
-                    _selectedColumn = -1;
-                }
+                // If yes then unselect the previous selected column
+                selCol = -1;
             }
+
+            // Check which column is being selected
+            if (selCol > -1 && selCol < ((BarPlot)plottable[0]).Positions.Length)
+            {
+                // Change color of the selected column
+                ((BarPlot)plottable[1]).Values = new double[] { ((BarPlot)plottable[0]).Values[selCol] };
+                ((BarPlot)plottable[1]).Positions = new double[] { ((BarPlot)plottable[0]).Positions[selCol] };
+                _selectedColumn = selCol;
+            }
+            else
+            {
+                // Change color of all unselected columns
+                ((BarPlot)plottable[1]).Values = new double[] { 0 };
+                _selectedColumn = -1;
+            }
+            pcaChart.Refresh();
         }
 
-        private void pcaChart_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void pcaChart_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            // Update mouse X and Y indexes
+            _firstMouseX = e.X;
+            _firstMouseY = e.Y;
+        }
+        private void pcaChart_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // Check if the click didn't move
             if (_firstMouseX == e.X && _firstMouseY == e.Y)
@@ -203,12 +204,23 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             PCA = getPCA(DataList);
 
             // Insert eigenvalues in pcaChart
+            double[] values = new double[PCA.Count];
+            double[] positions = new double[PCA.Count];
+            string[] labels = new string[PCA.Count];
             for (int i = 0; i < PCA.Count; i++)
             {
-                pcaChart.Series[0].Points.AddXY("PC" + (i + 1), Math.Round(PCA[i]._eigenValue, 4));
-                CheckBox pcaCheckBox = createCheckBox(pcaChart.Series[0].Points[i].AxisLabel, i, pcaCheckBox_CheckedChanged);
+                values[i] = Math.Round(PCA[i]._eigenValue, 4);
+                positions[i] = i;
+                labels[i] = "PC" + (i + 1);
+                CheckBox pcaCheckBox = createCheckBox(labels[i], i, pcaCheckBox_CheckedChanged);
                 pcFlowLayoutPanel.Controls.Add(pcaCheckBox);
             }
+            BarPlot barPlot = pcaChart.Plot.AddBar(values, positions);
+            barPlot.ShowValuesAboveBars = true;
+            pcaChart.Plot.SetAxisLimits(yMin: 0);
+            pcaChart.Plot.AddBar(new double[] { 0 }, new double[] { 0 }, System.Drawing.Color.Green);
+            pcaChart.Plot.XTicks(labels);
+            pcaChart.Refresh();
 
             // Check the previously selected PCs
             for (int i = 0; i < _arthtModelsDic[_ModelName + _ProblemName].ARTHTModelsDic[_stepName].PCA.Count; i++)

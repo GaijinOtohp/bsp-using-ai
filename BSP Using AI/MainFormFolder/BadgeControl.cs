@@ -59,8 +59,6 @@ namespace BSP_Using_AI.MainFormFolder
 
         static private void SetPosition(Badge badge, Control ctl)
         {
-            /*badge.Location = new Point(ctl.Width - badge.Width - 5,
-                                       ctl.Height - badge.Height - 5);*/
             badge.Location = new Point(ctl.Location.X - 5,
                                        ctl.Height);
 

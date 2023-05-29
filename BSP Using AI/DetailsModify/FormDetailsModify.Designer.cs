@@ -29,22 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series7 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            this.signalChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.signalChart = new ScottPlot.FormsPlot();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.sendSignalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.analyseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.spectrumChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.spectrumChart = new ScottPlot.FormsPlot();
             this.signalsPickerComboBox = new System.Windows.Forms.ComboBox();
             this.samplingRateTextBox = new System.Windows.Forms.TextBox();
             this.applyButton = new System.Windows.Forms.Button();
@@ -68,100 +57,25 @@
             this.quantizationStepTextBox = new System.Windows.Forms.TextBox();
             this.samplingRateLabel = new System.Windows.Forms.Label();
             this.quantizationStepLabel = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.signalChart)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.spectrumChart)).BeginInit();
             this.SuspendLayout();
             // 
             // signalChart
             // 
             this.signalChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea1.AxisX.LabelStyle.Format = "0.00";
-            chartArea1.AxisX.MajorGrid.Enabled = false;
-            chartArea1.AxisX.Title = "Time (s)";
-            chartArea1.AxisY.LabelStyle.Format = "0.00";
-            chartArea1.AxisY.MajorGrid.Enabled = false;
-            chartArea1.AxisY.Title = "Voltage (mV)";
-            chartArea1.Name = "ChartArea1";
-            this.signalChart.ChartAreas.Add(chartArea1);
-            this.signalChart.ContextMenuStrip = this.contextMenuStrip1;
-            legend1.IsTextAutoFit = false;
-            legend1.Name = "Legend1";
-            this.signalChart.Legends.Add(legend1);
+            this.signalChart.Plot.XAxis.Label("Time (s)");
+            this.signalChart.Plot.YAxis.Label("Voltage (mV)");
             this.signalChart.Location = new System.Drawing.Point(9, 67);
             this.signalChart.Margin = new System.Windows.Forms.Padding(2);
             this.signalChart.Name = "signalChart";
-            this.signalChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SemiTransparent;
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Color = System.Drawing.Color.Black;
-            series1.Legend = "Legend1";
-            series1.MarkerBorderColor = System.Drawing.Color.Black;
-            series1.Name = "Signal";
-            series1.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series1.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series2.Color = System.Drawing.Color.Blue;
-            series2.LabelForeColor = System.Drawing.Color.Transparent;
-            series2.Legend = "Legend1";
-            series2.MarkerSize = 6;
-            series2.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series2.Name = "Up peaks";
-            series2.SmartLabelStyle.Enabled = false;
-            series2.YValuesPerPoint = 2;
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series3.Color = System.Drawing.Color.Red;
-            series3.LabelForeColor = System.Drawing.Color.Transparent;
-            series3.Legend = "Legend1";
-            series3.MarkerSize = 6;
-            series3.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series3.Name = "Down peaks";
-            series3.SmartLabelStyle.Enabled = false;
-            series4.ChartArea = "ChartArea1";
-            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series4.Color = System.Drawing.Color.Black;
-            series4.LabelForeColor = System.Drawing.Color.Transparent;
-            series4.Legend = "Legend1";
-            series4.MarkerSize = 6;
-            series4.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series4.Name = "Stable";
-            series4.SmartLabelStyle.Enabled = false;
-            series4.YValuesPerPoint = 2;
-            series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Bubble;
-            series5.Color = System.Drawing.Color.Red;
-            series5.EmptyPointStyle.MarkerSize = 8;
-            series5.EmptyPointStyle.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond;
-            series5.Legend = "Legend1";
-            series5.MarkerBorderWidth = 2;
-            series5.MarkerColor = System.Drawing.Color.Red;
-            series5.MarkerSize = 8;
-            series5.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond;
-            series5.Name = "Selection";
-            series5.YValuesPerPoint = 6;
-            series6.ChartArea = "ChartArea1";
-            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-            series6.Color = System.Drawing.Color.Blue;
-            series6.Legend = "Legend1";
-            series6.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
-            series6.Name = "Labels";
-            this.signalChart.Series.Add(series1);
-            this.signalChart.Series.Add(series2);
-            this.signalChart.Series.Add(series3);
-            this.signalChart.Series.Add(series4);
-            this.signalChart.Series.Add(series5);
-            this.signalChart.Series.Add(series6);
             this.signalChart.Size = new System.Drawing.Size(626, 168);
             this.signalChart.TabIndex = 1;
             this.signalChart.Text = "Signal Chart";
-            this.signalChart.MouseClick += new System.Windows.Forms.MouseEventHandler(this.signalChart_MouseClick);
-            this.signalChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseDown);
+            this.signalChart.ContextMenuStrip = this.contextMenuStrip1;
+            this.signalChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalChart_MouseClick);
             this.signalChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
-            this.signalChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseUp);
-            this.signalChart.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseWheel);
+            this.signalChart.Plot.Legend();
             // 
             // contextMenuStrip1
             // 
@@ -190,34 +104,16 @@
             // 
             this.spectrumChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea2.AxisX.LabelStyle.Format = "0.00";
-            chartArea2.AxisX.Title = "Frequency (Hz)";
-            chartArea2.AxisY.LabelStyle.Format = "0.00";
-            chartArea2.AxisY.Title = "Magnitude (mV)";
-            chartArea2.Name = "ChartArea1";
-            this.spectrumChart.ChartAreas.Add(chartArea2);
-            this.spectrumChart.ContextMenuStrip = this.contextMenuStrip1;
-            legend2.Name = "Legend1";
-            this.spectrumChart.Legends.Add(legend2);
+
+            this.spectrumChart.Plot.XAxis.Label("Frequency (Hz)");
+            this.spectrumChart.Plot.YAxis.Label("Magnitude (mV)");
             this.spectrumChart.Location = new System.Drawing.Point(9, 295);
             this.spectrumChart.Margin = new System.Windows.Forms.Padding(2);
             this.spectrumChart.Name = "spectrumChart";
-            this.spectrumChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SemiTransparent;
-            series7.ChartArea = "ChartArea1";
-            series7.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series7.Color = System.Drawing.Color.Blue;
-            series7.Legend = "Legend1";
-            series7.Name = "Spectrum";
-            series7.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series7.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            this.spectrumChart.Series.Add(series7);
             this.spectrumChart.Size = new System.Drawing.Size(626, 251);
             this.spectrumChart.TabIndex = 2;
             this.spectrumChart.Text = "Spectrum Exhibitor";
-            this.spectrumChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseDown);
-            this.spectrumChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
-            this.spectrumChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseUp);
-            this.spectrumChart.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseWheel);
+            this.spectrumChart.ContextMenuStrip = this.contextMenuStrip1;
             // 
             // signalsPickerComboBox
             // 
@@ -546,9 +442,7 @@
             this.MinimumSize = new System.Drawing.Size(604, 45);
             this.Name = "FormDetailsModify";
             this.Text = "FormDetailsModify";
-            ((System.ComponentModel.ISupportInitialize)(this.signalChart)).EndInit();
             this.contextMenuStrip1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.spectrumChart)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -556,8 +450,8 @@
 
         #endregion
 
-        public System.Windows.Forms.DataVisualization.Charting.Chart signalChart;
-        private System.Windows.Forms.DataVisualization.Charting.Chart spectrumChart;
+        public ScottPlot.FormsPlot signalChart;
+        private ScottPlot.FormsPlot spectrumChart;
         private System.Windows.Forms.FlowLayoutPanel filtersFlowLayoutPanel;
         private System.Windows.Forms.Label ChoseFilterLabel;
         public System.Windows.Forms.ComboBox filtersComboBox;

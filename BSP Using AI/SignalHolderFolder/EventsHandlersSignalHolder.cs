@@ -89,33 +89,6 @@ namespace BSP_Using_AI.SignalHolderFolder
             EventHandlers.sendSignalTool(_FilteringTools.Clone(), pathLabel.Text + "\\Collector");
         }
 
-        private void signalExhibitor_MouseDown(object sender, MouseEventArgs e)
-        {
-            _mouseDown = true;
-            _previousMouseX = e.X;
-            _previousMouseY = e.Y;
-        }
-
-        private void signalExhibitor_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_mouseDown)
-            {
-                EventHandlers.signalExhibitor_MouseMove(sender, e, _previousMouseX, _previousMouseY);
-                _previousMouseX = e.X;
-                _previousMouseY = e.Y;
-            }
-        }
-
-        private void signalExhibitor_MouseUp(object sender, MouseEventArgs e)
-        {
-            _mouseDown = false;
-        }
-
-        private void signalExhibitor_MouseWheel(object sender, MouseEventArgs e)
-        {
-            EventHandlers.signalExhibitor_MouseWheel(sender, e, _previousMouseX, _previousMouseY);
-        }
-
         private void signalExhibitor_MouseEnter(object sender, EventArgs e)
         {
             ((MainForm)FindForm()).scrollAllowed = false;

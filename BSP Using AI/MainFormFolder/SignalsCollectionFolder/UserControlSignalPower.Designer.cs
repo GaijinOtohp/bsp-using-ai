@@ -30,10 +30,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            this.signalExhibitor = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.signalExhibitor = new ScottPlot.FormsPlot();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.sendSignalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.signalPowerValueLabel = new System.Windows.Forms.Label();
@@ -41,7 +38,6 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pathLabel = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.signalExhibitor)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.contextMenuStrip2.SuspendLayout();
             this.SuspendLayout();
@@ -50,34 +46,15 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             // 
             this.signalExhibitor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea1.AxisX.LabelStyle.Format = "0.00";
-            chartArea1.AxisY.LabelStyle.Format = "0.00";
-            chartArea1.Name = "ChartArea1";
-            this.signalExhibitor.ChartAreas.Add(chartArea1);
-            this.signalExhibitor.ContextMenuStrip = this.contextMenuStrip1;
-            legend1.Name = "Legend1";
-            this.signalExhibitor.Legends.Add(legend1);
             this.signalExhibitor.Location = new System.Drawing.Point(7, 34);
             this.signalExhibitor.Margin = new System.Windows.Forms.Padding(8, 3, 3, 6);
             this.signalExhibitor.Name = "signalExhibitor";
-            this.signalExhibitor.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SemiTransparent;
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Color = System.Drawing.Color.Red;
-            series1.Legend = "Legend1";
-            series1.Name = "Signal";
-            series1.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series1.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            this.signalExhibitor.Series.Add(series1);
             this.signalExhibitor.Size = new System.Drawing.Size(920, 207);
             this.signalExhibitor.TabIndex = 1;
             this.signalExhibitor.Text = "Signal Exhibitor";
-            this.signalExhibitor.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseDown);
             this.signalExhibitor.MouseEnter += new System.EventHandler(this.signalExhibitor_MouseEnter);
             this.signalExhibitor.MouseLeave += new System.EventHandler(this.signalExhibitor_MouseLeave);
-            this.signalExhibitor.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
-            this.signalExhibitor.MouseUp += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseUp);
-            this.signalExhibitor.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseWheel);
+            this.signalExhibitor.ContextMenuStrip = this.contextMenuStrip1;
             // 
             // contextMenuStrip1
             // 
@@ -154,7 +131,6 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             this.Controls.Add(this.signalExhibitor);
             this.Name = "UserControlSignalPower";
             this.Size = new System.Drawing.Size(1121, 252);
-            ((System.ComponentModel.ISupportInitialize)(this.signalExhibitor)).EndInit();
             this.contextMenuStrip1.ResumeLayout(false);
             this.contextMenuStrip2.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -164,7 +140,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
 
         #endregion
 
-        private System.Windows.Forms.DataVisualization.Charting.Chart signalExhibitor;
+        private ScottPlot.FormsPlot signalExhibitor;
         private System.Windows.Forms.Label signalPowerValueLabel;
         private System.Windows.Forms.Label powerLabel;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;

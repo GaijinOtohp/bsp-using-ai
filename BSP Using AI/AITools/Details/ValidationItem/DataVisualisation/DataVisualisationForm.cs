@@ -1,8 +1,9 @@
-﻿using System;
+﻿using ScottPlot;
+using ScottPlot.Plottable;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -42,15 +43,20 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        private void addNewSeries(Chart chart, string seriesName, Color primaryColor, Color secondaryColor)
+        private void addNewSeries(FormsPlot formsPlot, double[] xAxisVals, double[] yAxisVals, double[] colorVals, string seriesName, Color primaryColor, Color secondaryColor)
         {
-            chart.Series.Add(seriesName);
-            chart.Series[chart.Series.Count - 1].ChartType = SeriesChartType.Point;
-            chart.Series[chart.Series.Count - 1].MarkerStyle = MarkerStyle.Circle;
-            chart.Series[chart.Series.Count - 1].MarkerSize = 10;
-            chart.Series[chart.Series.Count - 1].MarkerBorderWidth = 2;
-            chart.Series[chart.Series.Count - 1].MarkerColor = primaryColor;
-            chart.Series[chart.Series.Count - 1].MarkerBorderColor = secondaryColor;
+            if (colorVals == null)
+                formsPlot.Plot.AddScatter(xAxisVals, yAxisVals, primaryColor, 0, 10, MarkerShape.filledCircle, LineStyle.None, seriesName);
+                //plot.AddBubblePlot(null, null, 10, primaryColor, 2, secondaryColor);
+            else
+            {
+                formsPlot.Plot.AddColorbar(ScottPlot.Drawing.Colormap.Turbo);
+                for (int i = 0; i < xAxisVals.Length; i++)
+                {
+                    System.Drawing.Color color = ScottPlot.Drawing.Colormap.Turbo.GetColor(colorVals[i]);
+                    formsPlot.Plot.AddPoint(xAxisVals[i], yAxisVals[i], color, 10);
+                }
+            }
         }
 
         public static CheckBox createCheckBox(string text, object tag, EventHandler eventHandler)
@@ -66,34 +72,6 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
-        private void rawChart_MouseDown(object sender, MouseEventArgs e)
-        {
-            _mouseDown = true;
-            _previousMouseX = e.X;
-            _previousMouseY = e.Y;
-            _firstMouseX = e.X;
-            _firstMouseY = e.Y;
-        }
-
-        private void rawChart_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_mouseDown)
-            {
-                EventHandlers.signalExhibitor_MouseMove(sender, e, _previousMouseX, _previousMouseY);
-                _previousMouseX = e.X;
-                _previousMouseY = e.Y;
-            }
-        }
-
-        private void rawChart_MouseUp(object sender, MouseEventArgs e)
-        {
-            _mouseDown = false;
-        }
-
-        private void signalExhibitor_MouseWheel(object sender, MouseEventArgs e)
-        {
-            EventHandlers.signalExhibitor_MouseWheel(sender, e, _previousMouseX, _previousMouseY);
-        }
 
         private void button1_Click(object sender, EventArgs e)
         {

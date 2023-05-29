@@ -30,17 +30,11 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            this.periodsChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.periodsChart = new ScottPlot.FormsPlot();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.sendSignalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.analyseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.fusionChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.fusionChart = new ScottPlot.FormsPlot();
             this.periodPickerComboBox = new System.Windows.Forms.ComboBox();
             this.AdditionRadioButton = new System.Windows.Forms.RadioButton();
             this.multiplicationRadioButton = new System.Windows.Forms.RadioButton();
@@ -56,41 +50,20 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             this.periodDurationLabel = new System.Windows.Forms.Label();
             this.fuseOrthogonalizationButton = new System.Windows.Forms.Button();
             this.pathLabel = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.periodsChart)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.fusionChart)).BeginInit();
             this.SuspendLayout();
             // 
             // periodsChart
             // 
             this.periodsChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea2.AxisX.LabelStyle.Format = "0.00";
-            chartArea2.AxisY.LabelStyle.Format = "0.00";
-            chartArea2.Name = "ChartArea1";
-            this.periodsChart.ChartAreas.Add(chartArea2);
-            this.periodsChart.ContextMenuStrip = this.contextMenuStrip1;
-            legend2.Name = "Legend1";
-            this.periodsChart.Legends.Add(legend2);
             this.periodsChart.Location = new System.Drawing.Point(9, 41);
             this.periodsChart.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.periodsChart.Name = "periodsChart";
-            this.periodsChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SemiTransparent;
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series2.Color = System.Drawing.Color.Red;
-            series2.Legend = "Legend1";
-            series2.Name = "Signal";
-            series2.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series2.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            this.periodsChart.Series.Add(series2);
             this.periodsChart.Size = new System.Drawing.Size(381, 168);
             this.periodsChart.TabIndex = 2;
             this.periodsChart.Text = "Signal periods Chart";
-            this.periodsChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseDown);
-            this.periodsChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
-            this.periodsChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseUp);
-            this.periodsChart.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseWheel);
+            this.periodsChart.ContextMenuStrip = this.contextMenuStrip1;
             // 
             // contextMenuStrip1
             // 
@@ -119,32 +92,13 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             // 
             this.fusionChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea3.AxisX.LabelStyle.Format = "0.00";
-            chartArea3.AxisY.LabelStyle.Format = "0.00";
-            chartArea3.Name = "ChartArea1";
-            this.fusionChart.ChartAreas.Add(chartArea3);
-            this.fusionChart.ContextMenuStrip = this.contextMenuStrip1;
-            legend3.Name = "Legend1";
-            this.fusionChart.Legends.Add(legend3);
             this.fusionChart.Location = new System.Drawing.Point(9, 235);
             this.fusionChart.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.fusionChart.Name = "fusionChart";
-            this.fusionChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SemiTransparent;
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series3.Color = System.Drawing.Color.Blue;
-            series3.Legend = "Legend1";
-            series3.Name = "Fusion";
-            series3.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series3.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            this.fusionChart.Series.Add(series3);
             this.fusionChart.Size = new System.Drawing.Size(381, 168);
             this.fusionChart.TabIndex = 3;
             this.fusionChart.Text = "Fusion Exhibitor";
-            this.fusionChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseDown);
-            this.fusionChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
-            this.fusionChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseUp);
-            this.fusionChart.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseWheel);
+            this.fusionChart.ContextMenuStrip = this.contextMenuStrip1;
             // 
             // periodPickerComboBox
             // 
@@ -359,9 +313,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "FormSignalFusion";
             this.Text = "Signal Fusion";
-            ((System.ComponentModel.ISupportInitialize)(this.periodsChart)).EndInit();
             this.contextMenuStrip1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.fusionChart)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -369,8 +321,8 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
 
         #endregion
 
-        private System.Windows.Forms.DataVisualization.Charting.Chart periodsChart;
-        private System.Windows.Forms.DataVisualization.Charting.Chart fusionChart;
+        private ScottPlot.FormsPlot periodsChart;
+        private ScottPlot.FormsPlot fusionChart;
         private System.Windows.Forms.ComboBox periodPickerComboBox;
         private System.Windows.Forms.RadioButton AdditionRadioButton;
         private System.Windows.Forms.RadioButton multiplicationRadioButton;

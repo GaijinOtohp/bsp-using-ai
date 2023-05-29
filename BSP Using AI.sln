@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSP Using AI", "BSP Using AI\BSP Using AI.csproj", "{BFF9833D-2E5D-489A-82BE-78613D9CCA83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSP Using AI", "BSP Using AI\BSP Using AI.csproj", "{BFF9833D-2E5D-489A-82BE-78613D9CCA83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

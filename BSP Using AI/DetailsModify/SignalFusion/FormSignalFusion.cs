@@ -1,8 +1,9 @@
-﻿using System;
+﻿using ScottPlot;
+using ScottPlot.Plottable;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
@@ -497,33 +498,6 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
-        private void signalExhibitor_MouseDown(object sender, MouseEventArgs e)
-        {
-            _mouseDown = true;
-            _previousMouseX = e.X;
-            _previousMouseY = e.Y;
-        }
-
-        private void signalExhibitor_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_mouseDown)
-            {
-                EventHandlers.signalExhibitor_MouseMove(sender, e, _previousMouseX, _previousMouseY);
-                _previousMouseX = e.X;
-                _previousMouseY = e.Y;
-            }
-        }
-
-        private void signalExhibitor_MouseUp(object sender, MouseEventArgs e)
-        {
-            _mouseDown = false;
-        }
-
-        private void signalExhibitor_MouseWheel(object sender, MouseEventArgs e)
-        {
-            EventHandlers.signalExhibitor_MouseWheel(sender, e, _previousMouseX, _previousMouseY);
-        }
-
         private void periodDurationTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && !(e.KeyChar == '.'))
@@ -696,38 +670,52 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Chart senderChart = (Chart)((sender as ToolStripItem).Owner as ContextMenuStrip).SourceControl;
-            if (senderChart.Series[0].Points.Count < 1)
+            FormsPlot senderChart = (FormsPlot)((sender as ToolStripItem).Owner as ContextMenuStrip).SourceControl;
+            IPlottable[] plottable = senderChart.Plot.GetPlottables();
+            if (plottable.Length == 0)
                 return;
 
-            // Get samples from signal chart
-            double[] samples = new double[senderChart.Series[0].Points.Count];
-            for (int i = 0; i < samples.Length; i++)
-                samples[i] = senderChart.Series[0].Points[i].YValues[0];
-            // Clone _FilteringTools
-            FilteringTools filteringTools = _FilteringTools.Clone();
-            filteringTools.SetOriginalSamples(samples);
+            if (plottable[0] is SignalPlot signalPlot)
+            {
+                if (signalPlot.PointCount < 1)
+                    return;
 
-            EventHandlers.sendSignalTool(filteringTools, pathLabel.Text + "\\Collector");
+                // Get samples from signal chart
+                double[] samples = new double[signalPlot.PointCount];
+                for (int i = 0; i < samples.Length; i++)
+                    samples[i] = signalPlot.Ys[i];
+                // Clone _FilteringTools
+                FilteringTools filteringTools = _FilteringTools.Clone();
+                filteringTools.SetOriginalSamples(samples);
+
+                EventHandlers.sendSignalTool(filteringTools, pathLabel.Text + "\\Collector");
+            }
         }
 
         private void analyseToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Chart senderChart = (Chart)((sender as ToolStripItem).Owner as ContextMenuStrip).SourceControl;
-            if (senderChart.Series[0].Points.Count < 1)
+            FormsPlot senderChart = (FormsPlot)((sender as ToolStripItem).Owner as ContextMenuStrip).SourceControl;
+            IPlottable[] plottable = senderChart.Plot.GetPlottables();
+            if (plottable.Length == 0)
                 return;
 
-            // Clone _FilteringTools
-            FilteringTools filteringTools = _FilteringTools.Clone();
-            // Remove filters
-            filteringTools.RemoveAllFilters();
-            // Get samples from signal chart
-            double[] samples = new double[senderChart.Series[0].Points.Count];
-            for (int i = 0; i < samples.Length; i++)
-                samples[i] = senderChart.Series[0].Points[i].YValues[0] * _FilteringTools._quantizationStep;
-            filteringTools.SetOriginalSamples(samples);
+            if (plottable[0] is SignalPlot signalPlot)
+            {
+                if (signalPlot.PointCount < 1)
+                    return;
 
-            EventHandlers.analyseSignalTool(filteringTools, pathLabel.Text + "\\Analyser");
+                // Clone _FilteringTools
+                FilteringTools filteringTools = _FilteringTools.Clone();
+                // Remove filters
+                filteringTools.RemoveAllFilters();
+                // Get samples from signal chart
+                double[] samples = new double[signalPlot.PointCount];
+                for (int i = 0; i < samples.Length; i++)
+                    samples[i] = signalPlot.Ys[i] * _FilteringTools._quantizationStep;
+                filteringTools.SetOriginalSamples(samples);
+
+                EventHandlers.analyseSignalTool(filteringTools, pathLabel.Text + "\\Analyser");
+            }
         }
     }
 }

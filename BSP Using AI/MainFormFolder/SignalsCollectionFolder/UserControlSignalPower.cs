@@ -1,6 +1,6 @@
-﻿using System;
+﻿using ScottPlot;
+using System;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
@@ -28,7 +28,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             signalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
 
             // Insert signal in chart
-            Garage.loadSignalInChart((Chart)Controls.Find("signalExhibitor", false)[0], filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "UserControlSignalPower");
+            Garage.loadSignalInChart((FormsPlot)Controls.Find("signalExhibitor", false)[0], filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "UserControlSignalPower");
         }
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
@@ -40,33 +40,6 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
         {
             // Remove this User control from its parent flow layout panel
             ((FlowLayoutPanel)this.Parent).Controls.Remove(this);
-        }
-
-        private void signalExhibitor_MouseDown(object sender, MouseEventArgs e)
-        {
-            _mouseDown = true;
-            _previousMouseX = e.X;
-            _previousMouseY = e.Y;
-        }
-
-        private void signalExhibitor_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_mouseDown)
-            {
-                EventHandlers.signalExhibitor_MouseMove(sender, e, _previousMouseX, _previousMouseY);
-                _previousMouseX = e.X;
-                _previousMouseY = e.Y;
-            }
-        }
-
-        private void signalExhibitor_MouseUp(object sender, MouseEventArgs e)
-        {
-            _mouseDown = false;
-        }
-
-        private void signalExhibitor_MouseWheel(object sender, MouseEventArgs e)
-        {
-            EventHandlers.signalExhibitor_MouseWheel(sender, e, _previousMouseX, _previousMouseY);
         }
 
         private void signalExhibitor_MouseEnter(object sender, EventArgs e)
