@@ -23,7 +23,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             // Calculate power and set it in signalPowerValueLabel
             double signalPower = 0D;
             foreach (double sample in filteringTools._FilteredSamples)
-                signalPower += Math.Pow(sample / filteringTools._quantizationStep, 2) / filteringTools._FilteredSamples.Length;
+                signalPower += Math.Pow(sample, 2) / filteringTools._FilteredSamples.Length;
 
             signalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
 
