@@ -3,6 +3,7 @@ using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
@@ -13,36 +14,37 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
         FilteringTools _Signal_1_FilteringTools { get; set; }
         FilteringTools _Signal_2_FilteringTools { get; set; }
 
-        public double[] _signal1 { get; set; }
-        public double[] _signal2 { get; set; }
-        public double[] _comparison;
-        public double[] _dtwPath;
-        public double _dtwDistance { get; set; }
-
-        private double _sign1SamplingRate { get; set; }
-        private double _sign2SamplingRate { get; set; }
-
-        bool _mouseDown = false;
-        int _previousMouseX;
-        int _previousMouseY;
+        int _comparisonSamplingRate;
 
         public FormSignalsComparison()
         {
             InitializeComponent();
+
+            // Set plots titles and labels
+            firstSignalChart.Plot.Title("First signal");
+            firstSignalChart.Refresh();
+            secondSignalChart.Plot.Title("Second signal");
+            secondSignalChart.Refresh();
+            comparisonChart.Plot.Title("Cross-correlation");
+            comparisonChart.Plot.XAxis.Label("Time (s)");
+            comparisonChart.Plot.YAxis.Label("Voltage (mV)");
+            comparisonChart.Refresh();
+            pathAccumulatedDistanceChart.Plot.XAxis.Label("Time (s)");
+            pathAccumulatedDistanceChart.Plot.YAxis.Label("Voltage (mV)");
+            pathAccumulatedDistanceChart.Refresh();
+            pathChart.Plot.XAxis.Label("Sig1 Time (s)");
+            pathChart.Plot.YAxis.Label("Sig2 Time (s)");
+            pathChart.Refresh();
         }
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
         public void insertSignal(FilteringTools filteringTools)
         {
-            // Normalize the signal
-            Normalize normalize = new Normalize(filteringTools);
-            normalize.InsertFilter(null);
-
             // Compute signal power
             double signalPower = 0D;
             foreach (double sample in filteringTools._FilteredSamples)
-                signalPower += Math.Pow(sample / filteringTools._quantizationStep, 2) / filteringTools._FilteredSamples.Length;
+                signalPower += Math.Pow(sample, 2) / filteringTools._FilteredSamples.Length;
 
             // Check if the first signal chart is open
             if (selectFirstSignalCheckBox.Checked)
@@ -81,48 +83,38 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             // Copy values
             double[] sig1 = (double[])_Signal_1_FilteringTools._FilteredSamples.Clone();
             double[] sig2 = (double[])_Signal_2_FilteringTools._FilteredSamples.Clone();
-            int meanSampRate = (int)(_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate / 2d);
-            double meanQuanStep = _Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep / 2d;
+            // Upsample the signal with the low sampling rate
+            _comparisonSamplingRate = Math.Max(_Signal_1_FilteringTools._samplingRate, _Signal_2_FilteringTools._samplingRate);
+            if (_Signal_1_FilteringTools._samplingRate != _Signal_2_FilteringTools._samplingRate)
+                if (_Signal_1_FilteringTools._samplingRate < _Signal_2_FilteringTools._samplingRate)
+                    sig1 = Garage.UpDownSampling(sig1, _Signal_1_FilteringTools._samplingRate, _Signal_2_FilteringTools._samplingRate);
+                else
+                    sig2 = Garage.UpDownSampling(sig2, _Signal_2_FilteringTools._samplingRate, _Signal_1_FilteringTools._samplingRate);
 
             // Chekc which comparison is selected
             if (crosscorrelationRadioButton.Checked)
                 // If yes then perform crosscorelation comparison
-                Garage.loadSignalInChart(comparisonChart, Garage.crossCorrelation(sig1, sig2), meanSampRate, 0, "FormSignalsComparison");
-            else if (minimumSubtractionRadioButton.Checked)
+                Garage.loadSignalInChart(comparisonChart, Garage.crossCorrelation(sig1, sig2), _comparisonSamplingRate, 0, "FormSignalsComparison");
+            else if (minimumDistanceRadioButton.Checked)
                 // If yes then perform minimum subtraction comparison
-                Garage.loadSignalInChart(comparisonChart, Garage.minimumSubtraction(sig1, sig2), meanSampRate, 0, "FormSignalsComparison");
+                Garage.loadSignalInChart(comparisonChart, Garage.minimumDistance(sig1, sig2), _comparisonSamplingRate, 0, "FormSignalsComparison");
             else if (dynamicTimeWrapingRadioButton.Checked)
             {
                 // If yes then perform dynamic time wraping comparison
-                object[] dtwDistancePath = Garage.dynamicTimeWrapingDistancePath(sig1, sig2, 10);
+                (double distance, double[,] dtw, (int sig1Indx, int sig2Indx)[] path, double[] pathDistance) = Garage.dynamicTimeWrapingDistancePath(sig1, sig2, 30);
 
                 // Create the coordination of the path
-                double[] pathX = new double[((List<int[]>)dtwDistancePath[1]).Count];
-                double[] pathY = new double[pathX.Length];
-                for (int i = 0; i < pathX.Length; i++)
-                {
-                    pathX[i] = ((List<int[]>)dtwDistancePath[1])[i][0];
-                    pathY[i] = ((List<int[]>)dtwDistancePath[1])[i][1];
-                }
+                double[] pathX = path.Select(item => (double)item.sig1Indx / _comparisonSamplingRate).ToArray();
+                double[] pathY = path.Select(item => (double)item.sig2Indx / _comparisonSamplingRate).ToArray();
 
-                // Get the path signal from the dwt matrix
-                double[] pathSignal = new double[pathX.Length];
-                double[,] dwtMatrix = Garage.dynamicTimeWraping(sig1, sig2, 10);
-                for (int i = 0; i < pathSignal.Length; i++)
-                {
-                    pathSignal[i] = dwtMatrix[(int)pathX[i], (int)pathY[i]];
-                    if (double.IsInfinity(pathSignal[i]))
-                        pathSignal[i] = 0D;
-                }
-
-                // Create a signal for distance value
-                double[] distanceValue = new double[pathX.Length];
-                for (int i = 0; i < distanceValue.Length; i++)
-                    distanceValue[i] = (double)dtwDistancePath[0];
+                // Create a signal for the accumulated cost of the optimal path
+                double[] pathAccumulatedCost = new double[pathX.Length];
+                for (int i = 0; i < pathAccumulatedCost.Length; i++)
+                    pathAccumulatedCost[i] = dtw[path[i].sig1Indx, path[i].sig2Indx];
 
                 // Set the signals in their charts
-                Garage.loadSignalInChart(comparisonChart, pathSignal, meanSampRate, 0, "FormSignalsComparison");
-                Garage.loadSignalInChart(distanceValueChart, distanceValue, meanSampRate, 0, "FormSignalsComparison");
+                Garage.loadSignalInChart(comparisonChart, pathDistance, _comparisonSamplingRate, 0, "FormSignalsComparison");
+                Garage.loadSignalInChart(pathAccumulatedDistanceChart, pathAccumulatedCost, _comparisonSamplingRate, 0, "FormSignalsComparison");
                 Garage.loadSignalInChart(pathChart, pathX, pathY, 0d, "FormSignalsComparison");
             }
 
@@ -144,7 +136,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
 
                 double signalPower = 0D;
                 foreach (double sample in samples)
-                    signalPower += Math.Pow(sample / meanQuanStep, 2) / samples.Length;
+                    signalPower += Math.Pow(sample, 2) / samples.Length;
                 comparisonSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
             }            
         }
@@ -155,6 +147,10 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
         {
             if (crosscorrelationRadioButton.Checked)
             {
+                // Set the title of the comparison
+                comparisonChart.Plot.Title("Cross-correlation");
+                comparisonChart.Refresh();
+
                 // Change the form vertival size
                 this.MinimumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
                 this.MaximumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
@@ -165,8 +161,12 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
 
         private void minimumSubtractionRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (minimumSubtractionRadioButton.Checked)
+            if (minimumDistanceRadioButton.Checked)
             {
+                // Set the title of the comparison
+                comparisonChart.Plot.Title("Cross-correlation minimum distance");
+                comparisonChart.Refresh();
+
                 // Change the form vertival size
                 this.MinimumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
                 this.MaximumSize = new Size(1169, comparisonSignalPowerValueLabel.Location.Y + 60);
@@ -179,6 +179,14 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
         {
             if (dynamicTimeWrapingRadioButton.Checked)
             {
+                // Set the title of the comparison
+                comparisonChart.Plot.Title("Distance of the optimal path");
+                pathAccumulatedDistanceChart.Plot.Title("Accumulated distance of the optimal path");
+                pathChart.Plot.Title("Optimal path");
+                comparisonChart.Refresh();
+                pathAccumulatedDistanceChart.Refresh();
+                pathChart.Refresh();
+
                 // Change the form vertival size
                 this.MinimumSize = new Size(1169, pathChart.Location.Y + pathChart.Size.Height + 36);
                 this.MaximumSize = new Size(1169, pathChart.Location.Y + pathChart.Size.Height + 36);
@@ -203,9 +211,8 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                 for (int i = 0; i < samples.Length; i++)
                     samples[i] = comparisonSignalPlot.Ys[i];
                 // Create new filteringTools for the signal
-                int meanSampRate = (int)((_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate) / 2d);
                 double meanQuanStep = (_Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep) / 2d;
-                FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
+                FilteringTools filteringTools = new FilteringTools(_comparisonSamplingRate, meanQuanStep, null);
                 filteringTools.SetStartingInSecond((_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec) / 2);
                 filteringTools.SetOriginalSamples(samples);
 
@@ -230,9 +237,8 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                 for (int i = 0; i < samples.Length; i++)
                     samples[i] = comparisonSignalPlot.Ys[i];
                 // Create new filteringTools for the signal
-                int meanSampRate = (int)((_Signal_1_FilteringTools._samplingRate + _Signal_2_FilteringTools._samplingRate) / 2d);
                 double meanQuanStep = (_Signal_1_FilteringTools._quantizationStep + _Signal_2_FilteringTools._quantizationStep) / 2d;
-                FilteringTools filteringTools = new FilteringTools(meanSampRate, meanQuanStep, null);
+                FilteringTools filteringTools = new FilteringTools(_comparisonSamplingRate, meanQuanStep, null);
                 filteringTools.SetStartingInSecond((_Signal_1_FilteringTools._startingInSec + _Signal_2_FilteringTools._startingInSec) / 2);
                 filteringTools.SetOriginalSamples(samples);
 

@@ -39,9 +39,9 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             this.selectFirstSignalCheckBox = new System.Windows.Forms.CheckBox();
             this.selectSecondSignalCheckBox = new System.Windows.Forms.CheckBox();
             this.crosscorrelationRadioButton = new System.Windows.Forms.RadioButton();
-            this.minimumSubtractionRadioButton = new System.Windows.Forms.RadioButton();
+            this.minimumDistanceRadioButton = new System.Windows.Forms.RadioButton();
             this.dynamicTimeWrapingRadioButton = new System.Windows.Forms.RadioButton();
-            this.distanceValueChart = new ScottPlot.FormsPlot();
+            this.pathAccumulatedDistanceChart = new ScottPlot.FormsPlot();
             this.pathChart = new ScottPlot.FormsPlot();
             this.secondSignalPowerLabel = new System.Windows.Forms.Label();
             this.secondSignalPowerValueLabel = new System.Windows.Forms.Label();
@@ -135,16 +135,16 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             this.crosscorrelationRadioButton.UseVisualStyleBackColor = true;
             this.crosscorrelationRadioButton.CheckedChanged += new System.EventHandler(this.crosscorrelationButton_CheckedChanged);
             // 
-            // minimumSubtractionRadioButton
+            // minimumDistanceRadioButton
             // 
-            this.minimumSubtractionRadioButton.Location = new System.Drawing.Point(495, 113);
-            this.minimumSubtractionRadioButton.Margin = new System.Windows.Forms.Padding(2);
-            this.minimumSubtractionRadioButton.Name = "minimumSubtractionRadioButton";
-            this.minimumSubtractionRadioButton.Size = new System.Drawing.Size(159, 20);
-            this.minimumSubtractionRadioButton.TabIndex = 26;
-            this.minimumSubtractionRadioButton.Text = "Minimum subtraction";
-            this.minimumSubtractionRadioButton.UseVisualStyleBackColor = true;
-            this.minimumSubtractionRadioButton.CheckedChanged += new System.EventHandler(this.minimumSubtractionRadioButton_CheckedChanged);
+            this.minimumDistanceRadioButton.Location = new System.Drawing.Point(495, 113);
+            this.minimumDistanceRadioButton.Margin = new System.Windows.Forms.Padding(2);
+            this.minimumDistanceRadioButton.Name = "minimumDistanceRadioButton";
+            this.minimumDistanceRadioButton.Size = new System.Drawing.Size(159, 20);
+            this.minimumDistanceRadioButton.TabIndex = 26;
+            this.minimumDistanceRadioButton.Text = "Minimum distance";
+            this.minimumDistanceRadioButton.UseVisualStyleBackColor = true;
+            this.minimumDistanceRadioButton.CheckedChanged += new System.EventHandler(this.minimumSubtractionRadioButton_CheckedChanged);
             // 
             // dynamicTimeWrapingRadioButton
             // 
@@ -157,13 +157,13 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             this.dynamicTimeWrapingRadioButton.UseVisualStyleBackColor = true;
             this.dynamicTimeWrapingRadioButton.CheckedChanged += new System.EventHandler(this.dynamicTimeWrapingRadioButton_CheckedChanged);
             // 
-            // distanceValueChart
+            // pathAccumulatedDistanceChart
             // 
-            this.distanceValueChart.Location = new System.Drawing.Point(10, 518);
-            this.distanceValueChart.Margin = new System.Windows.Forms.Padding(2);
-            this.distanceValueChart.Name = "distanceValueChart";
-            this.distanceValueChart.Size = new System.Drawing.Size(444, 194);
-            this.distanceValueChart.TabIndex = 28;
+            this.pathAccumulatedDistanceChart.Location = new System.Drawing.Point(10, 518);
+            this.pathAccumulatedDistanceChart.Margin = new System.Windows.Forms.Padding(2);
+            this.pathAccumulatedDistanceChart.Name = "pathAccumulatedDistanceChart";
+            this.pathAccumulatedDistanceChart.Size = new System.Drawing.Size(444, 194);
+            this.pathAccumulatedDistanceChart.TabIndex = 28;
             // 
             // pathChart
             // 
@@ -254,9 +254,9 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             this.Controls.Add(this.secondSignalPowerLabel);
             this.Controls.Add(this.secondSignalPowerValueLabel);
             this.Controls.Add(this.pathChart);
-            this.Controls.Add(this.distanceValueChart);
+            this.Controls.Add(this.pathAccumulatedDistanceChart);
             this.Controls.Add(this.dynamicTimeWrapingRadioButton);
-            this.Controls.Add(this.minimumSubtractionRadioButton);
+            this.Controls.Add(this.minimumDistanceRadioButton);
             this.Controls.Add(this.crosscorrelationRadioButton);
             this.Controls.Add(this.selectSecondSignalCheckBox);
             this.Controls.Add(this.selectFirstSignalCheckBox);
@@ -282,9 +282,9 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
         public System.Windows.Forms.CheckBox selectFirstSignalCheckBox;
         public System.Windows.Forms.CheckBox selectSecondSignalCheckBox;
         private System.Windows.Forms.RadioButton crosscorrelationRadioButton;
-        private System.Windows.Forms.RadioButton minimumSubtractionRadioButton;
+        private System.Windows.Forms.RadioButton minimumDistanceRadioButton;
         private System.Windows.Forms.RadioButton dynamicTimeWrapingRadioButton;
-        private ScottPlot.FormsPlot distanceValueChart;
+        private ScottPlot.FormsPlot pathAccumulatedDistanceChart;
         private ScottPlot.FormsPlot pathChart;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem sendSignalToolStripMenuItem;

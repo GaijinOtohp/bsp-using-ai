@@ -46,6 +46,9 @@ namespace BSP_Using_AI
                     scatterPlot.IsVisible = false;
                 }
             }
+            // Set the axis limits automatically to fit the data on the plot
+            chart.Plot.AxisAuto();
+            // Display changes
             chart.Refresh();
         }
 
@@ -841,25 +844,25 @@ namespace BSP_Using_AI
         public static double[,] dynamicTimeWraping(double[] signal1, double[] signal2, int window)
         {
             // Initailize dynamic time wraping matrix
-            double[,] dtw = new double[signal1.Length + 1, signal2.Length + 1];
+            double[,] dtw = new double[signal1.Length, signal2.Length];
 
             // Set the window constraint
             window = Math.Max(window, Math.Abs(signal1.Length - signal2.Length));
 
             // Set the initial values of dtw matrix
-            for (int i = 0; i < signal1.Length + 1; i++)
-                for (int j = 0; j < signal2.Length + 1; j++)
-                    if ((j >= Math.Max(1, i - window)) && (j <= Math.Min(signal2.Length, i + window)) && (i != 0))
+            for (int i = 0; i < signal1.Length; i++)
+                for (int j = 0; j < signal2.Length; j++)
+                    if ((j >= Math.Max(1, i - window)) && (j < Math.Min(signal2.Length, i + window + 1)) && (i != 0))
                         dtw[i, j] = 0D;
                     else
                         dtw[i, j] = double.PositiveInfinity;
-            dtw[0, 0] = 0D;
+            dtw[0, 0] = Math.Abs(signal1[0] - signal2[0]);
 
-            // Calculate dwt matrix
+            // Calculate dwt matrix (the accumulated cost matrix)
             double cost;
             double last_min;
-            for (int i = 1; i < signal1.Length + 1; i++)
-                for (int j = Math.Max(1, i - window); j <= Math.Min(signal2.Length, i + window); j++)
+            for (int i = 1; i < signal1.Length; i++)
+                for (int j = Math.Max(1, i - window); j < Math.Min(signal2.Length, i + window + 1); j++)
                 {
                     // Calculate the cost of current position
                     cost = Math.Abs(signal1[i - 1] - signal2[j - 1]);
@@ -873,53 +876,60 @@ namespace BSP_Using_AI
             return dtw;
         }
 
-        public static object[] dynamicTimeWrapingDistancePath(double[] signal1, double[] signal2, int window)
+        public static (double distance, double[,] dtw, (int sig1Indx, int sig2Indx)[] path, double[] pathDistance) dynamicTimeWrapingDistancePath(double[] signal1, double[] signal2, int window)
         {
             // Create the path and distance variables
-            List<int[]> path = new List<int[]>();
-            path.Add(new int[] { 0, 0 });
+            List<(int sig1Indx, int sig2Indx)> path = new List<(int sig1Indx, int sig2Indx)>();
 
-            double distance = -1;
+            double distance; // total cost of the difference between the two signals
 
             // Calculate dtw matrix
             double[,] dtw = dynamicTimeWraping(signal1, signal2, window);
+            // The last cell in DWT is the distance between the two signals
+            int i = dtw.GetLength(0) - 1;
+            int j = dtw.GetLength(1) - 1;
+            distance = dtw[i, j];
             // create the path
-            int i = 1;
-            int j = 1;
-            while ((i < dtw.GetLength(0) - 1) || (j < dtw.GetLength(1) - 1))
+            path.Add(( i, j ));
+            while (i > 0 || j > 0)
             {
                 // Check if this is the last vertical index
-                if (i + 1 == dtw.GetLength(0))
+                if (i == 0)
                     // If yes then the next move is horizontal
-                    j += 1;
+                    j -= 1;
                 // Check if this is the last horizontal index
-                else if (j + 1 == dtw.GetLength(1))
+                else if (j == 0)
                     // If yes then the next move is horizontal
-                    i += 1;
+                    i -= 1;
                 // Check if the next diagonal move hast the shortest distance in the next square
-                else if ((dtw[i + 1, j + 1] <= dtw[i, j + 1]) && (dtw[i + 1, j + 1] <= dtw[i + 1, j]))
+                else if ((dtw[i - 1, j - 1] <= dtw[i, j - 1]) && (dtw[i - 1, j - 1] <= dtw[i - 1, j]))
                 {
                     // If yes then add it to the path
-                    i += 1;
-                    j += 1;
+                    i -= 1;
+                    j -= 1;
                 }
                 // If no then check if the move is horizontal or vertical
-                else if (dtw[i + 1, j] <= dtw[i, j + 1])
+                else if (dtw[i - 1, j] <= dtw[i, j - 1])
                     // If yes then the next move is vertical
-                    i += 1;
+                    i -= 1;
                 else
                     // If yes then it is horizontal
-                    j += 1;
+                    j -= 1;
 
                 // Add the new path index in path
-                path.Add(new int[] { i - 1, j - 1 });
+                path.Add(( i, j ));
             }
 
-            // Get the distance from the path
-            if (path.Count > 0)
-                distance = dtw[i, j];
+            // Now reverse the path
+            path.Reverse();
 
-            return new object[2] { distance, path };
+            // Get the difference in distance between the two signals along the optimal path
+            double[] pathDistance = new double[path.Count];
+            for (int k = 0; k < pathDistance.Length; k++)
+                pathDistance[k] = Math.Abs(signal1[path[k].sig1Indx] - signal2[path[k].sig2Indx]);
+
+
+            return (distance, dtw, path.ToArray(), pathDistance);
         }
 
         //*******************************************************************************************************//
@@ -962,90 +972,60 @@ namespace BSP_Using_AI
 
         //*******************************************************************************************************//
         //******************************************MINIMUM SUBTRACTION******************************************//
-        public static double[] minimumSubtraction(double[] signal1, double[] signal2)
+        public static double[] minimumDistance(double[] signal1, double[] signal2)
         {
-            // Create the variable for subtraction signal
-            int subtractionSignalLength = signal1.Length + signal2.Length;
-            double[] subtractionSignal = new double[subtractionSignalLength];
+            // Compute cross-correlation between the two sginals
+            double[] crossCor = crossCorrelation(signal1, signal2);
+            // Get the index of the highest value in crossCor
+            int optimalDelay = Array.IndexOf(crossCor, crossCor.Max());
+            // Offset the delay to the middle
+            optimalDelay = crossCor.Length / 2 - optimalDelay;
+            int absOptimalDelay = Math.Abs(optimalDelay);
 
-            // Calculate the subtraction coefition
-            double newsubtractionCoef;
-            double[] subtractionCoefIndex = new double[2] { double.PositiveInfinity, 0 };
-            for (int i = 0; i <= subtractionSignalLength; i++)
+            // Set the fixed signal and the delayed signal
+            double[] fixedSignal = null;
+            double[] delayedSignal = null;
+            if (optimalDelay < 0)
             {
-                newsubtractionCoef = 0D;
-
-                // Calculate the subtraction of two signals delayed
-                subtractionSignal = subtractSignalsInDelay(signal1, signal2, i);
-
-                // Calculate the total energy of the subtraction
-                foreach (double sample in subtractionSignal)
-                    newsubtractionCoef += sample / subtractionSignalLength;
-
-                // Check if new subtracted signals energy is less than previous one
-                if (newsubtractionCoef < subtractionCoefIndex[0])
-                {
-                    // If yes then save it in subtractionCoefIndex with its delay value
-                    subtractionCoefIndex[0] = newsubtractionCoef;
-                    subtractionCoefIndex[1] = i;
-                }
+                // If yes then the first signal is delayed by optimalDelay
+                fixedSignal = signal2;
+                delayedSignal = signal1;
+            }
+            else
+            {
+                // If yes then the second signal is delayed by optimalDelay
+                fixedSignal = signal1;
+                delayedSignal = signal2;
             }
 
-            return subtractSignalsInDelay(signal1, signal2, (int)subtractionCoefIndex[1]); ;
+            // Compute the distance between the two signals
+            double[] minDistance = new double[Math.Max(fixedSignal.Length, delayedSignal.Length + absOptimalDelay)];
+            for (int i = 0; i < minDistance.Length; i++)
+            {
+                double fixedSigVal = 0, delayedSigVal = 0;
+                int delayedIndx = i - absOptimalDelay;
+                if (i < fixedSignal.Length)
+                    fixedSigVal = fixedSignal[i];
+                if (delayedIndx >= 0 && delayedIndx < delayedSignal.Length)
+                    delayedSigVal = delayedSignal[delayedIndx];
+
+                minDistance[i] = Math.Abs(fixedSigVal - delayedSigVal);
+            }
+            return minDistance;
         }
 
-        public static double[] subtractSignalsInDelay(double[] signal1, double[] signal2, int delay)
+        //*******************************************************************************************************//
+        //****************************************SIGNAL UP/DOWN SAMPLING*****************************************//
+        public static double[] UpDownSampling(double[] signal, int oldSamplingRate, int newSamplingRate)
         {
-            // Create the variable for subtraction signal
-            int subtractionSignalLength = signal1.Length + signal2.Length;
-            double[] subtractionSignal = new double[subtractionSignalLength];
-
-            for (int j = 0; j < subtractionSignalLength; j++)
-            {
-                // Check if the delay is still larger than the first signal
-                if (delay > signal1.Length)
-                {
-                    // If yes then we should start from the second signal
-                    if (j < delay - signal1.Length)
-                        // If yes then take sample from the second signal only
-                        subtractionSignal[j] = Math.Abs(signal2[j]);
-                    // Check if we should subtract from the two signals
-                    else if (j < signal2.Length && j < delay)
-                        // If yes then we take the absolute value of the subtraction between the two
-                        subtractionSignal[j] = Math.Abs(signal2[j] - signal1[j - (delay - signal1.Length)]);
-                    // Check if we should take the rest of the fisrt signal
-                    else if (j < delay)
-                        subtractionSignal[j] = Math.Abs(signal1[j - (delay - signal1.Length)]);
-                    // Check if the second signal is still passing the first signal
-                    else if (delay > signal1.Length && j < signal2.Length)
-                        subtractionSignal[j] = Math.Abs(signal2[j]);
-                    else
-                        // If yes then break the for loop
-                        break;
-                }
-                else
-                {
-                    // Check if we should take from the first signal
-                    if (delay + j < signal1.Length)
-                        // If yes then take sample from the first signal only
-                        subtractionSignal[j] = Math.Abs(signal1[j]);
-                    // Check if we should subtract from the two signals
-                    else if (j < signal1.Length && j + delay < subtractionSignalLength && delay > 0)
-                        // If yes then we take the absolute value of the subtraction between the two
-                        subtractionSignal[j] = Math.Abs(signal1[j] - signal2[j + delay - signal1.Length]);
-                    // Check if we should take the rest of the second signal
-                    else if (j + delay < subtractionSignalLength)
-                        subtractionSignal[j] = Math.Abs(signal2[j - signal1.Length + delay]);
-                    // Check if signal 1 is passing signal 2
-                    else if (delay > signal2.Length && j < signal1.Length)
-                        subtractionSignal[j] = Math.Abs(signal1[j]);
-                    else
-                        // If yes then break the for loop
-                        break;
-                }
-            }
-
-            return subtractionSignal;
+            // Create the NWaves signal
+            NWaves.Signals.DiscreteSignal nWavesSignal = new NWaves.Signals.DiscreteSignal(oldSamplingRate, signal.Select(sample => (float)sample).ToArray());
+            // Create the resampler
+            NWaves.Operations.Resampler resampler = new NWaves.Operations.Resampler();
+            // Resample the signal
+            nWavesSignal = resampler.Resample(nWavesSignal, newSamplingRate);
+            // Return the resampled signal as double[]
+            return nWavesSignal.Samples.Select(sample => (double)sample).ToArray();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
