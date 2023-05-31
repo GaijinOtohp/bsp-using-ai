@@ -64,8 +64,6 @@
             // 
             this.signalChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.signalChart.Plot.XAxis.Label("Time (s)");
-            this.signalChart.Plot.YAxis.Label("Voltage (mV)");
             this.signalChart.Location = new System.Drawing.Point(9, 67);
             this.signalChart.Margin = new System.Windows.Forms.Padding(2);
             this.signalChart.Name = "signalChart";
@@ -75,7 +73,6 @@
             this.signalChart.ContextMenuStrip = this.contextMenuStrip1;
             this.signalChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalChart_MouseClick);
             this.signalChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
-            this.signalChart.Plot.Legend();
             // 
             // contextMenuStrip1
             // 
@@ -104,9 +101,6 @@
             // 
             this.spectrumChart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-
-            this.spectrumChart.Plot.XAxis.Label("Frequency (Hz)");
-            this.spectrumChart.Plot.YAxis.Label("Magnitude (mV)");
             this.spectrumChart.Location = new System.Drawing.Point(9, 295);
             this.spectrumChart.Margin = new System.Windows.Forms.Padding(2);
             this.spectrumChart.Name = "spectrumChart";

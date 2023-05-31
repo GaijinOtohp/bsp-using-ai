@@ -50,6 +50,13 @@ namespace BSP_Using_AI.DetailsModify
             signalsPickerComboBox.SelectedIndex = 1;
             aiGoalComboBox.SelectedIndex = 0;
 
+            // Set plots titles and labels
+            signalChart.Plot.XAxis.Label("Time (s)");
+            signalChart.Plot.YAxis.Label("Voltage (mV)");
+            signalChart.Plot.Legend();
+            spectrumChart.Plot.XAxis.Label("Frequency (Hz)");
+            spectrumChart.Plot.YAxis.Label("Magnitude (mV)");
+
             // Insert signal, up, down, stable, selection, and labels plots in signalChart
             _Plots.Add(SANamings.Signal, signalChart.Plot.GetPlottables()[0]);
             _Plots.Add(SANamings.UpPeaks, Garage.AddScatterPlot(signalChart, Color.Blue, label: SANamings.UpPeaks));

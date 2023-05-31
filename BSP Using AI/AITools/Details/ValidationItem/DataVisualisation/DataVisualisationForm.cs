@@ -57,6 +57,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                     formsPlot.Plot.AddPoint(xAxisVals[i], yAxisVals[i], color, 10);
                 }
             }
+
+            formsPlot.Plot.Legend();
         }
 
         public static CheckBox createCheckBox(string text, object tag, EventHandler eventHandler)
