@@ -20,6 +20,11 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             // Initialize variables
             _FilteringTools = filteringTools;
 
+            // Set plots titles and labels
+            signalExhibitor.Plot.XAxis.Label("Time (s)");
+            signalExhibitor.Plot.YAxis.Label("Voltage (mV)");
+            signalExhibitor.Refresh();
+
             // Calculate power and set it in signalPowerValueLabel
             double signalPower = 0D;
             foreach (double sample in filteringTools._FilteredSamples)
@@ -28,7 +33,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             signalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
 
             // Insert signal in chart
-            Garage.loadSignalInChart((FormsPlot)Controls.Find("signalExhibitor", false)[0], filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "UserControlSignalPower");
+            Garage.loadSignalInChart(signalExhibitor, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "UserControlSignalPower");
         }
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
