@@ -564,6 +564,7 @@ namespace BSP_Using_AI.DetailsModify
                         _SelectedWavelet = "coif1";
                         break;
                 }
+                _waveletType = waveletType;
                 _selectedLevel = 0;
                 UpdateControl();
                 _ParentFilteringTools?.ApplyFilters(false);
