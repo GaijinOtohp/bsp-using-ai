@@ -54,8 +54,10 @@ namespace BSP_Using_AI.DetailsModify
             signalChart.Plot.XAxis.Label("Time (s)");
             signalChart.Plot.YAxis.Label("Voltage (mV)");
             signalChart.Plot.Legend();
+            signalChart.Refresh();
             spectrumChart.Plot.XAxis.Label("Frequency (Hz)");
             spectrumChart.Plot.YAxis.Label("Magnitude (mV)");
+            spectrumChart.Refresh();
 
             // Insert signal, up, down, stable, selection, and labels plots in signalChart
             _Plots.Add(SANamings.Signal, signalChart.Plot.GetPlottables()[0]);
