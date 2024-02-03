@@ -1,11 +1,8 @@
 ﻿using BSP_Using_AI.DetailsModify;
 using BSP_Using_AI.SignalHolderFolder.Input;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BSP_Using_AI.SignalHolderFolder

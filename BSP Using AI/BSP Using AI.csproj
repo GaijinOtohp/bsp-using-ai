@@ -87,6 +87,11 @@
     <Compile Update="MainFormFolder\SignalsCollectionFolder\UserControlSignalPower.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Update="SignalHolderFolder\EventsHandlersSignalHolder.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -144,14 +149,13 @@
   <ItemGroup>
     <PackageReference Include="Accord.Statistics" Version="3.8.0" />
     <PackageReference Include="Keras.NET" Version="3.8.5" />
-    <PackageReference Include="MethodBoundaryAspect.Fody" Version="2.0.148" />
+    <PackageReference Include="MethodBoundaryAspect.Fody" Version="2.0.149" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NWaves" Version="0.9.4" />
-    <PackageReference Include="OneOf" Version="3.0.223" />
-    <PackageReference Include="Protobuf.Text" Version="0.7.0" />
     <PackageReference Include="pythonnet_netstandard_py38_win" Version="2.5.2" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.11.4" />
     <PackageReference Include="ScottPlot.WinForms" Version="4.1.64" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="Stub.System.Data.SQLite.Core.NetFramework" Version="1.0.115.5" />
@@ -164,5 +168,15 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="7.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\TensorFlowNET.Core\Tensorflow.Binding.csproj" />
+    <ProjectReference Include="..\src\TensorFlowNET.Keras\Tensorflow.Keras.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 </Project>

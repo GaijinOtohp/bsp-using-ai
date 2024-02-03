@@ -9,10 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -159,7 +156,8 @@ namespace BSP_Using_AI.DetailsModify
             // Send information to TFBackThread
             string modelName = null;
             string modelNameProblem = null;
-            this.Invoke(new MethodInvoker(delegate () {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
                 modelName = (modelTypeComboBox.SelectedItem as dynamic).modelName;
                 modelNameProblem = (modelTypeComboBox.SelectedItem as dynamic).modelNameProblem;
             }));
@@ -196,6 +194,16 @@ namespace BSP_Using_AI.DetailsModify
             {
                 // This is for naive bayes
                 return NaiveBayesBackThread.predict(features, (NaiveBayesModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+            }
+            else if (modelName.Equals(TFNETNeuralNetworkModel.ModelName))
+            {
+                // This is for Tensorflow.Net Neural Networks
+                return TF_NET_NN.predict(features, (TFNETNeuralNetworkModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+            }
+            else if (modelName.Equals(TFKerasNeuralNetworkModel.ModelName))
+            {
+                // This is for Tensorflow.Keras Neural Networks
+                return TF_NET_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
             }
 
             return null;

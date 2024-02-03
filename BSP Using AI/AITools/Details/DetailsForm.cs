@@ -70,7 +70,7 @@ namespace BSP_Using_AI.AITools.Details
             validationFlowLayoutPanelUserControl.datasetSizeLabel.Text = validationData._datasetSize.ToString();
             validationFlowLayoutPanelUserControl.trainingDatasetLabel.Text = Math.Round(validationData._trainingDatasetSize, 2).ToString();
             validationFlowLayoutPanelUserControl.validationDatasetLabel.Text = Math.Round(validationData._validationDatasetSize, 2).ToString();
-            
+
             validationFlowLayoutPanelUserControl.sensitivityLabel.Text = Math.Round(validationData._sensitivity * 100, 2).ToString() + "%";
             validationFlowLayoutPanelUserControl.specificityLabel.Text = Math.Round(validationData._specificity * 100, 2).ToString() + "%";
 
@@ -111,7 +111,8 @@ namespace BSP_Using_AI.AITools.Details
                     overallSpecificity += model.ValidationData._specificity / 4;
                 }
             }
-            this.Invoke(new MethodInvoker(delegate () {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
                 overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAccuracy * 100, 2).ToString() + "%";
                 overallSensitivityLabel.Text = "Overall sensitivity: " + Math.Round(overAllSensitivity * 100, 2).ToString() + "%";
                 overallSpecificityLabel.Text = "Overall specificity: " + Math.Round(overallSpecificity * 100, 2).ToString() + "%";
@@ -173,6 +174,16 @@ namespace BSP_Using_AI.AITools.Details
             {
                 // This is for naive bayes
                 return NaiveBayesBackThread.predict(features, (NaiveBayesModel)model);
+            }
+            else if (modelName.Equals(TFNETNeuralNetworkModel.ModelName))
+            {
+                // This is for Tensorflow.Net Neural Networks
+                return TF_NET_NN.predict(features, (TFNETNeuralNetworkModel)model);
+            }
+            else if (modelName.Equals(TFKerasNeuralNetworkModel.ModelName))
+            {
+                // This is for Tensorflow.Keras Neural Networks
+                return TF_NET_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)model);
             }
 
             return null;
@@ -396,7 +407,8 @@ namespace BSP_Using_AI.AITools.Details
                 else if (callingClassName.Equals("DetailsFormForFeatures"))
                 {
                     // Open ValidationDataSelectionForm
-                    Invoke(new MethodInvoker(delegate () {
+                    Invoke(new MethodInvoker(delegate ()
+                    {
                         ValDataSelectionForm validationDataSelectionForm = new ValDataSelectionForm(dataTable, ValidateModel);
                         validationDataSelectionForm.Show();
                     }));
@@ -416,7 +428,7 @@ namespace BSP_Using_AI.AITools.Details
             _aRTHTModels._ValidationInfo = validationInfo;
 
             // Initialize lists of features for each step
-            List <Sample> trainingSamples;
+            List<Sample> trainingSamples;
             List<Sample> validationSamples;
 
             // Check if data is sufficient
@@ -520,6 +532,22 @@ namespace BSP_Using_AI.AITools.Details
 
                         // Fit features
                         model = NaiveBayesBackThread.fit((NaiveBayesModel)model, trainingSamples);
+                    }
+                    else if (_aRTHTModels.ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
+                    {
+                        // This is for Tensorflow.Net Neural Networks
+                        model = TF_NET_NN.createTFNETNeuralNetModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive, "");
+
+                        // Fit features
+                        model = TF_NET_NN.fit((TFNETNeuralNetworkModel)model, trainingSamples);
+                    }
+                    else if (_aRTHTModels.ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
+                    {
+                        // This is for Tensorflow.Keras Neural Networks
+                        model = TF_NET_KERAS_NN.createTFKerasNeuralNetModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive, "");
+
+                        // Fit features
+                        model = TF_NET_KERAS_NN.fit((TFKerasNeuralNetworkModel)model, trainingSamples);
                     }
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

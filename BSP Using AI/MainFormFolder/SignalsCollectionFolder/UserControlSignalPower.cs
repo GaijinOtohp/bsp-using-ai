@@ -1,5 +1,4 @@
-﻿using ScottPlot;
-using System;
+﻿using System;
 using System.Windows.Forms;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 

@@ -1,7 +1,6 @@
 ﻿using ScottPlot;
 using ScottPlot.Plottable;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -138,7 +137,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                 foreach (double sample in samples)
                     signalPower += Math.Pow(sample, 2) / samples.Length;
                 comparisonSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
-            }            
+            }
         }
 
         //*******************************************************************************************************//

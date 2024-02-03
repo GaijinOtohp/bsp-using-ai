@@ -1,18 +1,10 @@
-﻿using BSP_Using_AI.AITools;
-using BSP_Using_AI.DetailsModify.Filters;
-using BSP_Using_AI.DetailsModify.SignalFusion;
-using BSP_Using_AI.SignalHolderFolder;
+﻿using BSP_Using_AI.SignalHolderFolder;
 using ScottPlot.Plottable;
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Threading;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -21,7 +13,7 @@ namespace BSP_Using_AI.DetailsModify
 {
     public partial class FormDetailsModify : Form
     {
-        public Dictionary <string, IPlottable> _Plots = new Dictionary<string, IPlottable>();
+        public Dictionary<string, IPlottable> _Plots = new Dictionary<string, IPlottable>();
 
         public SignalHolder _signalHolder { get; set; }
 

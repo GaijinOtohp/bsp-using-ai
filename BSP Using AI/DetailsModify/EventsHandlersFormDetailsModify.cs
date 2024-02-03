@@ -2,12 +2,8 @@
 using ScottPlot;
 using ScottPlot.Plottable;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify
 {

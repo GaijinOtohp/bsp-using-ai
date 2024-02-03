@@ -79,6 +79,20 @@ namespace BSP_Using_AI
                 Thread nbThread = new Thread(() => naiveBayesBackThread.createNBModelForWPW());
                 nbThread.Start();
             }
+            else if (modelTypeComboBox.SelectedIndex == 3 && aiGoalComboBox.SelectedIndex == 0)
+            {
+                // If yes then this is for Tensorflow.Net Neural Networks models
+                TF_NET_NN tf_NET_NN = new TF_NET_NN(_arthtModelsDic, this);
+                Thread tfNetThread = new Thread(() => tf_NET_NN.createTFNETNeuralNetworkModelForWPW());
+                tfNetThread.Start();
+            }
+            else if (modelTypeComboBox.SelectedIndex == 4 && aiGoalComboBox.SelectedIndex == 0)
+            {
+                // If yes then this is for Tensorflow.Keras Neural Networks models
+                TF_NET_KERAS_NN tf_Keras_NN = new TF_NET_KERAS_NN(_arthtModelsDic, this);
+                Thread tfKerasThread = new Thread(() => tf_Keras_NN.createTFKerasNeuralNetworkModelForWPW());
+                tfKerasThread.Start();
+            }
         }
 
         private void DatasetExplorerButton_Click(object sender, EventArgs e)

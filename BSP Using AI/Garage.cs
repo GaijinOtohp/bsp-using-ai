@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -890,7 +889,7 @@ namespace BSP_Using_AI
             int j = dtw.GetLength(1) - 1;
             distance = dtw[i, j];
             // create the path
-            path.Add(( i, j ));
+            path.Add((i, j));
             while (i > 0 || j > 0)
             {
                 // Check if this is the last vertical index
@@ -917,7 +916,7 @@ namespace BSP_Using_AI
                     j -= 1;
 
                 // Add the new path index in path
-                path.Add(( i, j ));
+                path.Add((i, j));
             }
 
             // Now reverse the path
@@ -1034,7 +1033,7 @@ namespace BSP_Using_AI
         public static byte[] ObjectToByteArray<T>(T obj)
         {
             DataContractSerializer dcs = new DataContractSerializer(typeof(T));
-            
+
             using (var ms = new MemoryStream())
             {
                 dcs.WriteObject(ms, obj);
@@ -1319,7 +1318,7 @@ namespace BSP_Using_AI
 
         private static List<(int originalOrder, List<object> elements)> GetTextsElements(List<string> textsList)
         {
-            List<(int originalOrder, List<object> elements) > elementsToOrder = new List<(int, List<object>)>(textsList.Count);
+            List<(int originalOrder, List<object> elements)> elementsToOrder = new List<(int, List<object>)>(textsList.Count);
             for (int i = 0; i < textsList.Count; i++)
             {
                 string text = textsList[i];
@@ -1398,7 +1397,7 @@ namespace BSP_Using_AI
                         if (plottable is ScatterPlot scatterPlot)
                         {
                             ScatterPlot scalScatterPlot = scaledChart.Plot.AddScatter(scatterPlot.Xs, scatterPlot.Ys, scatterPlot.Color, (float)(scatterPlot.LineWidth),
-                                                                                                                                         scatterPlot.MarkerSize * 3/ 4,
+                                                                                                                                         scatterPlot.MarkerSize * 3 / 4,
                                                                                                                                          scatterPlot.MarkerShape, scatterPlot.LineStyle, scatterPlot.Label);
                             scalScatterPlot.OffsetX = scatterPlot.OffsetX;
                             scalScatterPlot.DataPointLabels = scatterPlot.DataPointLabels;

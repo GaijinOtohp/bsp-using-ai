@@ -1,5 +1,4 @@
 ﻿using ScottPlot;
-using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -47,7 +46,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             if (colorVals == null)
                 formsPlot.Plot.AddScatter(xAxisVals, yAxisVals, primaryColor, 0, 10, MarkerShape.filledCircle, LineStyle.None, seriesName);
-                //plot.AddBubblePlot(null, null, 10, primaryColor, 2, secondaryColor);
+            //plot.AddBubblePlot(null, null, 10, primaryColor, 2, secondaryColor);
             else
             {
                 formsPlot.Plot.AddColorbar(ScottPlot.Drawing.Colormap.Turbo);

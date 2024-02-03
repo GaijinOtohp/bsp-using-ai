@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading;
+using Tensorflow;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
@@ -20,6 +21,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         [KnownType(typeof(NeuralNetworkModel))]
         [KnownType(typeof(ModelLessNeuralNetwork))]
         [KnownType(typeof(NaiveBayesModel))]
+        [KnownType(typeof(TFNETNeuralNetworkModel))]
+        [KnownType(typeof(TFNETModelLessNeuralNetwork))]
+        [KnownType(typeof(TFKerasNeuralNetworkModel))]
+        [KnownType(typeof(TFKerasModelLessNeuralNetwork))]
         [DataContract(IsReference = true)]
         public class ARTHTModels
         {
@@ -75,6 +80,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                         aRTHTModels.ARTHTModelsDic[stepName] = ((NeuralNetworkModel)ARTHTModelsDic[stepName]).Clone();
                     else if (ARTHTModelsDic[stepName].GetType().Name.Equals("NaiveBayesModel"))
                         aRTHTModels.ARTHTModelsDic[stepName] = ((NaiveBayesModel)ARTHTModelsDic[stepName]).Clone();
+                    else if (ARTHTModelsDic[stepName].GetType().Name.Equals("TFNETNeuralNetworkModel"))
+                        aRTHTModels.ARTHTModelsDic[stepName] = ((TFNETNeuralNetworkModel)ARTHTModelsDic[stepName]).Clone();
+                    else if (ARTHTModelsDic[stepName].GetType().Name.Equals("TFKerasNeuralNetworkModel"))
+                        aRTHTModels.ARTHTModelsDic[stepName] = ((TFKerasNeuralNetworkModel)ARTHTModelsDic[stepName]).Clone();
 
                 return aRTHTModels;
             }
@@ -186,6 +195,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     model = new NeuralNetworkModel();
                 else if (this.GetType().Name.Equals("NaiveBayesModel"))
                     model = new NaiveBayesModel();
+                else if (this.GetType().Name.Equals("TFNETNeuralNetworkModel"))
+                    model = new TFNETModelLessNeuralNetwork();
+                else if (this.GetType().Name.Equals("TFNETModelLessNeuralNetwork"))
+                    model = new TFNETNeuralNetworkModel();
+                else if (this.GetType().Name.Equals("TFKerasNeuralNetworkModel"))
+                    model = new TFKerasModelLessNeuralNetwork();
+                else if (this.GetType().Name.Equals("TFKerasModelLessNeuralNetwork"))
+                    model = new TFKerasNeuralNetworkModel();
                 ((CustomBaseModel)model).Name = Name;
                 ((CustomBaseModel)model)._pcaActive = _pcaActive;
 
@@ -370,6 +387,78 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                         gausParamsInputGivenOutput.ValuesList.Add(value);
 
                 return gausParamsInputGivenOutput;
+            }
+        }
+        //_______________________________________________________//
+        //::::::::::::Tensorflow.Net Neural Network:::::::::::::://
+        [Serializable]
+        [DataContract(IsReference = true)]
+        public class TFNETNeuralNetworkModel : CustomBaseModel
+        {
+            [DataMember]
+            public static string ModelName = "TF.NET Neural network";
+            [DataMember]
+            public string ModelPath;
+            [DataMember]
+            public Session Session;
+
+            public TFNETModelLessNeuralNetwork Clone()
+            {
+                TFNETModelLessNeuralNetwork tfNETNeuralNetworkModel = (TFNETModelLessNeuralNetwork)CloneBase();
+                tfNETNeuralNetworkModel.ModelPath = ModelPath;
+
+                return tfNETNeuralNetworkModel;
+            }
+        }
+        [Serializable]
+        [DataContract(IsReference = true)]
+        public class TFNETModelLessNeuralNetwork : CustomBaseModel
+        {
+            [DataMember]
+            public string ModelPath;
+
+            public TFNETNeuralNetworkModel Clone()
+            {
+                TFNETNeuralNetworkModel tfNETNeuralNetworkModel = (TFNETNeuralNetworkModel)CloneBase();
+                tfNETNeuralNetworkModel.ModelPath = ModelPath;
+
+                return tfNETNeuralNetworkModel;
+            }
+        }
+        //_______________________________________________________//
+        //::::::::::::Tensorflow.Keras Neural Network:::::::::::://
+        [Serializable]
+        [DataContract(IsReference = true)]
+        public class TFKerasNeuralNetworkModel : CustomBaseModel
+        {
+            [DataMember]
+            public static string ModelName = "TF.Keras Neural network";
+            [DataMember]
+            public string ModelPath;
+            [DataMember]
+            public Tensorflow.Keras.Engine.IModel Model;
+
+            public TFKerasModelLessNeuralNetwork Clone()
+            {
+                TFKerasModelLessNeuralNetwork tfKerasNeuralNetworkModel = (TFKerasModelLessNeuralNetwork)CloneBase();
+                tfKerasNeuralNetworkModel.ModelPath = ModelPath;
+
+                return tfKerasNeuralNetworkModel;
+            }
+        }
+        [Serializable]
+        [DataContract(IsReference = true)]
+        public class TFKerasModelLessNeuralNetwork : CustomBaseModel
+        {
+            [DataMember]
+            public string ModelPath;
+
+            public TFKerasNeuralNetworkModel Clone()
+            {
+                TFKerasNeuralNetworkModel tfKerasNeuralNetworkModel = (TFKerasNeuralNetworkModel)CloneBase();
+                tfKerasNeuralNetworkModel.ModelPath = ModelPath;
+
+                return tfKerasNeuralNetworkModel;
             }
         }
     }

@@ -1,11 +1,7 @@
 ﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.Filters.IIRFilters;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify

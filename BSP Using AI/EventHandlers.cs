@@ -1,11 +1,7 @@
 ﻿using BSP_Using_AI.DetailsModify;
-using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.MainFormFolder.SignalsCollectionFolder;
 using BSP_Using_AI.MainFormFolder.SignalsComparisonFolder;
-using BSP_Using_AI.SignalHolderFolder;
-using BSP_Using_AI.SignalHolderFolder.Input;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;

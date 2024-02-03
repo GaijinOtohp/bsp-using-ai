@@ -296,5 +296,121 @@ namespace Biological_Signal_Processing_Using_AI
             public string Name { get; set; }
             public double _value { get; set; }
         }
+        //____________________________________________________________________________________//
+
+        public class CircularQueue<T>
+        {
+            public int _capacity { get; private set; } = 1;
+            public int _count { get; private set; } = 0;
+            public int _lastNodeIndex { get; private set; } = -1;
+
+            public CircularQueueNode<T> FirstNode { get; private set; } = null;
+            public CircularQueueNode<T> LastNode { get; private set; } = null;
+
+            private List<T> NodesList = new List<T>();
+
+            public CircularQueue(int capacity)
+            {
+                if (capacity > 0)
+                {
+                    _capacity = capacity;
+                    NodesList = new List<T>(capacity);
+                }
+            }
+
+            public T Enqueue(T newNodeVal)
+            {
+                // Update last node index
+                _lastNodeIndex = (_lastNodeIndex + 1) % _capacity;
+
+                // Insert the new value of the last node
+                if (NodesList.Count < _capacity)
+                    // To the list of values
+                    NodesList.Add(newNodeVal);
+                else
+                {
+                    // To the list of values
+                    NodesList[_lastNodeIndex] = newNodeVal;
+                    // Change the first node to be the next
+                    FirstNode = FirstNode.NextNode;
+                }
+
+                // Create the new node to be the last node
+                LastNode = new CircularQueueNode<T>(this, newNodeVal, NodesList, _lastNodeIndex);
+
+                // Check if the first node is null
+                if (FirstNode == null)
+                    // If yes then set the last node to be the first node as well
+                    FirstNode = LastNode;
+
+                // Update the count value
+                _count = NodesList.Count;
+
+                return newNodeVal;
+            }
+
+            public T GetFirst()
+            {
+                if (NodesList.Count != 0)
+                    return NodesList[(_lastNodeIndex + 1) % _count];
+                else
+                    return default(T);
+            }
+
+            public T GetLast()
+            {
+                if (NodesList.Count != 0)
+                    return NodesList[_lastNodeIndex];
+                else
+                    return default(T);
+            }
+
+            public T[] ToArray()
+            {
+                return NodesList.ToArray();
+            }
+        }
+
+        public class CircularQueueNode<T>
+        {
+            public T Value { get; private set; }
+            private int _nodeIndex;
+
+            public CircularQueueNode<T> PreviousNode { get; private set; } = null;
+            public CircularQueueNode<T> NextNode { get; private set; } = null;
+
+            private CircularQueue<T> ParentCircularQueue { get; set; }
+            private List<T> NodesList;
+
+            public CircularQueueNode(CircularQueue<T> parentCircularQueue, T currentNodeVal, List<T> nodesList, int nodeIndex)
+            {
+                // Set the values to this node
+                ParentCircularQueue = parentCircularQueue;
+                NodesList = nodesList;
+                Value = currentNodeVal;
+                _nodeIndex = nodeIndex;
+                // Move the loop of the circular queue
+                parentCircularQueue.LastNode?.SetNextNode(this);
+                PreviousNode = parentCircularQueue.LastNode;
+                NextNode = parentCircularQueue.FirstNode;
+                NextNode?.SetPreviousNode(this);
+            }
+
+            public void SetValue(T newValue)
+            {
+                Value = newValue;
+                NodesList[_nodeIndex] = newValue;
+            }
+
+            public void SetPreviousNode(CircularQueueNode<T> previousNode)
+            {
+                PreviousNode = previousNode;
+            }
+
+            public void SetNextNode(CircularQueueNode<T> nextNode)
+            {
+                NextNode = nextNode;
+            }
+        }
     }
 }

@@ -184,10 +184,24 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             }
             else if (_ModelName.Equals(NaiveBayesModel.ModelName))
             {
-                // This is for naive bayes
+                // This is for naive bayes TF_NET_KERAS_NN
                 NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, aIToolsForm);
                 Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
                 nbThread.Start();
+            }
+            else if (_ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
+            {
+                // This is for Tensorflow.Net Neural Networks models
+                TF_NET_NN tf_NET_NN = new TF_NET_NN(_arthtModelsDic, aIToolsForm);
+                Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
+                tfNetThread.Start();
+            }
+            else if (_ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
+            {
+                // This is for Tensorflow.Keras Neural Networks models
+                TF_NET_KERAS_NN tf_Keras_NN = new TF_NET_KERAS_NN(_arthtModelsDic, aIToolsForm);
+                Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
+                tfKerasThread.Start();
             }
         }
 

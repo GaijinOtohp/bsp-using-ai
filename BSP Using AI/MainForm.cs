@@ -5,10 +5,10 @@ using BSP_Using_AI.SignalHolderFolder;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI
 {
@@ -186,6 +186,20 @@ namespace BSP_Using_AI
                             NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, null);
                             Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW(Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             nbThread.Start();
+                        }
+                        else if (row.Field<string>("type_name").Equals(TFNETNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
+                        {
+                            // Create models for Tensorflow.Net Neural Networks models
+                            TF_NET_NN tf_NET_NN = new TF_NET_NN(_arthtModelsDic, null);
+                            Thread tfNetThread = new Thread(() => tf_NET_NN.initializeTFNETNeuralNetworkModelsForWPW(Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
+                            tfNetThread.Start();
+                        }
+                        else if (row.Field<string>("type_name").Equals(TFKerasNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
+                        {
+                            // Create models for Tensorflow.Keras Neural Networks models
+                            TF_NET_KERAS_NN tf_Keras_NN = new TF_NET_KERAS_NN(_arthtModelsDic, null);
+                            Thread tfKerasThread = new Thread(() => tf_Keras_NN.initializeTFKerasNeuralNetworkModelsForWPW(Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
+                            tfKerasThread.Start();
                         }
                     }
                     // If yes then query for last signal id from the most trained model

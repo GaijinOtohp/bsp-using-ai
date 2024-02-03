@@ -184,7 +184,8 @@ namespace BSP_Using_AI.AITools
             int modelIndx = 0;
             while (_arthtModelsDic.ContainsKey("Neural network for WPW syndrome detection" + modelIndx))
                 modelIndx++;
-            string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/TFModels/NN/WPW" + modelIndx + "/";
+            //string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/TFModels/NN/WPW" + modelIndx + "/";
+            string modelPath = "C:/Users/SMURF/Desktop/Tens/AIModels/TFModels/NN/WPW" + modelIndx + "/";
 
             // Create neural network models for WPW syndrome detection
             // Create 7 models for { 2 for QRS detection (Threshold_ratio & Hor_threshold, remove_miss_selected_R),

@@ -297,6 +297,20 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
                     nbThread.Start();
                 }
+                else if (_aRTHTModels.ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
+                {
+                    // This is for Tensorflow.Net Neural Networks models
+                    TF_NET_NN tf_NET_NN = new TF_NET_NN(_aIToolsForm._arthtModelsDic, _aIToolsForm);
+                    Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
+                    tfNetThread.Start();
+                }
+                else if (_aRTHTModels.ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
+                {
+                    // This is for Tensorflow.Keras Neural Networks models
+                    TF_NET_KERAS_NN tf_Keras_NN = new TF_NET_KERAS_NN(_aIToolsForm._arthtModelsDic, _aIToolsForm);
+                    Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
+                    tfKerasThread.Start();
+                }
             }
         }
     }
