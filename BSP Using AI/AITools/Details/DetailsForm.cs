@@ -1,5 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
 using Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.Database;
 using System;
@@ -46,7 +47,7 @@ namespace BSP_Using_AI.AITools.Details
                 refreshValidationData(stepName, false);
             }
 
-            timeToFinishLabel.Text = "Processed in: " + Garage.PeriodInSecToString(_aRTHTModels._validationTimeCompelxity) + ", " + _aRTHTModels._ValidationInfo;
+            timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(_aRTHTModels._validationTimeCompelxity) + ", " + _aRTHTModels._ValidationInfo;
 
             // Query for all signals in dataset table
             DbStimulator dbStimulator = new DbStimulator();
@@ -219,7 +220,7 @@ namespace BSP_Using_AI.AITools.Details
                 _remainingTime = remainingTime;
 
 
-                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Time to finish: " + Garage.PeriodInSecToString(_remainingTime); }));
+                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Time to finish: " + GeneralTools.PeriodInSecToString(_remainingTime); }));
             }
 
             // Run again
@@ -227,14 +228,14 @@ namespace BSP_Using_AI.AITools.Details
             {
                 // Set final processing time
                 long processingTime = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - _startingTime) / 1000;
-                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Processed in: " + Garage.PeriodInSecToString(processingTime) + ", " + _aRTHTModels._ValidationInfo; }));
+                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(processingTime) + ", " + _aRTHTModels._ValidationInfo; }));
                 // Insert it in _validationData
                 _aRTHTModels._validationTimeCompelxity = processingTime;
 
                 // Update validation data in models table
                 DbStimulator dbStimulator = new DbStimulator();
                 dbStimulator.Update("models", new string[] { "the_model" },
-                    new Object[] { Garage.ObjectToByteArray(_aRTHTModels.Clone()) }, _modelId, "DetailsForm");
+                    new Object[] { GeneralTools.ObjectToByteArray(_aRTHTModels.Clone()) }, _modelId, "DetailsForm");
             }
             else
                 _timer.Change(TIME_INTERVAL_IN_MILLISECONDS, Timeout.Infinite);
@@ -293,7 +294,7 @@ namespace BSP_Using_AI.AITools.Details
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models",
                                         new String[] { "the_model" },
-                                        new object[] { Garage.ObjectToByteArray(_aRTHTModels.Clone()) },
+                                        new object[] { GeneralTools.ObjectToByteArray(_aRTHTModels.Clone()) },
                                         _modelId,
                                         "DetailsForm"));
             dbStimulatorThread.Start();
@@ -328,7 +329,7 @@ namespace BSP_Using_AI.AITools.Details
                     List<string> namesList = new List<string>();
                     foreach (DataRow row in rowsList)
                         namesList.Add(row.Field<string>("sginal_name"));
-                    rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
+                    rowsList = GeneralTools.OrderByTextWithNumbers(rowsList, namesList);
 
                     // Insert new items from records
                     foreach (DataRow row in rowsList)
@@ -385,7 +386,7 @@ namespace BSP_Using_AI.AITools.Details
 
                             foreach (DataRow row in dataTable.AsEnumerable())
                             {
-                                ARTHTFeatures aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
+                                ARTHTFeatures aRTHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
 
                                 foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
                                 {

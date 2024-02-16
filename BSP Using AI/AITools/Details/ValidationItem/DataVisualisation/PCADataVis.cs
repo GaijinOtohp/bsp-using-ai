@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.Garage;
 using ScottPlot;
 using ScottPlot.Plottable;
 using System;
@@ -65,7 +66,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         //********************************************EVENT HANDLERS*********************************************//
         private void saveAsImageButton_Click(object sender, EventArgs e)
         {
-            Garage.saveChartAsImage(pcaChart);
+            GeneralTools.saveChartAsImage(pcaChart);
         }
 
         private void pcaChart_MouseMove(object sender, MouseEventArgs e)
@@ -147,7 +148,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // Update model in models table with the new eigenvectors
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Update("models", new string[] { "the_model" },
-                new Object[] { Garage.ObjectToByteArray(_arthtModelsDic[_ModelName + _ProblemName].Clone()) }, _modelId, "PCADataVis");
+                new Object[] { GeneralTools.ObjectToByteArray(_arthtModelsDic[_ModelName + _ProblemName].Clone()) }, _modelId, "PCADataVis");
 
             // Update the model
             // Initialize features lists
@@ -265,218 +266,21 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             if (dataList.Count > 0)
                 featuresLabels = dataList[0].DataParent.FeaturesLabelsIndx.OrderBy(feature => feature.Value).Select(feature => feature.Key).ToArray();
 
-            // Standardize data and compute covariance matrix
-            double[][] covMat = coVarMatForStandardizedData(standardizeData(data));
-
-            // Compute PCA (QR algorithm of covMat)
-            // where the columns of qMat are the eigenvectors, and the diagonal of rMat is the eigenvalues
-            double[][] qMat, rMat, prevQMat;
-            (qMat, rMat) = getQRMat(covMat);
-            // Set the convergence tolerance of qMat
+            // Get eigenvectors and eigenvalues using PCA
+            // Set the convergence tolerance of eigVecMat
             double tol = 0.00001;
-            // Converge the qMat
-            for (int i = 0; i < 100; i++)
-            {
-                prevQMat = qMat;
-                (qMat, rMat) = getQRMat(matMultiply(covMat, qMat));
-
-                if (matSubtract(prevQMat, qMat).Item2 < tol)
-                    break;
-            }
-
-            // Set a list for eigenvalue and its corresponding eigenvector
-            List<(double, EigenVectorItem[])> PCList = new List<(double, EigenVectorItem[])>();
-            EigenVectorItem[] eigenVector;
-            for (int col = 0; col < qMat[0].Length; col++)
-            {
-                eigenVector = new EigenVectorItem[qMat.GetLength(0)];
-                for (int row = 0; row < eigenVector.Length; row++)
-                    eigenVector[row] = new EigenVectorItem { FeatureLabel = featuresLabels[row], loadingScore = qMat[row][col] };
-                PCList.Add((rMat[col][col], eigenVector));
-            }
-            // Sort the eigenvectors according to eigenvalues in a descending way
-            PCList.Sort((e1, e2) => { return e2.Item1.CompareTo(e1.Item1); });
+            (double[,] eigVecMat, double[] eigVals) = MatrixTools.MatPCA(MatrixTools.Vecs2Mat(data), tol);
 
             // Copy eigenvectors in _eigenVectors
-            pca = new List<PCAitem>(PCList.Count);
-            for (int i = 0; i < PCList.Count; i++)
+            pca = new List<PCAitem>(eigVals.Length);
+            for (int col = 0; col < eigVals.Length; col++)
             {
-                pca.Add(new PCAitem() { _eigenValue = PCList[i].Item1, EigenVector = PCList[i].Item2 });
+                EigenVectorItem[] eigVecItem = Enumerable.Range(0, eigVecMat.GetLength(0)).Select(row =>
+                                           new EigenVectorItem { FeatureLabel = featuresLabels[row], loadingScore = eigVecMat[row, col] }).ToArray();
+                pca.Add(new PCAitem() { _eigenValue = eigVals[col], EigenVector = eigVecItem });
             }
 
             return pca;
-        }
-
-        private static double[][] standardizeData(double[][] data)
-        {
-            // Calculate mean and standard deviation of each column (mean row, and standard deviation row)
-            double[] means = new double[data[0].Length], stdDevs = new double[data[0].Length];
-            double[] colVals;
-            for (int col = 0; col < means.Length; col++)
-            {
-                // Copy the column of attributes
-                colVals = new double[data.GetLength(0)];
-                for (int row = 0; row < colVals.Length; row++)
-                    colVals[row] = data[row][col];
-                // Compute the mean
-                means[col] = (Garage.MeanMinMax(colVals)).mean;
-                // Compute standard deviation
-                stdDevs[col] = Garage.stdDevCalc(colVals, means[col]);
-            }
-            // Standardize data
-            double[][] stdzedData = new double[data.GetLength(0)][];
-            for (int row = 0; row < data.GetLength(0); row++)
-                stdzedData[row] = new double[data[row].Length];
-            for (int col = 0; col < data[0].Length; col++)
-                for (int row = 0; row < data.GetLength(0); row++)
-                {
-                    stdzedData[row][col] = (data[row][col] - means[col]) / stdDevs[col];
-                    if (double.IsNaN(stdzedData[row][col]))
-                        stdzedData[row][col] = 0d;
-                }
-
-            return stdzedData;
-        }
-
-        private static double[][] coVarMatForStandardizedData(double[][] data)
-        {
-            // Initialize coVar matrix
-            double[][] covarMat = new double[data[0].Length][];
-            // Compute covariance for each row
-            int totalCols = data.GetLength(0);
-            for (int covarRow = 0; covarRow < covarMat.GetLength(0); covarRow++)
-            {
-                double[] coVarRow = new double[covarMat.GetLength(0)];
-                for (int covarCol = 0; covarCol < covarMat.GetLength(0); covarCol++)
-                {
-                    foreach (double[] dataRow in data)
-                        coVarRow[covarCol] += dataRow[covarCol] * dataRow[covarRow] / totalCols;
-                }
-                // Add the new coVar row in covarMat
-                covarMat[covarRow] = coVarRow;
-            }
-
-            return covarMat;
-        }
-
-        /**
-         * qMat columns are the eigenvectors
-         * diagonal elements of rMat are the eigenvalues
-         */
-        private static (double[][], double[][]) getQRMat(double[][] data)
-        {
-            // Initialize Q matrix which has the same number of rows as data
-            double[][] qMat = new double[data.GetLength(0)][];
-            for (int row = 0; row < qMat.GetLength(0); row++)
-                qMat[row] = new double[data[0].Length];
-            // Initialize R matrix which has the number of qMat columns as the number of rows
-            double[][] rMat = new double[data[0].Length][];
-            for (int row = 0; row < rMat.GetLength(0); row++)
-                rMat[row] = new double[data.GetLength(0)];
-
-            // Q matrix is the orthogonalization of data rows
-            // Orthogonalize data column using the Gram Schmidt algorithm
-            // Iterate through each column in data and orthogonalize it with what is in qMat
-            double[] newPsi;
-            double dotProductCoef;
-            double normalizationCoef;
-            for (int col = 0; col < data[0].Length; col++)
-            {
-                newPsi = new double[data.GetLength(0)];
-                for (int row = 0; row < newPsi.Length; row++)
-                    newPsi[row] = data[row][col];
-
-                // Iterate through each column in qMat
-                // and remove the projection of the selected vector on the qMat vectors from the seleced vector
-                for (int qMatCol = 0; qMatCol < col; qMatCol++)
-                {
-                    double[] Psi = Enumerable.Range(0, qMat.GetLength(0)).Select(x => qMat[x][qMatCol]).ToArray();
-
-                    // Calculate the new dotProductCoef between current vector and psi
-                    dotProductCoef = 0D;
-                    for (int row = 0; row < newPsi.Length; row++)
-                        dotProductCoef += newPsi[row] * Psi[row];
-
-                    // Remove the projevtion from the vector
-                    for (int row = 0; row < newPsi.Length; row++)
-                        newPsi[row] -= dotProductCoef * Psi[row];
-
-                    // Insert dotProductCoef in rMat
-                    rMat[qMatCol][col] = dotProductCoef;
-                }
-
-                // Compute the magnitude of the new vector for normalization
-                normalizationCoef = 0D;
-                foreach (double sample in newPsi)
-                    normalizationCoef += sample * sample;
-                normalizationCoef = Math.Sqrt(normalizationCoef);
-                // Normalize the vector and insert it in qMat
-                for (int row = 0; row < newPsi.Length; row++)
-                {
-                    newPsi[row] = newPsi[row] / normalizationCoef;
-                    if (double.IsNaN(newPsi[row]))
-                        newPsi[row] = 0d;
-                    qMat[row][col] = newPsi[row];
-                }
-
-                // Insert normalizationCoef in rMat
-                rMat[col][col] = normalizationCoef;
-            }
-
-            return (qMat, rMat);
-        }
-
-        private static double[][] matMultiply(double[][] mat1, double[][] mat2)
-        {
-            double[][] result = new double[mat1.GetLength(0)][];
-            // Check if number of columns of mat1 is equal to number of rows in mat2
-            if (mat1.GetLength(0) == mat2[0].Length)
-            {
-                // If yes then start multiplication
-                double buffer = 0d;
-                for (int row = 0; row < result.GetLength(0); row++)
-                {
-                    // Initialize a row
-                    result[row] = new double[mat2[0].Length];
-                    for (int col = 0; col < result[row].Length; col++)
-                    {
-                        // Compute the multiplication coefficient for the selected row and column
-                        buffer = 0d;
-                        for (int i = 0; i < result.GetLength(0); i++)
-                            buffer += mat1[row][i] * mat2[i][col];
-                        // Insert result
-                        result[row][col] = buffer;
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        private static (double[][], double) matSubtract(double[][] mat1, double[][] mat2)
-        {
-            double[][] result = new double[mat1.GetLength(0)][];
-            double elementWiseResult = 0;
-            double totalElementsNumb = mat1.GetLength(0) * mat1[0].Length;
-            // Check if both matrices have the same row and column numbers
-            if (mat1.GetLength(0) == mat2.GetLength(0) && mat1[0].Length == mat2[0].Length)
-            {
-                // If yes then start subtraction
-                for (int row = 0; row < result.GetLength(0); row++)
-                {
-                    // Initialize a row
-                    result[row] = new double[mat2[0].Length];
-                    for (int col = 0; col < result[row].Length; col++)
-                    {
-                        // Compute the subtraction of the selected row and column and insert it in result matrix and in elementWiseResult
-                        result[row][col] = mat1[row][col] - mat2[row][col];
-                        // Update totalElementsNumb
-                        elementWiseResult += Math.Abs(result[row][col]) / totalElementsNumb;
-                    }
-                }
-            }
-
-            return (result, elementWiseResult);
         }
     }
 }

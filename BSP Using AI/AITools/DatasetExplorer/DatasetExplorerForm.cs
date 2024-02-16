@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.Database;
 using System;
 using System.Collections.Generic;
@@ -214,7 +215,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 List<string> namesList = new List<string>();
                 foreach (DataRow row in rowsList)
                     namesList.Add(row.Field<string>("sginal_name"));
-                rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
+                rowsList = GeneralTools.OrderByTextWithNumbers(rowsList, namesList);
 
                 // Insert new items from records
                 foreach (DataRow row in rowsList)
@@ -255,7 +256,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 ARTHTFeatures aRTHTFeatures = null;
                 foreach (DataRow row in dataTable.AsEnumerable())
                 {
-                    aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
+                    aRTHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
                     foreach (string stepName in aRTHTFeatures.StepsDataDic.Keys)
                     {
                         if (!dataLists.ContainsKey(stepName))

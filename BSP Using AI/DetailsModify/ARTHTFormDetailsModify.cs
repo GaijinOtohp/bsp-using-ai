@@ -1,5 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
 using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.DetailsModify.Filters;
 using ScottPlot;
@@ -273,7 +274,7 @@ namespace BSP_Using_AI.DetailsModify
 
                 ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
                 foreach (string stateName in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Selection, SANamings.Labels })
-                    Garage.loadXYInChart(signalChart, _Plots[stateName], null, null, null, 0, "ARTHTFormDetailsModify");
+                    GeneralTools.loadXYInChart(signalChart, _Plots[stateName], null, null, null, 0, "ARTHTFormDetailsModify");
 
                 // Reset the signal
                 _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
@@ -352,7 +353,7 @@ namespace BSP_Using_AI.DetailsModify
                             _FilteringTools.ApplyFilters(false);
 
                             // Create the pdf of the signal
-                            statParams = Garage.statParams(_FilteringTools._FilteredSamples);
+                            statParams = GeneralTools.statParams(_FilteringTools._FilteredSamples);
                             for (int j = 0; j < statParams.Count; j++)
                             {
                                 rPeaksScanSamp.insertFeature(i * 5 + j, statParams[j].Name + (i + 1), statParams[j]._value);
@@ -395,7 +396,7 @@ namespace BSP_Using_AI.DetailsModify
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
                         // Set the up peaks labels ready
                         ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Black;
-                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = Garage.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
+                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = GeneralTools.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
                         signalChart.Refresh();
 
                         // Give the instruction for next goal, and enable previous button
@@ -585,7 +586,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Create the pdf of the signal and insert its coefs as inputs
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Features);
-                        statParams = Garage.statParams(_FilteringTools._FilteredSamples);
+                        statParams = GeneralTools.statParams(_FilteringTools._FilteredSamples);
                         Sample beatPeaksScanSamp = new Sample(ARTHTNamings.Step3BeatPeaksScanData + _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples.Count, 5, 2, _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData]);
                         for (int j = 0; j < statParams.Count; j++)
                         {
@@ -955,7 +956,7 @@ namespace BSP_Using_AI.DetailsModify
                         upstrokeScanSamp.insertFeature(0, ARTHTNamings.PQIntrvl, _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].getFeatureByLabel(shortPRBeatIndx, ARTHTNamings.PQIntrvl));
                         flowLayoutItems02.DropDownItems.Add(ARTHTNamings.PQIntrvl + ": " + upstrokeScanSamp.getFeatureByLabel(ARTHTNamings.PQIntrvl));
 
-                        statParams = Garage.statParams(Garage.normalizeSignal(_FilteringTools._FilteredSamples));
+                        statParams = GeneralTools.statParams(GeneralTools.normalizeSignal(_FilteringTools._FilteredSamples));
                         for (int j = 0; j < statParams.Count; j++)
                         {
                             upstrokeScanSamp.insertFeature(j + 1, statParams[j].Name, statParams[j]._value);
@@ -1072,7 +1073,7 @@ namespace BSP_Using_AI.DetailsModify
                                                     (double)(_arthtFeatures.SignalBeats[shortPRBeatIndx]._rIndex - _arthtFeatures.SignalBeats[shortPRBeatIndx]._qIndex));
                         flowLayoutItems02.DropDownItems.Add(ARTHTNamings.DeltaAmp + ": " + deltaExamSamp.getFeatureByLabel(ARTHTNamings.DeltaAmp));
 
-                        statParams = Garage.statParams(Garage.normalizeSignal(_FilteringTools._FilteredSamples));
+                        statParams = GeneralTools.statParams(GeneralTools.normalizeSignal(_FilteringTools._FilteredSamples));
                         for (int j = 0; j < statParams.Count; j++)
                         {
                             deltaExamSamp.insertFeature(j + 1, statParams[j].Name, statParams[j]._value);
@@ -1151,7 +1152,7 @@ namespace BSP_Using_AI.DetailsModify
                 _FilteringTools._RawSamples[i - BeatInfo._startingIndex] = _FilteringTools._OriginalRawSamples[i];
 
             foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Labels })
-                Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
             ((BubblePlot)_Plots[SANamings.Selection]).Clear();
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(ARTHTSample.getOutputByLabel(ARTHTNamings.ART));
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(ARTHTSample.getOutputByLabel(ARTHTNamings.HT));
@@ -1224,8 +1225,8 @@ namespace BSP_Using_AI.DetailsModify
             }
 
             foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
-            Garage.loadXYInChart(signalChart, _Plots[SANamings.Labels],
+                GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+            GeneralTools.loadXYInChart(signalChart, _Plots[SANamings.Labels],
                                  peaksLabels.Select(labelX => (double)labelX[0] / _FilteringTools._samplingRate).ToArray(),
                                  peaksLabels.Select(labelY => (double)labelY[1]).ToArray(),
                                  peaksLabels.Select(label => (string)label[2]).ToArray(),
@@ -1344,7 +1345,7 @@ namespace BSP_Using_AI.DetailsModify
                     }
                     // Show the last beat with short PR
                     foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Labels })
-                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     setNextBeat(_arthtFeatures.SignalBeats[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[previousShortPRBeatIndx], null);
 
                     // Give the instruction for next goal, and enable previous button
@@ -1401,7 +1402,7 @@ namespace BSP_Using_AI.DetailsModify
                     ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare]).SetExistance(false);
                     // Refresh the apply button if autoApply is checked
                     foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     int selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1422,7 +1423,7 @@ namespace BSP_Using_AI.DetailsModify
 
                     // Set the next beat for segmentation
                     foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1457,7 +1458,7 @@ namespace BSP_Using_AI.DetailsModify
 
                     // Refresh the apply button if autoApply is checked
                     foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     _FilteringTools.ApplyFilters(false);
 
                     // Give the instruction for next goal, and enable previous button
@@ -1473,7 +1474,7 @@ namespace BSP_Using_AI.DetailsModify
 
                     // Refresh the apply button if autoApply is checked
                     foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
                     for (int i = 0; i < _FilteringTools._OriginalRawSamples.Length; i++)
                         _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
@@ -1516,7 +1517,7 @@ namespace BSP_Using_AI.DetailsModify
 
                     // Set the up peaks labels ready
                     ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Black;
-                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = Garage.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
+                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = GeneralTools.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
                     signalChart.Refresh();
 
                     // Give the instruction for next goal, and enable previous button
@@ -1547,7 +1548,7 @@ namespace BSP_Using_AI.DetailsModify
 
                     // Set the up peaks labels ready
                     foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        Garage.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
 
                     // Show the signal

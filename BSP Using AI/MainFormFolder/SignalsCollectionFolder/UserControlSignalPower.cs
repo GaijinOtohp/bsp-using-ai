@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using System;
 using System.Windows.Forms;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
@@ -32,7 +33,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsCollectionFolder
             signalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
 
             // Insert signal in chart
-            Garage.loadSignalInChart(signalExhibitor, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "UserControlSignalPower");
+            GeneralTools.loadSignalInChart(signalExhibitor, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "UserControlSignalPower");
         }
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)

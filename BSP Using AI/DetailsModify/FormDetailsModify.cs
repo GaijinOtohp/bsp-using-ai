@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.SignalHolderFolder;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.SignalHolderFolder;
 using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
@@ -53,11 +54,11 @@ namespace BSP_Using_AI.DetailsModify
 
             // Insert signal, up, down, stable, selection, and labels plots in signalChart
             _Plots.Add(SANamings.Signal, signalChart.Plot.GetPlottables()[0]);
-            _Plots.Add(SANamings.UpPeaks, Garage.AddScatterPlot(signalChart, Color.Blue, label: SANamings.UpPeaks));
-            _Plots.Add(SANamings.DownPeaks, Garage.AddScatterPlot(signalChart, Color.Red, label: SANamings.DownPeaks));
-            _Plots.Add(SANamings.StableStates, Garage.AddScatterPlot(signalChart, Color.Black, label: SANamings.StableStates));
+            _Plots.Add(SANamings.UpPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.UpPeaks));
+            _Plots.Add(SANamings.DownPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Red, label: SANamings.DownPeaks));
+            _Plots.Add(SANamings.StableStates, GeneralTools.AddScatterPlot(signalChart, Color.Black, label: SANamings.StableStates));
             _Plots.Add(SANamings.Selection, signalChart.Plot.AddBubblePlot());
-            _Plots.Add(SANamings.Labels, Garage.AddScatterPlot(signalChart, Color.Blue, label: SANamings.Labels));
+            _Plots.Add(SANamings.Labels, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.Labels));
 
             _FilteringTools.SetAutoApply(true);
         }
@@ -90,7 +91,7 @@ namespace BSP_Using_AI.DetailsModify
             List<(string modelName, string modelNameProblem)> modelsNamesList = new List<(string, string)>();
             foreach (ARTHTModels model in ((MainForm)signalHolder.FindForm())._arthtModelsDic.Values)
                 modelsNamesList.Add((model.ModelName, model.ModelName + model.ProblemName));
-            modelsNamesList = Garage.OrderByTextWithNumbers(modelsNamesList, modelsNamesList.Select(item => item.modelNameProblem).ToList());
+            modelsNamesList = GeneralTools.OrderByTextWithNumbers(modelsNamesList, modelsNamesList.Select(item => item.modelNameProblem).ToList());
             modelTypeComboBox.DisplayMember = "modelNameProblem";
             modelTypeComboBox.ValueMember = "modelName";
             foreach ((string modelName, string modelNameProblem) modelsNames in modelsNamesList)
@@ -108,13 +109,13 @@ namespace BSP_Using_AI.DetailsModify
                 double[] fftMag = applyFFT(samples);
 
                 // Load signals inside charts
-                Garage.loadSignalInChart(signalChart, samples, samplingRate, startingInSec, "FormDetailsModifySignal");
+                GeneralTools.loadSignalInChart(signalChart, samples, samplingRate, startingInSec, "FormDetailsModifySignal");
 
                 // Set the real frequency rate
                 // ftMag has only half of the spectrum (the real frequencies)
                 double hzRate = (fftMag.Length * 2) / samplingRate;
                 // Load fft inside its chart
-                Garage.loadSignalInChart(spectrumChart, fftMag, hzRate, 0, "FormDetailsModify");
+                GeneralTools.loadSignalInChart(spectrumChart, fftMag, hzRate, 0, "FormDetailsModify");
             }
             catch (Exception e)
             {
@@ -124,7 +125,7 @@ namespace BSP_Using_AI.DetailsModify
 
         private double[] applyFFT(double[] samples)
         {
-            double[] fftMag = Garage.calculateFFT(samples);
+            double[] fftMag = GeneralTools.calculateFFT(samples);
 
             // Check if samples contains values higher than "337,593,543,950,335"
             double threshold = 337593543950335D;

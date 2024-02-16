@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.Database;
@@ -137,10 +138,10 @@ namespace BSP_Using_AI
             List<string> namesList = new List<string>();
             foreach (DataRow row in rowsList)
             {
-                ARTHTModels aRTHTModels = Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
+                ARTHTModels aRTHTModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
                 namesList.Add(aRTHTModels.ModelName + aRTHTModels.ProblemName);
             }
-            rowsList = Garage.OrderByTextWithNumbers(rowsList, namesList);
+            rowsList = GeneralTools.OrderByTextWithNumbers(rowsList, namesList);
 
             // Insert new items from records
             foreach (DataRow row in rowsList)
@@ -148,7 +149,7 @@ namespace BSP_Using_AI
                 // Create an item of the model
                 ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl();
 
-                ARTHTModels aRTHTModels = Garage.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
+                ARTHTModels aRTHTModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
 
                 modelsFlowLayoutPanelItemUserControl.Name = aRTHTModels.ModelName + aRTHTModels.ProblemName;
                 modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = aRTHTModels.ModelName + aRTHTModels.ProblemName;

@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using BSP_Using_AI.Database;
 using System;
 using System.Collections.Generic;
@@ -87,7 +88,7 @@ namespace BSP_Using_AI.AITools.Details
             ARTHTFeatures aRTHTFeatures = null;
             foreach (DataRow row in dataTable.AsEnumerable())
             {
-                aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
+                aRTHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
 
                 foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
                     dataList.Add(sample);

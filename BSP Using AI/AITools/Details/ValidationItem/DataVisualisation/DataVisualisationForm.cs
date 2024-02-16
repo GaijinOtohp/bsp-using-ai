@@ -1,4 +1,5 @@
-﻿using ScottPlot;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using ScottPlot;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -76,7 +77,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Garage.saveChartAsImage(rawChart);
+            GeneralTools.saveChartAsImage(rawChart);
         }
     }
 }

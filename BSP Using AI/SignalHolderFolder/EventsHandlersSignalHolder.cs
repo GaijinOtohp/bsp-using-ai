@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.DetailsModify;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.DetailsModify;
 using BSP_Using_AI.SignalHolderFolder.Input;
 using System;
 using System.Linq;
@@ -71,8 +72,8 @@ namespace BSP_Using_AI.SignalHolderFolder
             // Save the signal with its features in dataset
             DbStimulator dbStimulator = new DbStimulator();
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Insert("dataset", new string[] { "sginal_name", "starting_index", "signal", "sampling_rate", "quantisation_step", "features" },
-                new Object[] { pathLabel.Text, _FilteringTools._startingInSec, Garage.ObjectToByteArray(_FilteringTools._OriginalRawSamples), _FilteringTools._samplingRate,
-                               _FilteringTools._quantizationStep, Garage.ObjectToByteArray(_arthtFeatures) }, "SignalHolder"));
+                new Object[] { pathLabel.Text, _FilteringTools._startingInSec, GeneralTools.ObjectToByteArray(_FilteringTools._OriginalRawSamples), _FilteringTools._samplingRate,
+                               _FilteringTools._quantizationStep, GeneralTools.ObjectToByteArray(_arthtFeatures) }, "SignalHolder"));
             dbStimulatorThread.Start();
 
             // Update the notification badge for unfitted signals

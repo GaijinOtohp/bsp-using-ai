@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using Keras;
 using Keras.Layers;
 using Keras.Models;
@@ -120,7 +121,7 @@ namespace BSP_Using_AI.AITools
             if (_arthtModelsDic[modelsName].DataIdsIntervalsList.Count > 0)
             {
                 Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
-                    new Object[] { Garage.ObjectToByteArray(_arthtModelsDic[modelsName].Clone()), datasetSize }, modelId, "TFBackThread"));
+                    new Object[] { GeneralTools.ObjectToByteArray(_arthtModelsDic[modelsName].Clone()), datasetSize }, modelId, "TFBackThread"));
                 dbStimulatorThread.Start();
             }
 
@@ -132,7 +133,7 @@ namespace BSP_Using_AI.AITools
         private NeuralNetworkModel fit(NeuralNetworkModel model, List<Sample> dataList, bool saveModel)
         {
             if (model._pcaActive)
-                dataList = Garage.rearrangeFeaturesInput(dataList, model.PCA);
+                dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
 
             if (dataList.Count > 0)
             {
@@ -164,7 +165,7 @@ namespace BSP_Using_AI.AITools
         {
             // Initialize input
             if (model._pcaActive)
-                features = Garage.rearrangeInput(features, model.PCA);
+                features = GeneralTools.rearrangeInput(features, model.PCA);
             double[,] x = new double[1, features.Length];
             for (int i = 0; i < features.Length; i++)
                 x[0, i] = features[i];
@@ -208,7 +209,7 @@ namespace BSP_Using_AI.AITools
             // Save path in models table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "dataset_size" },
-                new Object[] { "Neural network", "WPW syndrome detection", Garage.ObjectToByteArray(arthtModels.Clone()), 0 }, "AIToolsForm");
+                new Object[] { "Neural network", "WPW syndrome detection", GeneralTools.ObjectToByteArray(arthtModels.Clone()), 0 }, "AIToolsForm");
 
             // Refresh modelsFlowLayoutPanel
             if (_tFBackThreadReportHolderForAIToolsForm != null)

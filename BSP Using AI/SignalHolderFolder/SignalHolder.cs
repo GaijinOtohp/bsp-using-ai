@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
@@ -72,7 +73,7 @@ namespace BSP_Using_AI.SignalHolderFolder
 
             // Insert signal values inside signal holder chart
             _FilteringTools.SetOriginalSamples(truncatedSamples);
-            Garage.loadSignalInChart(signalExhibitor, _FilteringTools._RawSamples, _FilteringTools._samplingRate, _FilteringTools._startingInSec, "SignalHolderSignal");
+            GeneralTools.loadSignalInChart(signalExhibitor, _FilteringTools._RawSamples, _FilteringTools._samplingRate, _FilteringTools._startingInSec, "SignalHolderSignal");
         }
     }
 }

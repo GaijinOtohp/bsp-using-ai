@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -39,7 +40,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSe
             _foldCapacity = (_dataList.Count / 10) + (_dataList.Count % 10 > 0 ? 1 : 0);
 
             // Shuffle all records first
-            Garage.Shuffle(_dataList);
+            GeneralTools.Shuffle(_dataList);
         }
 
         protected override void OnHandleCreated(EventArgs e)
@@ -135,7 +136,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSe
         private void shuffleButton_Click(object sender, EventArgs e)
         {
             // Shuffle all records first
-            Garage.Shuffle(_dataList);
+            GeneralTools.Shuffle(_dataList);
             // Load data
             ReloadData();
         }
@@ -204,9 +205,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSe
                 for (int i = 0; i < _dataList.Count; i++)
                     // Check if this signal belongs to training set
                     if (i < _trainingSetCapacity)
-                        modelData.TrainingData.Add(Garage.ByteArrayToObject<ARTHTFeatures>(_dataList[i].Field<byte[]>("features")));
+                        modelData.TrainingData.Add(GeneralTools.ByteArrayToObject<ARTHTFeatures>(_dataList[i].Field<byte[]>("features")));
                     else
-                        modelData.ValidationData.Add(Garage.ByteArrayToObject<ARTHTFeatures>(_dataList[i].Field<byte[]>("features")));
+                        modelData.ValidationData.Add(GeneralTools.ByteArrayToObject<ARTHTFeatures>(_dataList[i].Field<byte[]>("features")));
                 data.Add(modelData);
                 // Insert validation info
                 validationInfo = "(Holdout validation, " + Math.Round(_trainingSetCapacity / (double)_dataList.Count * 100, 0) + "% training)";
@@ -224,7 +225,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSe
                         // Create a new one
                         dataFolds[selectedFold] = new List<ARTHTFeatures>();
                     // Insert the signal into the selected fold
-                    dataFolds[selectedFold].Add(Garage.ByteArrayToObject<ARTHTFeatures>(_dataList[i].Field<byte[]>("features")));
+                    dataFolds[selectedFold].Add(GeneralTools.ByteArrayToObject<ARTHTFeatures>(_dataList[i].Field<byte[]>("features")));
                 }
 
                 // Create model datas for the separated folds

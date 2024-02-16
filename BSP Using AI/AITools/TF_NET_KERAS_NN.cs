@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             if (_arthtModelsDic[modelsName].DataIdsIntervalsList.Count > 0)
             {
                 Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
-                    new object[] { Garage.ObjectToByteArray(_arthtModelsDic[modelsName].Clone()), datasetSize }, modelId, "TF_NET_KERAS_NN"));
+                    new object[] { GeneralTools.ObjectToByteArray(_arthtModelsDic[modelsName].Clone()), datasetSize }, modelId, "TF_NET_KERAS_NN"));
                 dbStimulatorThread.Start();
             }
 
@@ -68,7 +69,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         public static TFKerasNeuralNetworkModel fit(TFKerasNeuralNetworkModel model, List<Sample> dataList, bool saveModel = false, int suggestedBatchSize = 4)
         {
             if (model._pcaActive)
-                dataList = Garage.rearrangeFeaturesInput(dataList, model.PCA);
+                dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
 
             if (dataList.Count > 0)
             {
@@ -136,7 +137,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         {
             // Initialize input
             if (model._pcaActive)
-                features = Garage.rearrangeInput(features, model.PCA);
+                features = GeneralTools.rearrangeInput(features, model.PCA);
 
             // Arrange the features in a float[,]
             float[,] featuresFloat = new float[1, features.Length];
@@ -181,7 +182,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // Save path in models table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "dataset_size" },
-                new object[] { TFKerasNeuralNetworkModel.ModelName, "WPW syndrome detection", Garage.ObjectToByteArray(arthtModels.Clone()), 0 }, "AIToolsForm");
+                new object[] { TFKerasNeuralNetworkModel.ModelName, "WPW syndrome detection", GeneralTools.ObjectToByteArray(arthtModels.Clone()), 0 }, "AIToolsForm");
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)

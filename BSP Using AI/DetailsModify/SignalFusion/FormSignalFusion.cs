@@ -1,4 +1,5 @@
-﻿using ScottPlot;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using ScottPlot;
 using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
@@ -87,7 +88,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             }
 
             // Load period inside periodsChart
-            Garage.loadSignalInChart(periodsChart, periodSamples, _FilteringTools._samplingRate, offset, "FormSignalFusion");
+            GeneralTools.loadSignalInChart(periodsChart, periodSamples, _FilteringTools._samplingRate, offset, "FormSignalFusion");
         }
 
         private double[] getPeriodFromIndexAsDouble(int index, int offset, int periodSampling)
@@ -156,7 +157,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             }
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, additionSamples, _FilteringTools._samplingRate, _offset / _FilteringTools._samplingRate, "FormSignalFusion");
+            GeneralTools.loadSignalInChart(fusionChart, additionSamples, _FilteringTools._samplingRate, _offset / _FilteringTools._samplingRate, "FormSignalFusion");
         }
 
         private void crossCorrelationFusion()
@@ -168,7 +169,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
 
             // Iterate through each signal except the last one
             // and intercorrelate it with the signals that comes after it
-            int countedIntercorrelation = Garage.factorial(periodPickerComboBox.Items.Count - 1);
+            int countedIntercorrelation = GeneralTools.factorial(periodPickerComboBox.Items.Count - 1);
             for (int i = 0; i < periodPickerComboBox.Items.Count - 1; i++)
             {
                 // Get the first signal
@@ -189,7 +190,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                         sign2 = getPeriodFromIndexAsDouble(k, (int)_offset, _periodSampling);
 
                     // Calculate the intercorrelation
-                    intercorrelation = Garage.crossCorrelation(sign1, sign2);
+                    intercorrelation = GeneralTools.crossCorrelation(sign1, sign2);
 
                     // Add the result in intercorrelationAverage
                     for (int j = 0; j < intercorrelationAverage.Length; j++)
@@ -198,7 +199,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             }
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, intercorrelationAverage, _FilteringTools._samplingRate, -_periodSampling / _FilteringTools._samplingRate, "FormSignalFusion");
+            GeneralTools.loadSignalInChart(fusionChart, intercorrelationAverage, _FilteringTools._samplingRate, -_periodSampling / _FilteringTools._samplingRate, "FormSignalFusion");
         }
 
         private void orthogonalizationFusion()
@@ -216,9 +217,9 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             // Create the orthogonalized signals
             // Check if periods are centralized
             if (centralizeCheckBox.Checked)
-                _orthogonalizedSignals = Garage.orthogonalization(_synchronizedSamples);
+                _orthogonalizedSignals = GeneralTools.orthogonalization(_synchronizedSamples);
             else
-                _orthogonalizedSignals = Garage.orthogonalization(signals);
+                _orthogonalizedSignals = GeneralTools.orthogonalization(signals);
 
             // Insert orthogonalized signals names in orthogonalSignalsComboBox
             orthogonalSignalsComboBox.DataSource = null;
@@ -234,12 +235,12 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
             /// Returns the states of each move in the signal
             /// as object [] {"state", its index}
             /// where the state could be up, down, or stable
-            List<State> states = Garage.scanPeaks(_FilteringTools._FilteredSamples, 0.02, 1, Double.NaN, _FilteringTools._samplingRate, false)[SANamings.AllPeaks];
+            List<State> states = GeneralTools.scanPeaks(_FilteringTools._FilteredSamples, 0.02, 1, Double.NaN, _FilteringTools._samplingRate, false)[SANamings.AllPeaks];
 
             // Scan for QRS peaks
             /// Returns QRS indexes as int[] {Q index, R index, S index}
             /// where the energy of the QRS should be at least 60% higher than interval
-            _qrsPeaks = Garage.scanQRS(_FilteringTools._FilteredSamples, states);
+            _qrsPeaks = GeneralTools.scanQRS(_FilteringTools._FilteredSamples, states);
             _synchronizedQRSPeaks = new List<int[]>(_qrsPeaks.Count);
 
             // Insert centralized periods from _samples in _synchronizedSamples according to qrsPeaks R indexes
@@ -592,7 +593,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
         {
             // Load the fused signal in fusionChart
             if (orthogonalSignalsComboBox.SelectedIndex >= 0)
-                Garage.loadSignalInChart(fusionChart, _orthogonalizedSignals[orthogonalSignalsComboBox.SelectedIndex], _FilteringTools._samplingRate, 0D, "FormSignalFusion");
+                GeneralTools.loadSignalInChart(fusionChart, _orthogonalizedSignals[orthogonalSignalsComboBox.SelectedIndex], _FilteringTools._samplingRate, 0D, "FormSignalFusion");
         }
 
         private void fuseOrthogonalizationButton_Click(object sender, EventArgs e)
@@ -606,7 +607,7 @@ namespace BSP_Using_AI.DetailsModify.SignalFusion
                     additionSamples[j] += _orthogonalizedSignals[i][j] / countedOrthogonalizedSigs;
 
             // Load the fused signal in fusionChart
-            Garage.loadSignalInChart(fusionChart, additionSamples, _FilteringTools._samplingRate, _offset / _FilteringTools._samplingRate, "FormSignalFusion");
+            GeneralTools.loadSignalInChart(fusionChart, additionSamples, _FilteringTools._samplingRate, _offset / _FilteringTools._samplingRate, "FormSignalFusion");
         }
 
         private void centralizeCheckBox_CheckedChanged(object sender, EventArgs e)

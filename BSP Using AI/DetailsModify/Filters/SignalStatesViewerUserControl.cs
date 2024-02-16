@@ -1,4 +1,5 @@
-﻿using ScottPlot;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using ScottPlot;
 using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
@@ -49,9 +50,9 @@ namespace BSP_Using_AI.DetailsModify.Filters
                 labelsStables = statesDIc[SANamings.StableStates].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
             }
 
-            Garage.loadXYInChart(signalChart, plots[SANamings.UpPeaks], xUps, yUps, labelsUps, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
-            Garage.loadXYInChart(signalChart, plots[SANamings.DownPeaks], xDowns, yDowns, labelsDowns, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
-            Garage.loadXYInChart(signalChart, plots[SANamings.StableStates], xStables, yStables, labelsStables, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.UpPeaks], xUps, yUps, labelsUps, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.DownPeaks], xDowns, yDowns, labelsDowns, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.StableStates], xStables, yStables, labelsStables, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
 
             return statesDIc;
         }

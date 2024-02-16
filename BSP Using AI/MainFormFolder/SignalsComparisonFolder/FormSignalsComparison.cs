@@ -1,4 +1,5 @@
-﻿using ScottPlot;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using ScottPlot;
 using ScottPlot.Plottable;
 using System;
 using System.Drawing;
@@ -51,7 +52,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                 // If yes then copy this signal in firstSignalChart
                 _Signal_1_FilteringTools = filteringTools;
                 // Insert signal values inside signal holder chart
-                Garage.loadSignalInChart(firstSignalChart, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "FormSignalsComparison");
+                GeneralTools.loadSignalInChart(firstSignalChart, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "FormSignalsComparison");
                 // Set signal power
                 firstSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
                 // Uncheck the box
@@ -63,7 +64,7 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                 // If yes then copy this signal in secondSignalChart
                 _Signal_2_FilteringTools = filteringTools;
                 // Insert signal values inside signal holder chart
-                Garage.loadSignalInChart(secondSignalChart, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "FormSignalsComparison");
+                GeneralTools.loadSignalInChart(secondSignalChart, filteringTools._FilteredSamples, filteringTools._samplingRate, 0, "FormSignalsComparison");
                 // Set signal power
                 secondSignalPowerValueLabel.Text = Math.Round(signalPower, 5).ToString();
                 // Uncheck the box
@@ -86,21 +87,21 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
             _comparisonSamplingRate = Math.Max(_Signal_1_FilteringTools._samplingRate, _Signal_2_FilteringTools._samplingRate);
             if (_Signal_1_FilteringTools._samplingRate != _Signal_2_FilteringTools._samplingRate)
                 if (_Signal_1_FilteringTools._samplingRate < _Signal_2_FilteringTools._samplingRate)
-                    sig1 = Garage.UpDownSampling(sig1, _Signal_1_FilteringTools._samplingRate, _Signal_2_FilteringTools._samplingRate);
+                    sig1 = GeneralTools.UpDownSampling(sig1, _Signal_1_FilteringTools._samplingRate, _Signal_2_FilteringTools._samplingRate);
                 else
-                    sig2 = Garage.UpDownSampling(sig2, _Signal_2_FilteringTools._samplingRate, _Signal_1_FilteringTools._samplingRate);
+                    sig2 = GeneralTools.UpDownSampling(sig2, _Signal_2_FilteringTools._samplingRate, _Signal_1_FilteringTools._samplingRate);
 
             // Chekc which comparison is selected
             if (crosscorrelationRadioButton.Checked)
                 // If yes then perform crosscorelation comparison
-                Garage.loadSignalInChart(comparisonChart, Garage.crossCorrelation(sig1, sig2), _comparisonSamplingRate, 0, "FormSignalsComparison");
+                GeneralTools.loadSignalInChart(comparisonChart, GeneralTools.crossCorrelation(sig1, sig2), _comparisonSamplingRate, 0, "FormSignalsComparison");
             else if (minimumDistanceRadioButton.Checked)
                 // If yes then perform minimum subtraction comparison
-                Garage.loadSignalInChart(comparisonChart, Garage.minimumDistance(sig1, sig2), _comparisonSamplingRate, 0, "FormSignalsComparison");
+                GeneralTools.loadSignalInChart(comparisonChart, GeneralTools.minimumDistance(sig1, sig2), _comparisonSamplingRate, 0, "FormSignalsComparison");
             else if (dynamicTimeWrapingRadioButton.Checked)
             {
                 // If yes then perform dynamic time wraping comparison
-                (double distance, double[,] dtw, (int sig1Indx, int sig2Indx)[] path, double[] pathDistance) = Garage.dynamicTimeWrapingDistancePath(sig1, sig2, 30);
+                (double distance, double[,] dtw, (int sig1Indx, int sig2Indx)[] path, double[] pathDistance) = GeneralTools.dynamicTimeWrapingDistancePath(sig1, sig2, 30);
 
                 // Create the coordination of the path
                 double[] pathX = path.Select(item => (double)item.sig1Indx / _comparisonSamplingRate).ToArray();
@@ -112,9 +113,9 @@ namespace BSP_Using_AI.MainFormFolder.SignalsComparisonFolder
                     pathAccumulatedCost[i] = dtw[path[i].sig1Indx, path[i].sig2Indx];
 
                 // Set the signals in their charts
-                Garage.loadSignalInChart(comparisonChart, pathDistance, _comparisonSamplingRate, 0, "FormSignalsComparison");
-                Garage.loadSignalInChart(pathAccumulatedDistanceChart, pathAccumulatedCost, _comparisonSamplingRate, 0, "FormSignalsComparison");
-                Garage.loadSignalInChart(pathChart, pathX, pathY, 0d, "FormSignalsComparison");
+                GeneralTools.loadSignalInChart(comparisonChart, pathDistance, _comparisonSamplingRate, 0, "FormSignalsComparison");
+                GeneralTools.loadSignalInChart(pathAccumulatedDistanceChart, pathAccumulatedCost, _comparisonSamplingRate, 0, "FormSignalsComparison");
+                GeneralTools.loadSignalInChart(pathChart, pathX, pathY, 0d, "FormSignalsComparison");
             }
 
             // Set signal power

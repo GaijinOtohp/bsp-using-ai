@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -201,7 +202,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                             }
 
                             // Normalize colorVals
-                            (double mean, double min, double max) meanMinMax = Garage.MeanMinMax(colorVals);
+                            (double mean, double min, double max) meanMinMax = GeneralTools.MeanMinMax(colorVals);
                             double interval = meanMinMax.max - meanMinMax.min;
                             for (int i = 0; i < colorVals.Length; i++)
                                 colorVals[i] = (colorVals[i] - meanMinMax.min) / interval;

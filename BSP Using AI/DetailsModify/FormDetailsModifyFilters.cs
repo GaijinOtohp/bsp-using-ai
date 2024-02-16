@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.Filters.IIRFilters;
 using System;
@@ -143,11 +144,11 @@ namespace BSP_Using_AI.DetailsModify
                     if (filter._activated)
                     {
                         if (filter is DCRemoval)
-                            _FilteredSamples = Garage.removeDCValue(_FilteredSamples);
+                            _FilteredSamples = GeneralTools.removeDCValue(_FilteredSamples);
                         else if (filter is Normalize)
-                            _FilteredSamples = Garage.normalizeSignal(_FilteredSamples);
+                            _FilteredSamples = GeneralTools.normalizeSignal(_FilteredSamples);
                         else if (filter is Absolute)
-                            _FilteredSamples = Garage.absoluteSignal(_FilteredSamples);
+                            _FilteredSamples = GeneralTools.absoluteSignal(_FilteredSamples);
                         else if (filter is IIRFilter iirFilter)
                             iirFilter.Filter(_FilteredSamples);
                         else if (filter is DWT dwt)
@@ -650,7 +651,7 @@ namespace BSP_Using_AI.DetailsModify
 
             public double[] TransformSamples(double[] samples)
             {
-                _DWTLevelsSamples = Garage.calculateDWT(samples, _SelectedWavelet, _maxLevel);
+                _DWTLevelsSamples = GeneralTools.calculateDWT(samples, _SelectedWavelet, _maxLevel);
                 // Reset the selected level if needed
                 if (_selectedLevel >= _DWTLevelsSamples.Count)
                     _selectedLevel = _DWTLevelsSamples.Count - 1;
@@ -763,7 +764,7 @@ namespace BSP_Using_AI.DetailsModify
 
             public void ScanPeaks(double[] samples)
             {
-                Dictionary<string, List<State>> statesDIc = Garage.scanPeaks(samples, _art, (int)(_ht * samples.Length), _tdt, _ParentFilteringTools._samplingRate, _activateTangentDeviationScan);
+                Dictionary<string, List<State>> statesDIc = GeneralTools.scanPeaks(samples, _art, (int)(_ht * samples.Length), _tdt, _ParentFilteringTools._samplingRate, _activateTangentDeviationScan);
                 _StatesDIc = statesDIc;
                 // Check if dwt filter exists
                 if (_DWT != null)

@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.DetailsModify.SignalFusion;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.DetailsModify.SignalFusion;
 using ScottPlot;
 using ScottPlot.Plottable;
 using System;
@@ -13,7 +14,7 @@ namespace BSP_Using_AI.DetailsModify
         //********************************************EVENT HANDLERS*********************************************//
         private void saveButton_Click(object sender, EventArgs e)
         {
-            Garage.saveChartAsImage(signalChart);
+            GeneralTools.saveChartAsImage(signalChart);
         }
 
         private void signalExhibitor_MouseMove(object sender, MouseEventArgs e)
@@ -128,7 +129,7 @@ namespace BSP_Using_AI.DetailsModify
             double[] samples = (double[])_FilteringTools._FilteredSamples.Clone();
 
             // Get magor frequency from _samples after removing dc value
-            double[] fftMag = applyFFT(Garage.removeDCValue(_FilteringTools._FilteredSamples));
+            double[] fftMag = applyFFT(GeneralTools.removeDCValue(_FilteringTools._FilteredSamples));
             double mainFreuency = 0;
             double mainFreuencyMag = fftMag[0];
             for (int i = 1; i < fftMag.Length; i++)

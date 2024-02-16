@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using System;
 using System.Collections.Generic;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
@@ -59,10 +60,10 @@ namespace BSP_Using_AI.AITools
             DbStimulator dbStimulator = new DbStimulator();
             if (arthtModels.DataIdsIntervalsList.Count > 0)
                 dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
-                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()), datasetSize }, modelId, "TFBackThread");
+                    new Object[] { GeneralTools.ObjectToByteArray(arthtModels.Clone()), datasetSize }, modelId, "TFBackThread");
             else
                 dbStimulator.Update("models", new string[] { "the_model" },
-                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()) }, modelId, "TFBackThread");
+                    new Object[] { GeneralTools.ObjectToByteArray(arthtModels.Clone()) }, modelId, "TFBackThread");
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
@@ -72,7 +73,7 @@ namespace BSP_Using_AI.AITools
         public static NaiveBayesModel fit(NaiveBayesModel model, List<Sample> dataList)
         {
             if (model._pcaActive)
-                dataList = Garage.rearrangeFeaturesInput(dataList, model.PCA);
+                dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
 
             // Set the new features probabilities in the model
             model.OutputsProbaList = partitionOutputs(dataList, model._regression, model.OutputsProbaList);
@@ -84,7 +85,7 @@ namespace BSP_Using_AI.AITools
         {
             // Initialize input
             if (naiveBayesModel._pcaActive)
-                features = Garage.rearrangeInput(features, naiveBayesModel.PCA);
+                features = GeneralTools.rearrangeInput(features, naiveBayesModel.PCA);
             // Predict the input
             // Get GausParamsInputsGivenOutput for each class
             // and calculate the probabilities for each val of input
@@ -146,7 +147,7 @@ namespace BSP_Using_AI.AITools
             // Save models in models table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "dataset_size" },
-                new Object[] { "Naive bayes", "WPW syndrome detection", Garage.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
+                new Object[] { "Naive bayes", "WPW syndrome detection", GeneralTools.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)

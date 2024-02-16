@@ -1,4 +1,5 @@
-﻿using BSP_Using_AI.AITools.Details;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.AITools.Details;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using BSP_Using_AI.Database;
 using System;
@@ -55,10 +56,10 @@ namespace BSP_Using_AI.AITools
             DbStimulator dbStimulator = new DbStimulator();
             if (arthtModels.DataIdsIntervalsList.Count > 0)
                 dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
-                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()), datasetSize }, modelId, "TFBackThread");
+                    new Object[] { GeneralTools.ObjectToByteArray(arthtModels.Clone()), datasetSize }, modelId, "TFBackThread");
             else
                 dbStimulator.Update("models", new string[] { "the_model" },
-                    new Object[] { Garage.ObjectToByteArray(arthtModels.Clone()) }, modelId, "TFBackThread");
+                    new Object[] { GeneralTools.ObjectToByteArray(arthtModels.Clone()) }, modelId, "TFBackThread");
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
@@ -68,7 +69,7 @@ namespace BSP_Using_AI.AITools
         public static KNNModel fit(KNNModel model, List<Sample> dataList)
         {
             if (model._pcaActive)
-                dataList = Garage.rearrangeFeaturesInput(dataList, model.PCA);
+                dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
             // Set the new optimal k for this model
             if (dataList.Count > 0)
                 model.k = getOptimalK(dataList.Select((x, y) => new { Value = x, Index = y })
@@ -88,7 +89,7 @@ namespace BSP_Using_AI.AITools
         {
             // Initialize input
             if (kNNModel._pcaActive)
-                features = Garage.rearrangeInput(features, kNNModel.PCA);
+                features = GeneralTools.rearrangeInput(features, kNNModel.PCA);
             // Create list for calculating distances between input and saved dataset
             List<distanteOutput> distances = new List<distanteOutput>();
             // Iterate through all saved features and calucalte distance between the input and the saved feature
@@ -149,7 +150,7 @@ namespace BSP_Using_AI.AITools
             // Save models in models table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "dataset_size" },
-                new Object[] { "K-Nearest neighbor", "WPW syndrome detection", Garage.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
+                new Object[] { "K-Nearest neighbor", "WPW syndrome detection", GeneralTools.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)
@@ -275,7 +276,7 @@ namespace BSP_Using_AI.AITools
             ARTHTFeatures aRTHTFeatures;
             foreach (DataRow row in dataTable.AsEnumerable())
             {
-                aRTHTFeatures = Garage.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
+                aRTHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
                 foreach (string stepName in aRTHTFeatures.StepsDataDic.Keys)
                 {
                     foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)

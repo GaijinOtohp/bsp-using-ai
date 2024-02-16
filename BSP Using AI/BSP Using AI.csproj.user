@@ -60,5 +60,8 @@
     <Compile Update="SignalHolderFolder\InputFolder\InputForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Trial.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
 </Project>
