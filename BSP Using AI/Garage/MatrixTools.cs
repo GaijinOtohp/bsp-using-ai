@@ -30,6 +30,23 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             return result;
         }
 
+        /// <summary>
+        /// Returns a matrix of row size newMatRowSize starting from newMatStartingRow in mat matrix
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <param name="newMatStartingRow"></param>
+        /// <param name="{"></param>
+        /// <returns></returns>
+        public static double[,] MatTruncateRows(double[,] mat, int newMatStartingRow, int newMatRowSize)
+        {
+            double[,] result = new double[newMatRowSize, mat.GetLength(1)];
+            for (int row = 0; row < newMatRowSize; row++)
+                for (int col = 0; col < mat.GetLength(1); col++)
+                    result[row, col] = mat[row + newMatStartingRow, col];
+
+            return result;
+        }
+
         public static void MatSetRow(double[,] mat, int row, double[] values)
         {
             if (values.Length == mat.GetLength(1))
@@ -264,7 +281,8 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             // Compute the covariance between the variables (the rows of mat) and not the samples (the columns of mat)
             double[,] covarMat = new double[mat.GetLength(0), mat.GetLength(0)];
             // Compute covariance for each row
-            int totalCols = mat.GetLength(1) -1;
+            // totalCols is taken with N-1 (mat.GetLength(1) -1) because we are working with a sample from the population mat, not the whole population
+            int totalCols = mat.GetLength(1) - 1;
             for (int covarRow = 0; covarRow < covarMat.GetLength(0); covarRow++)
             {
                 for (int covarCol = 0; covarCol < covarMat.GetLength(1); covarCol++)
@@ -377,6 +395,49 @@ namespace Biological_Signal_Processing_Using_AI.Garage
         /// <summary>
         /// mat: should be of double[rows, columns] each column is a sample and each row is a variable measurements.<br/>
         /// tol: sets the threshold to stop ameliorating the decomposition if the sum of both triangles in sMat are less than tol.<br/>
+        /// MatEconomySVD erases the additional columns of uMat that will get zeroed by sMat.<br/>
+        /// It is convenient in computing PCA.
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <param name="tol"></param>
+        /// <returns></returns>
+        public static (double[,] uMatHat, double[,] sMatHat, double[,] vMat) MatEconomySVD(double[,] mat, double tol) // double[rows, columns] each column is a sample
+        {
+            double[,] rMat1 = mat;
+            // Since sMat is a diagoanl matrix, then everything after the diagonal in uMat will be null
+            // then set the size of uMat to take only the diagonal values
+            double[,] uMatHat = MatIdentity(Math.Min(mat.GetLength(0), mat.GetLength(1)));
+            double[,] vMat = MatIdentity(mat.GetLength(1));
+
+            for (int i = 0; i < 100; i++)
+            {
+                (double[,] qMat1, rMat1) = MatColsOrthogonalize(rMat1);
+                (double[,] qMat2, double[,] rMat2) = MatColsOrthogonalize(MatTranspose(rMat1));
+
+                rMat1 = MatTranspose(rMat2);
+
+                uMatHat = MatMultiply(uMatHat, MatTruncateRows(qMat1, 0, uMatHat.GetLength(0)));
+                vMat = MatMultiply(vMat, qMat2);
+
+                // Check if thhe sum of the upper and lower triangle are less than the convergence tolerance
+                double triaSum = 0;
+                for (int row = 0; row < rMat1.GetLength(0); row++)
+                    for (int col = 0; col < rMat1.GetLength(1); col++)
+                        if (col != row)
+                            triaSum += Math.Abs(rMat1[row, col]);
+
+                if (triaSum < tol)
+                    break;
+            }
+
+            double[,] sMatHat = rMat1;
+
+            return (uMatHat, sMatHat, vMat);
+        }
+
+        /// <summary>
+        /// mat: should be of double[rows, columns] each column is a sample and each row is a variable measurements.<br/>
+        /// tol: sets the threshold to stop ameliorating the decomposition if the sum of both triangles in sMat are less than tol.<br/>
         /// MatPCA finds the relationship between the variables for dimention reduction purpose.
         /// </summary>
         /// <param name="mat"></param>
@@ -395,6 +456,21 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             // eigVecMat = qMat, and
             // eigValsMat = rMat
 
+            //-----------------------------------------Option 1 code sippet-----------------------------------------//
+            //------------------------------------------------------------------------------------------------------//
+            (double[,] qMat, double[,] rMat) = MatColsOrthogonalize(covMat);
+
+            for (int i = 0; i < 100; i++)
+            {
+                double[,] prevQMat = (double[,])qMat.Clone();
+
+                (qMat, rMat) = MatColsOrthogonalize(MatMultiply(covMat, qMat));
+
+                if (MatSubtract(qMat, prevQMat).elementWiseResult < tol)
+                    break;
+            }
+            //------------------------------------------------------------------------------------------------------//
+
             // Or you can compute SVD of mat where:
             // 1. mat = uMat . sMat . vMat_transpose
             // 2. eigVecMat = vMat = qMat
@@ -408,23 +484,27 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             // -> rMat_transpose = qMat_transpose . covMat_transpose . qMat
             // -> rMat = qMat_transpose . covMat . qMat
 
-            // I prefer using the SVD with the second option
+            // If prefering using the SVD with the second option
             // Since PCA is a way of reducing variables, then the orthogonalization should be for the variables (rows), not the samples (columns)
             // then pass the transpose of mat for the SVD
-            (double[,] uMat, double[,] sMat, double[,] vMat) = MatSVD(MatTranspose(mat), tol);
+            //-----------------------------------------Option 2 code sippet-----------------------------------------//
+            //------------------------------------------------------------------------------------------------------//
+            /*(double[,] uMatHat, double[,] sMatHat, double[,] vMat) = MatEconomySVD(MatTranspose(mat), tol);
 
             // vMat holds the eigenvectors, rMat holds the eigenvalues (the diagonal elements are the eigenvalues)
             double[,] rMat = MatMultiply(MatMultiply(MatTranspose(vMat), covMat), vMat);
+            double[,] qMat = vMat;*/
+            //------------------------------------------------------------------------------------------------------//
 
             // Sort the eigenvectors according to their correspoding eigenvalues descendingly
             int[] DescEigValsIndx = Enumerable.Range(0, rMat.GetLength(0)).OrderByDescending(index => rMat[index, index]).ToArray();
 
-            double[,] eigVecMat = new double[vMat.GetLength(0), vMat.GetLength(1)];
+            double[,] eigVecMat = new double[qMat.GetLength(0), qMat.GetLength(1)];
             double[] eigVals = new double[DescEigValsIndx.Length];
 
             for (int col = 0; col < DescEigValsIndx.Length; col++)
             {
-                double[] eigVec = Enumerable.Range(0, vMat.GetLength(0)).Select(row => vMat[row, DescEigValsIndx[col]]).ToArray();
+                double[] eigVec = Enumerable.Range(0, qMat.GetLength(0)).Select(row => qMat[row, DescEigValsIndx[col]]).ToArray();
                 MatSetCol(eigVecMat, col, eigVec);
                 eigVals[col] = rMat[DescEigValsIndx[col], DescEigValsIndx[col]];
             }
