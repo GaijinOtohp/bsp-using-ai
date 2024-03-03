@@ -7,132 +7,13 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading;
 using Tensorflow;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
 {
     public class AIModels
     {
-        //_______________________________________________________//
-        //::::::::::::::::::::::ARTHT models::::::::::::::::::::://
-        [Serializable]
-        [KnownType(typeof(CustomBaseModel))]
-        [KnownType(typeof(KNNModel))]
-        [KnownType(typeof(NeuralNetworkModel))]
-        [KnownType(typeof(ModelLessNeuralNetwork))]
-        [KnownType(typeof(NaiveBayesModel))]
-        [KnownType(typeof(TFNETNeuralNetworkModel))]
-        [KnownType(typeof(TFNETModelLessNeuralNetwork))]
-        [KnownType(typeof(TFKerasNeuralNetworkModel))]
-        [KnownType(typeof(TFKerasModelLessNeuralNetwork))]
-        [DataContract(IsReference = true)]
-        public class ARTHTModels
-        {
-            [DataMember]
-            public string ModelName { get; set; }
-            [DataMember]
-            public string ProblemName { get; set; }
-            /// <summary>
-            /// Training Details:
-            /// Each train update creates a list of intervals (List<long[]>) of the _ids of the selected data
-            /// </summary>
-            [DataMember]
-            public List<List<long[]>> DataIdsIntervalsList { get; set; } = new List<List<long[]>>();
-
-            [DataMember]
-            public Dictionary<string, CustomBaseModel> ARTHTModelsDic = new Dictionary<string, CustomBaseModel>(7)
-            {
-                { ARTHTNamings.Step1RPeaksScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step2RPeaksSelectionData, new CustomBaseModel() },
-                { ARTHTNamings.Step3BeatPeaksScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step4PTSelectionData, new CustomBaseModel() },
-                { ARTHTNamings.Step5ShortPRScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step6UpstrokesScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step7DeltaExaminationData, new CustomBaseModel() },
-            };
-
-            [DataMember]
-            public long _validationTimeCompelxity { get; set; }
-            [DataMember]
-            public string _ValidationInfo { get; set; }
-
-            public ARTHTModels Clone()
-            {
-                ARTHTModels aRTHTModels = new ARTHTModels();
-                aRTHTModels.ModelName = ModelName;
-                aRTHTModels.ProblemName = ProblemName;
-                aRTHTModels._validationTimeCompelxity = _validationTimeCompelxity;
-                aRTHTModels._ValidationInfo = _ValidationInfo;
-
-                aRTHTModels.DataIdsIntervalsList = new List<List<long[]>>();
-                foreach (List<long[]> clonedUpdateIntervals in DataIdsIntervalsList)
-                {
-                    List<long[]> updateIntervals = new List<long[]>();
-                    for (int i = 0; i < clonedUpdateIntervals.Count; i++)
-                        updateIntervals.Add((long[])clonedUpdateIntervals[i].Clone());
-                    aRTHTModels.DataIdsIntervalsList.Add(updateIntervals);
-                }
-
-                foreach (string stepName in ARTHTModelsDic.Keys)
-                    if (ARTHTModelsDic[stepName].GetType().Name.Equals("KNNModel"))
-                        aRTHTModels.ARTHTModelsDic[stepName] = ((KNNModel)ARTHTModelsDic[stepName]).Clone();
-                    else if (ARTHTModelsDic[stepName].GetType().Name.Equals("NeuralNetworkModel"))
-                        aRTHTModels.ARTHTModelsDic[stepName] = ((NeuralNetworkModel)ARTHTModelsDic[stepName]).Clone();
-                    else if (ARTHTModelsDic[stepName].GetType().Name.Equals("NaiveBayesModel"))
-                        aRTHTModels.ARTHTModelsDic[stepName] = ((NaiveBayesModel)ARTHTModelsDic[stepName]).Clone();
-                    else if (ARTHTModelsDic[stepName].GetType().Name.Equals("TFNETNeuralNetworkModel"))
-                        aRTHTModels.ARTHTModelsDic[stepName] = ((TFNETNeuralNetworkModel)ARTHTModelsDic[stepName]).Clone();
-                    else if (ARTHTModelsDic[stepName].GetType().Name.Equals("TFKerasNeuralNetworkModel"))
-                        aRTHTModels.ARTHTModelsDic[stepName] = ((TFKerasNeuralNetworkModel)ARTHTModelsDic[stepName]).Clone();
-
-                return aRTHTModels;
-            }
-        }
-        //_______________________________________________________//
-        //:::::::::::::Steps input/output dimensions::::::::::::://
-        public static (int inputDim, int outputDim, List<PCAitem> PCA) GetStepDimensions(string stepName, List<Sample> dataList, bool pcaActive)
-        {
-            // Compute PCA loading scores if PCA is active
-            List<PCAitem> pca = new List<PCAitem>();
-            if (pcaActive)
-                // If yes then compute PCA loading scores
-                pca = DataVisualisationForm.getPCA(dataList);
-            int input = pca.Count > 0 ? pca.Count : 0;
-            int output;
-
-            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData))
-            {
-                if (input == 0) input = 15;
-                output = 2;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData))
-            {
-                if (input == 0) input = 2;
-                output = 1;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData))
-            {
-                if (input == 0) input = 5;
-                output = 2;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
-            {
-                if (input == 0) input = 3;
-                output = 2;
-            }
-            else if (stepName.Equals(ARTHTNamings.Step5ShortPRScanData))
-            {
-                if (input == 0) input = 1;
-                output = 1;
-            }
-            else // For upstroke scan and delta examination
-            {
-                if (input == 0) input = 6;
-                output = 1;
-            }
-
-            return (input, output, pca);
-        }
         //_______________________________________________________//
         //:::::::::::::::::::::ValidationData:::::::::::::::::::://
         [Serializable]
@@ -190,9 +71,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 if (this.GetType().Name.Equals("KNNModel"))
                     model = new KNNModel();
                 else if (this.GetType().Name.Equals("NeuralNetworkModel"))
-                    model = new ModelLessNeuralNetwork();
+                    model = new KerasNETModelLessNeuralNetwork();
                 else if (this.GetType().Name.Equals("ModelLessNeuralNetwork"))
-                    model = new NeuralNetworkModel();
+                    model = new KerasNETNeuralNetworkModel();
                 else if (this.GetType().Name.Equals("NaiveBayesModel"))
                     model = new NaiveBayesModel();
                 else if (this.GetType().Name.Equals("TFNETNeuralNetworkModel"))
@@ -252,18 +133,18 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //::::::::::::::::::::Neural Network::::::::::::::::::::://
         [Serializable]
         [DataContract(IsReference = true)]
-        public class NeuralNetworkModel : CustomBaseModel
+        public class KerasNETNeuralNetworkModel : CustomBaseModel
         {
             [DataMember]
-            public static string ModelName = "Neural network";
+            public static string ModelName = "Keras.NET Neural network";
             [DataMember]
             public string ModelPath;
             [DataMember]
             public BaseModel Model = new Sequential();
 
-            public ModelLessNeuralNetwork Clone()
+            public KerasNETModelLessNeuralNetwork Clone()
             {
-                ModelLessNeuralNetwork neuralNetworkModel = (ModelLessNeuralNetwork)CloneBase();
+                KerasNETModelLessNeuralNetwork neuralNetworkModel = (KerasNETModelLessNeuralNetwork)CloneBase();
                 neuralNetworkModel.ModelPath = ModelPath;
 
                 return neuralNetworkModel;
@@ -271,14 +152,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         }
         [Serializable]
         [DataContract(IsReference = true)]
-        public class ModelLessNeuralNetwork : CustomBaseModel
+        public class KerasNETModelLessNeuralNetwork : CustomBaseModel
         {
             [DataMember]
             public string ModelPath;
 
-            public NeuralNetworkModel Clone()
+            public KerasNETNeuralNetworkModel Clone()
             {
-                NeuralNetworkModel neuralNetworkModel = (NeuralNetworkModel)CloneBase();
+                KerasNETNeuralNetworkModel neuralNetworkModel = (KerasNETNeuralNetworkModel)CloneBase();
                 neuralNetworkModel.ModelPath = ModelPath;
 
                 return neuralNetworkModel;
@@ -307,7 +188,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             public AIToolsForm _aIToolsForm;
 
-            public ARTHTModels aRTHTModels;
+            public ARTHTModels aRTHTModels { get; set; }
         }
         //_______________________________________________________//
         //:::::::::::::::::::::::Naive Bayes::::::::::::::::::::://
@@ -460,6 +341,15 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
                 return tfKerasNeuralNetworkModel;
             }
+        }
+        //_______________________________________________________//
+        //:::::::::::::::::Reinforcement learning:::::::::::::::://
+        [Serializable]
+        [DataContract(IsReference = true)]
+        public class ReinforcementL : CustomBaseModel
+        {
+            [DataMember]
+            public static string ModelName = "Reinforcement learning";
         }
     }
 }

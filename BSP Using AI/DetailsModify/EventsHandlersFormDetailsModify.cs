@@ -19,8 +19,32 @@ namespace BSP_Using_AI.DetailsModify
 
         private void signalExhibitor_MouseMove(object sender, MouseEventArgs e)
         {
-            // Send event to ART-HT AI tools
-            signalExhibitor_MouseMove_ARTHT(sender, e);
+            // Send event to Annotations tools
+            signalExhibitor_MouseMove_Anno(sender, e);
+        }
+
+        private void signalChart_MouseClick(object sender, MouseEventArgs e)
+        {
+            // Send event to Annotations tools
+            signalChart_MouseClick_Anno(sender, e);
+        }
+
+        private void predictButton_Click(object sender, EventArgs e)
+        {
+            // Send event to Annotations tools
+            predictButton_Click_Anno(sender, e);
+        }
+
+        private void setFeaturesLabelsButton_Click(object sender, EventArgs e)
+        {
+            // Send event to Annotations tools
+            setFeaturesLabelsButton_Click_Anno(sender, e);
+        }
+
+        private void discardButton_Click(object sender, EventArgs e)
+        {
+            // Send event to Annotations tools
+            discardButton_Click_Anno(sender, e);
         }
 
         private void samplingRateTextBox_KeyPress(object sender, KeyPressEventArgs e)

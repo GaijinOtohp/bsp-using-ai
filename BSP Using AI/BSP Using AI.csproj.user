@@ -30,7 +30,13 @@
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\RawDataVis.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="DetailsModify\ARTHTFormDetailsModify.cs">
+    <Compile Update="DetailsModify\Annotations\ARTHTFormDetailsModify.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\Annotations\CWDFormDetailsModify.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\Annotations\EventsHAnnotationsFormDetailsModify.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="DetailsModify\EventsHandlersFormDetailsModify.cs">

@@ -1,4 +1,7 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using ScottPlot;
 using ScottPlot.Plottable;
@@ -161,7 +164,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             if (Application.OpenForms.OfType<AIToolsForm>().Count() == 1)
                 aIToolsForm = Application.OpenForms.OfType<AIToolsForm>().First();
             // Check which model is selected
-            if (_ModelName.Equals(NeuralNetworkModel.ModelName))
+            if (_ModelName.Equals(KerasNETNeuralNetworkModel.ModelName))
             {
                 // This is for neural network
                 aIToolsForm._tFBackThread._queue.Enqueue(new QueueSignalInfo()
@@ -179,28 +182,28 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             else if (_ModelName.Equals(KNNModel.ModelName))
             {
                 // This is for knn
-                KNNBackThread kNNBackThread = new KNNBackThread(_arthtModelsDic, aIToolsForm);
+                ARTHT_KNN kNNBackThread = new ARTHT_KNN(_arthtModelsDic, aIToolsForm);
                 Thread knnThread = new Thread(() => kNNBackThread.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
                 knnThread.Start();
             }
             else if (_ModelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes TF_NET_KERAS_NN
-                NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, aIToolsForm);
+                ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_arthtModelsDic, aIToolsForm);
                 Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
                 nbThread.Start();
             }
             else if (_ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Net Neural Networks models
-                TF_NET_NN tf_NET_NN = new TF_NET_NN(_arthtModelsDic, aIToolsForm);
+                ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_arthtModelsDic, aIToolsForm);
                 Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
                 tfNetThread.Start();
             }
             else if (_ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Keras Neural Networks models
-                TF_NET_KERAS_NN tf_Keras_NN = new TF_NET_KERAS_NN(_arthtModelsDic, aIToolsForm);
+                TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_arthtModelsDic, aIToolsForm);
                 Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
                 tfKerasThread.Start();
             }

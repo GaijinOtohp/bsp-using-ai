@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.Garage;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.SignalHolderFolder;
 using ScottPlot.Plottable;
 using System;
@@ -8,6 +9,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify
@@ -39,6 +41,11 @@ namespace BSP_Using_AI.DetailsModify
             samplingRateTextBox.Text = _FilteringTools._samplingRate.ToString();
             _FilteringTools.SetAutoApply(false);
             quantizationStepTextBox.Text = _FilteringTools._quantizationStep.ToString();
+
+            // Include the available objectives in aiGoalComboBox
+            string[] objectives = typeof(AIModels_ObjectivesArchitectures).GetNestedTypes().Where(type => type.GetField("ObjectiveName") != null).
+                                                                                            Select(type => (string)type.GetField("ObjectiveName").GetValue(null)).ToArray();
+            aiGoalComboBox.DataSource = objectives;
 
             signalsPickerComboBox.SelectedIndex = 1;
             aiGoalComboBox.SelectedIndex = 0;

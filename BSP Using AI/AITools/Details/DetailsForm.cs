@@ -1,5 +1,8 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
 using Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection;
+using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.Database;
@@ -11,6 +14,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValDataSelectionForm;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -18,14 +22,14 @@ namespace BSP_Using_AI.AITools.Details
 {
     public partial class DetailsForm : Form, DbStimulatorReportHolder
     {
-        public TFBackThread _tFBackThread;
+        public ARTHT_Keras_NET_NN _tFBackThread;
 
         public long _modelId;
         public ARTHTModels _aRTHTModels;
 
         Dictionary<string, float[]> OutputsThresholdsDic = new Dictionary<string, float[]>(7);
 
-        public DetailsForm(long modelId, ARTHTModels aRTHTModels, TFBackThread tFBackThread)
+        public DetailsForm(long modelId, ARTHTModels aRTHTModels, ARTHT_Keras_NET_NN tFBackThread)
         {
             InitializeComponent();
 
@@ -143,7 +147,7 @@ namespace BSP_Using_AI.AITools.Details
         private double[] askForPrediction(double[] features, string modelName, CustomBaseModel model, string stepName)
         {
             // Check which model is selected
-            if (modelName.Equals(NeuralNetworkModel.ModelName))
+            if (modelName.Equals(KerasNETNeuralNetworkModel.ModelName))
             {
                 // This is for neural network
                 AutoResetEvent signal = new AutoResetEvent(false);
@@ -169,12 +173,12 @@ namespace BSP_Using_AI.AITools.Details
             else if (modelName.Equals(KNNModel.ModelName))
             {
                 // This is for knn
-                return KNNBackThread.predict(features, (KNNModel)model);
+                return KNN.predict(features, (KNNModel)model);
             }
             else if (modelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes
-                return NaiveBayesBackThread.predict(features, (NaiveBayesModel)model);
+                return NaiveBayes.predict(features, (NaiveBayesModel)model);
             }
             else if (modelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
@@ -184,7 +188,7 @@ namespace BSP_Using_AI.AITools.Details
             else if (modelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Keras Neural Networks
-                return TF_NET_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)model);
+                return TF_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)model);
             }
 
             return null;
@@ -504,7 +508,7 @@ namespace BSP_Using_AI.AITools.Details
                     validationSize = validationSamples.Count;
                     totalValidationSize += validationSamples.Count / (double)valModelsData.Count;
                     CustomBaseModel model = null;
-                    if (_aRTHTModels.ModelName.Equals(NeuralNetworkModel.ModelName))
+                    if (_aRTHTModels.ModelName.Equals(KerasNETNeuralNetworkModel.ModelName))
                     {
                         // This is for neural network
                         _tFBackThread._queue.Enqueue(new QueueSignalInfo()
@@ -521,23 +525,23 @@ namespace BSP_Using_AI.AITools.Details
                     {
                         // This is for knn
                         // Create a KNN model structure with the initial optimum K, which is "3"
-                        model = KNNBackThread.createKNNModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
+                        model = ARTHT_KNN.createKNNModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
 
                         // Fit features
-                        model = KNNBackThread.fit((KNNModel)model, trainingSamples);
+                        model = KNN.fit((KNNModel)model, trainingSamples);
                     }
                     else if (_aRTHTModels.ModelName.Equals(NaiveBayesModel.ModelName))
                     {
                         // This is for naive bayes
-                        model = NaiveBayesBackThread.createNBModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
+                        model = ARTHT_NaiveBayes.createNBModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive);
 
                         // Fit features
-                        model = NaiveBayesBackThread.fit((NaiveBayesModel)model, trainingSamples);
+                        model = NaiveBayes.fit((NaiveBayesModel)model, trainingSamples);
                     }
                     else if (_aRTHTModels.ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
                     {
                         // This is for Tensorflow.Net Neural Networks
-                        model = TF_NET_NN.createTFNETNeuralNetModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive, "");
+                        model = ARTHT_TF_NET_NN.createTFNETNeuralNetModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive, "");
 
                         // Fit features
                         model = TF_NET_NN.fit((TFNETNeuralNetworkModel)model, trainingSamples);
@@ -545,10 +549,10 @@ namespace BSP_Using_AI.AITools.Details
                     else if (_aRTHTModels.ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
                     {
                         // This is for Tensorflow.Keras Neural Networks
-                        model = TF_NET_KERAS_NN.createTFKerasNeuralNetModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive, "");
+                        model = TF_KERAS_NN.createTFKerasNeuralNetModel(stepName, trainingSamples, _aRTHTModels.ARTHTModelsDic[stepName]._pcaActive, "");
 
                         // Fit features
-                        model = TF_NET_KERAS_NN.fit((TFKerasNeuralNetworkModel)model, trainingSamples);
+                        model = TF_KERAS_NN.fit((TFKerasNeuralNetworkModel)model, trainingSamples);
                     }
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

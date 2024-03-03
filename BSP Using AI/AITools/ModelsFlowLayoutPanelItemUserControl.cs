@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 
 namespace BSP_Using_AI.AITools
 {
@@ -80,10 +81,10 @@ namespace BSP_Using_AI.AITools
 
                 // Check if this is Neural Network model
                 foreach (CustomBaseModel model in _aRTHTModels.ARTHTModelsDic.Values)
-                    if (model is NeuralNetworkModel)
+                    if (model is KerasNETNeuralNetworkModel)
                     {
                         // Get the folder of the collected steps models
-                        string modelsPath = (model as NeuralNetworkModel).ModelPath.Substring(0, (model as NeuralNetworkModel).ModelPath.LastIndexOf("/"));
+                        string modelsPath = (model as KerasNETNeuralNetworkModel).ModelPath.Substring(0, (model as KerasNETNeuralNetworkModel).ModelPath.LastIndexOf("/"));
                         // Remove the folder
                         if (Directory.Exists(modelsPath))
                             Directory.Delete(modelsPath, true);

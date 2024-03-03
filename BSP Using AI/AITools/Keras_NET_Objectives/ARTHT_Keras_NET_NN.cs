@@ -1,4 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI;
+using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using Keras;
 using Keras.Layers;
@@ -10,11 +12,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
-namespace BSP_Using_AI.AITools
+namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
 {
-    public class TFBackThread
+    public class ARTHT_Keras_NET_NN
     {
         public readonly AutoResetEvent _signal = new AutoResetEvent(false);
         public readonly ConcurrentQueue<QueueSignalInfo> _queue = new ConcurrentQueue<QueueSignalInfo>();
@@ -27,8 +30,8 @@ namespace BSP_Using_AI.AITools
 
         private string _callingClass = null;
 
-        private NeuralNetworkModel _tempModel;
-        public TFBackThread()
+        private KerasNETNeuralNetworkModel _tempModel;
+        public ARTHT_Keras_NET_NN()
         {
         }
 
@@ -52,7 +55,7 @@ namespace BSP_Using_AI.AITools
                                 // If yes then create new model in _tempModelsList, and fit data inside it
                                 _tempModel = createTempNeuralNetworkModelForWPW(item.StepName, item.DataList, _arthtModelsDic[item.ModelsName].ARTHTModelsDic[item.StepName]._pcaActive, "");
                                 // Fit features in model
-                                _tempModel = fit(_tempModel, item.DataList, false);
+                                _tempModel = Keras_NET_NN.fit(_tempModel, item.DataList, false);
                             }
                             else
                                 fit(item.ModelsName, item.DataLists, item._datasetSize, item._modelId, item.StepName);
@@ -63,9 +66,9 @@ namespace BSP_Using_AI.AITools
                             ConcurrentQueue<QueueSignalInfo> queue = item.Queue;
                             // Check if this fit call is from DetailsForm (validation process)
                             if (_callingClass.Equals("DetailsForm"))
-                                queue.Enqueue(new QueueSignalInfo { Outputs = predict(item.Features, _tempModel, true) });
+                                queue.Enqueue(new QueueSignalInfo { Outputs = Keras_NET_NN.predict(item.Features, _tempModel, true) });
                             else
-                                queue.Enqueue(new QueueSignalInfo { Outputs = predict(item.Features, (NeuralNetworkModel)_arthtModelsDic[item.ModelsName].ARTHTModelsDic[item.StepName], false) });
+                                queue.Enqueue(new QueueSignalInfo { Outputs = Keras_NET_NN.predict(item.Features, (KerasNETNeuralNetworkModel)_arthtModelsDic[item.ModelsName].ARTHTModelsDic[item.StepName], false) });
                             signal.Set();
                             break;
                         case "createNeuralNetworkModelForWPW":
@@ -78,11 +81,11 @@ namespace BSP_Using_AI.AITools
                         case "Close":
                             List<ARTHTModels> arthtModels = _arthtModelsDic.Values.ToList();
                             for (int i = 0; i < arthtModels.Count; i++)
-                                if (arthtModels[i].ARTHTModelsDic.ElementAt(0).Value is NeuralNetworkModel)
+                                if (arthtModels[i].ARTHTModelsDic.ElementAt(0).Value is KerasNETNeuralNetworkModel)
                                 {
                                     List<CustomBaseModel> neuralNetworkModels = arthtModels[i].ARTHTModelsDic.Values.ToList();
                                     for (int j = 0; j < neuralNetworkModels.Count; j++)
-                                        ((NeuralNetworkModel)neuralNetworkModels[j]).Model.Dispose();
+                                        ((KerasNETNeuralNetworkModel)neuralNetworkModels[j]).Model.Dispose();
                                 }
                             return;
                     }
@@ -100,15 +103,15 @@ namespace BSP_Using_AI.AITools
             if (!stepName.Equals(""))
             {
                 _arthtModelsDic[modelsName].ARTHTModelsDic[stepName] = createTempNeuralNetworkModelForWPW(stepName, dataLists[stepName], _arthtModelsDic[modelsName].ARTHTModelsDic[stepName]._pcaActive,
-                                                        ((NeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName]).ModelPath);
+                                                        ((KerasNETNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName]).ModelPath);
                 // Fit features in model
-                fit((NeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName], dataLists[stepName], true);
+                Keras_NET_NN.fit((KerasNETNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName], dataLists[stepName], true);
             }
             else
                 foreach (string stepNa in _arthtModelsDic[modelsName].ARTHTModelsDic.Keys)
                 {
                     // Fit features in model
-                    fit((NeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepNa],
+                    Keras_NET_NN.fit((KerasNETNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepNa],
                                                                              dataLists[stepNa], true);
 
                     // Update fitProgressBar
@@ -128,55 +131,6 @@ namespace BSP_Using_AI.AITools
             // Send report about fitting is finished and models table should be updated
             if (_tFBackThreadReportHolderForAIToolsForm != null)
                 _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "fitting_complete", modelsName, datasetSize }, "AIToolsForm");
-        }
-
-        private NeuralNetworkModel fit(NeuralNetworkModel model, List<Sample> dataList, bool saveModel)
-        {
-            if (model._pcaActive)
-                dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
-
-            if (dataList.Count > 0)
-            {
-                // Sort features as inputs (x) and outputs (y)
-                double[] features = dataList[0].getFeatures();
-                double[] outputs = dataList[0].getOutputs();
-                double[,] x = new double[dataList.Count, features.Length];
-                double[,] y = new double[dataList.Count, outputs.Length];
-                for (int j = 0; j < dataList.Count; j++)
-                {
-                    features = dataList[j].getFeatures();
-                    outputs = dataList[j].getOutputs();
-                    for (int k = 0; k < features.Length; k++)
-                        x[j, k] = features[k];
-                    for (int k = 0; k < outputs.Length; k++)
-                        y[j, k] = outputs[k];
-                }
-                // Now fit data in the model 50 times, each for 10 epochs
-                model.Model.Fit(np.array(x), np.array(y), epochs: 1000, verbose: 0);
-                // Save model
-                if (saveModel)
-                    model.Model.Save(model.ModelPath);
-            }
-
-            return model;
-        }
-
-        private double[] predict(double[] features, NeuralNetworkModel model, bool fromTempModel)
-        {
-            // Initialize input
-            if (model._pcaActive)
-                features = GeneralTools.rearrangeInput(features, model.PCA);
-            double[,] x = new double[1, features.Length];
-            for (int i = 0; i < features.Length; i++)
-                x[0, i] = features[i];
-            // Predict with the selected model
-            NDarray y = model.Model.Predict(x, verbose: 0);
-            float[] floatOutput = y.GetData<float>();
-            double[] output = new double[floatOutput.Length];
-            for (int i = 0; i < output.Length; i++)
-                output[i] = floatOutput[i];
-            // Return result to main user interface
-            return output;
         }
 
         private void createNeuralNetworkModelForWPW()
@@ -202,7 +156,7 @@ namespace BSP_Using_AI.AITools
             arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createNeuralNetModel(ARTHTNamings.Step6UpstrokesScanData, modelPath + 5, 6, 1); // For delta detection
             arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createNeuralNetModel(ARTHTNamings.Step7DeltaExaminationData, modelPath + 6, 6, 1); // For WPW syndrome declaration
 
-            arthtModels.ModelName = NeuralNetworkModel.ModelName;
+            arthtModels.ModelName = KerasNETNeuralNetworkModel.ModelName;
             arthtModels.ProblemName = " for WPW syndrome detection" + modelIndx;
             _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
 
@@ -216,20 +170,20 @@ namespace BSP_Using_AI.AITools
                 _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "createModel" }, "AIToolsForm");
         }
 
-        private NeuralNetworkModel createTempNeuralNetworkModelForWPW(string stepName, List<Sample> dataList, bool pcaActive, string modelPath)
+        private KerasNETNeuralNetworkModel createTempNeuralNetworkModelForWPW(string stepName, List<Sample> dataList, bool pcaActive, string modelPath)
         {
             (int inputDim, int outputDim, List<PCAitem> pca) = GetStepDimensions(stepName, dataList, pcaActive);
 
-            NeuralNetworkModel tempModel = createNeuralNetModel(stepName, modelPath, inputDim, outputDim);
+            KerasNETNeuralNetworkModel tempModel = createNeuralNetModel(stepName, modelPath, inputDim, outputDim);
             tempModel._pcaActive = pcaActive;
             tempModel.PCA = pca;
 
             return tempModel;
         }
 
-        private NeuralNetworkModel createNeuralNetModel(string name, string path, int input, int output)
+        private KerasNETNeuralNetworkModel createNeuralNetModel(string name, string path, int input, int output)
         {
-            NeuralNetworkModel model = new NeuralNetworkModel() { Name = name, ModelPath = path };
+            KerasNETNeuralNetworkModel model = new KerasNETNeuralNetworkModel() { Name = name, ModelPath = path };
             Sequential sequential = new Sequential();
             // Start from the first hidden layer, since the input is not actually a layer   
             // but inform the shape of the input, with "input" elements.
@@ -257,7 +211,7 @@ namespace BSP_Using_AI.AITools
             string[] stepsNames = arthtModels.ARTHTModelsDic.Keys.ToArray();
             foreach (string stepName in stepsNames)
             {
-                NeuralNetworkModel model = ((ModelLessNeuralNetwork)arthtModels.ARTHTModelsDic[stepName]).Clone();
+                KerasNETNeuralNetworkModel model = ((KerasNETModelLessNeuralNetwork)arthtModels.ARTHTModelsDic[stepName]).Clone();
                 model.Model = Sequential.LoadModel(model.ModelPath);
                 arthtModels.ARTHTModelsDic[stepName] = model;
             }

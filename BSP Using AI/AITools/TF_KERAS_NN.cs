@@ -9,18 +9,19 @@ using Tensorflow;
 using Tensorflow.Keras.Engine;
 using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static Tensorflow.Binding;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
 {
-    internal class TF_NET_KERAS_NN
+    internal class TF_KERAS_NN
     {
         private AIBackThreadReportHolder _aiBackThreadReportHolderForAIToolsForm;
 
         private Dictionary<string, ARTHTModels> _arthtModelsDic = null;
 
-        public TF_NET_KERAS_NN(Dictionary<string, ARTHTModels> arthtModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
+        public TF_KERAS_NN(Dictionary<string, ARTHTModels> arthtModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
             _arthtModelsDic = arthtModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;

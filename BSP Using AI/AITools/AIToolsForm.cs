@@ -1,4 +1,7 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.DatasetExplorer;
@@ -10,6 +13,8 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 
 namespace BSP_Using_AI
 {
@@ -19,11 +24,20 @@ namespace BSP_Using_AI
 
         public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
 
-        public TFBackThread _tFBackThread;
+        public ARTHT_Keras_NET_NN _tFBackThread;
 
         public AIToolsForm()
         {
             InitializeComponent();
+
+            // Include the available AI models types in modelTypeComboBox
+            string[] modelsTypes = typeof(CustomBaseModel).Assembly.GetExportedTypes().Where(type => type.IsSubclassOf(typeof(CustomBaseModel)) && type.GetField("ModelName") != null).
+                                                                                       Select(type => (string)type.GetField("ModelName").GetValue(null)).ToArray();
+            modelTypeComboBox.DataSource = modelsTypes;
+            // Include the available objectives in aiGoalComboBox
+            string[] objectives = typeof(AIModels_ObjectivesArchitectures).GetNestedTypes().Where(type => type.GetField("ObjectiveName") != null).
+                                                                                            Select(type => (string)type.GetField("ObjectiveName").GetValue(null)).ToArray();
+            aiGoalComboBox.DataSource = objectives;
 
             /// Look for available models
             queryForModels();
@@ -59,40 +73,45 @@ namespace BSP_Using_AI
 
             if (showMessage) { MessageBox.Show(message, "Fields missing", MessageBoxButtons.OK); return; }
 
-            // Check which model for which terget is selected
-            if (modelTypeComboBox.SelectedIndex == 0 && aiGoalComboBox.SelectedIndex == 0)
+            // Check which objective is selected
+            if (aiGoalComboBox.SelectedItem.Equals(WPWSyndromeDetection.ObjectiveName))
             {
-                // If yes then this is neural network for WPW syndrome detection
-                _tFBackThread._queue.Enqueue(new QueueSignalInfo() { TargetFunc = "createNeuralNetworkModelForWPW", CallingClass = "AIToolsForm", _aIToolsForm = this });
-                _tFBackThread._signal.Set();
-            }
-            else if (modelTypeComboBox.SelectedIndex == 1 && aiGoalComboBox.SelectedIndex == 0)
-            {
-                // If yes then this is for KNN models
-                KNNBackThread kNNBackThread = new KNNBackThread(_arthtModelsDic, this);
-                Thread knnThread = new Thread(() => kNNBackThread.createKNNkModelForWPW());
-                knnThread.Start();
-            }
-            else if (modelTypeComboBox.SelectedIndex == 2 && aiGoalComboBox.SelectedIndex == 0)
-            {
-                // If yes then this is for Naive Bayes models
-                NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, this);
-                Thread nbThread = new Thread(() => naiveBayesBackThread.createNBModelForWPW());
-                nbThread.Start();
-            }
-            else if (modelTypeComboBox.SelectedIndex == 3 && aiGoalComboBox.SelectedIndex == 0)
-            {
-                // If yes then this is for Tensorflow.Net Neural Networks models
-                TF_NET_NN tf_NET_NN = new TF_NET_NN(_arthtModelsDic, this);
-                Thread tfNetThread = new Thread(() => tf_NET_NN.createTFNETNeuralNetworkModelForWPW());
-                tfNetThread.Start();
-            }
-            else if (modelTypeComboBox.SelectedIndex == 4 && aiGoalComboBox.SelectedIndex == 0)
-            {
-                // If yes then this is for Tensorflow.Keras Neural Networks models
-                TF_NET_KERAS_NN tf_Keras_NN = new TF_NET_KERAS_NN(_arthtModelsDic, this);
-                Thread tfKerasThread = new Thread(() => tf_Keras_NN.createTFKerasNeuralNetworkModelForWPW());
-                tfKerasThread.Start();
+                // If yes then this is for WPW syndrome detection
+                // Check which model is selected
+                if (modelTypeComboBox.SelectedItem.Equals(KerasNETNeuralNetworkModel.ModelName))
+                {
+                    // If yes then this is neural network for WPW syndrome detection
+                    _tFBackThread._queue.Enqueue(new QueueSignalInfo() { TargetFunc = "createNeuralNetworkModelForWPW", CallingClass = "AIToolsForm", _aIToolsForm = this });
+                    _tFBackThread._signal.Set();
+                }
+                else if (modelTypeComboBox.SelectedItem.Equals(KNNModel.ModelName))
+                {
+                    // If yes then this is for KNN models
+                    ARTHT_KNN kNNBackThread = new ARTHT_KNN(_arthtModelsDic, this);
+                    Thread knnThread = new Thread(() => kNNBackThread.createKNNkModelForWPW());
+                    knnThread.Start();
+                }
+                else if (modelTypeComboBox.SelectedItem.Equals(NaiveBayesModel.ModelName))
+                {
+                    // If yes then this is for Naive Bayes models
+                    ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_arthtModelsDic, this);
+                    Thread nbThread = new Thread(() => naiveBayesBackThread.createNBModelForWPW());
+                    nbThread.Start();
+                }
+                else if (modelTypeComboBox.SelectedItem.Equals(TFNETNeuralNetworkModel.ModelName))
+                {
+                    // If yes then this is for Tensorflow.Net Neural Networks models
+                    ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_arthtModelsDic, this);
+                    Thread tfNetThread = new Thread(() => tf_NET_NN.createTFNETNeuralNetworkModelForWPW());
+                    tfNetThread.Start();
+                }
+                else if (modelTypeComboBox.SelectedItem.Equals(TFKerasNeuralNetworkModel.ModelName))
+                {
+                    // If yes then this is for Tensorflow.Keras Neural Networks models
+                    TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_arthtModelsDic, this);
+                    Thread tfKerasThread = new Thread(() => tf_Keras_NN.createTFKerasNeuralNetworkModelForWPW());
+                    tfKerasThread.Start();
+                }
             }
         }
 

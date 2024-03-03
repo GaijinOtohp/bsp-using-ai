@@ -1,7 +1,9 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
 using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
 using Biological_Signal_Processing_Using_AI.Garage;
-using BSP_Using_AI.AITools;
 using BSP_Using_AI.DetailsModify.Filters;
 using ScottPlot;
 using ScottPlot.Plottable;
@@ -76,7 +78,7 @@ namespace BSP_Using_AI.DetailsModify
             }
         }
 
-        private void signalChart_MouseClick(object sender, MouseEventArgs e)
+        private void signalChart_MouseClick_ARTHT(object sender, MouseEventArgs e)
         {
             // Check if AI tool is activated and in R selection step
             if ((_arthtFeatures._processedStep == 2 || _arthtFeatures._processedStep == 4))
@@ -129,30 +131,21 @@ namespace BSP_Using_AI.DetailsModify
         //*******************************************************************************************************//
         //*******************************************************************************************************//
         //************************************************AI TOOLS***********************************************//
-
-        private void predictButton_Click(object sender, EventArgs e)
+        private void predictButton_Click_ARTHT(object sender, EventArgs e)
         {
-            // Get the selected model from modelTypeComboBox
-            if (modelTypeComboBox.SelectedIndex > -1)
-            {
-                // Disable this button and modelTypeComboBox
-                predictButton.Enabled = false;
-                modelTypeComboBox.Enabled = false;
-                // Set prediction to true
-                _predictionOn = true;
-                // Disable auto apply to filters
-                _FilteringTools.SetAutoApply(false);
-                // Initialize tools
-                setFeaturesLabelsButton_Click(null, null);
-                // Start prediction
-                nextButton_Click(null, null);
-            }
+
+            // Disable auto apply to filters
+            _FilteringTools.SetAutoApply(false);
+            // Initialize tools
+            setFeaturesLabelsButton_Click_ARTHT(null, null);
+            // Start prediction
+            nextButton_Click(null, null);
         }
 
-        public TFBackThread _tFBackThread;
+        public ARTHT_Keras_NET_NN _tFBackThread;
         public readonly AutoResetEvent _signal = new AutoResetEvent(false);
         public readonly ConcurrentQueue<QueueSignalInfo> _queue = new ConcurrentQueue<QueueSignalInfo>();
-        private double[] askForPrediction(double[] features, string stepName)
+        private double[] askForPrediction_ARTHT(double[] features, string stepName)
         {
             // Send information to TFBackThread
             string modelName = null;
@@ -163,7 +156,7 @@ namespace BSP_Using_AI.DetailsModify
                 modelNameProblem = (modelTypeComboBox.SelectedItem as dynamic).modelNameProblem;
             }));
             // Check which model is selected
-            if (modelName.Equals(NeuralNetworkModel.ModelName))
+            if (modelName.Equals(KerasNETNeuralNetworkModel.ModelName))
             {
                 // This is for neural network
                 _tFBackThread._queue.Enqueue(new QueueSignalInfo()
@@ -189,12 +182,12 @@ namespace BSP_Using_AI.DetailsModify
             else if (modelName.Equals(KNNModel.ModelName))
             {
                 // This is for knn
-                return KNNBackThread.predict(features, (KNNModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+                return KNN.predict(features, (KNNModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
             }
             else if (modelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes
-                return NaiveBayesBackThread.predict(features, (NaiveBayesModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+                return NaiveBayes.predict(features, (NaiveBayesModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
             }
             else if (modelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
@@ -204,17 +197,14 @@ namespace BSP_Using_AI.DetailsModify
             else if (modelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Keras Neural Networks
-                return TF_NET_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+                return TF_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
             }
 
             return null;
         }
 
-        private void setFeaturesLabelsButton_Click(object sender, EventArgs e)
+        private void setFeaturesLabelsButton_Click_ARTHT(object sender, EventArgs e)
         {
-            // Disable everything except ai tools
-            enableAITools(true);
-
             // Set dc removal filter. Check it then set it disabled
             DCRemoval dcRemoval = new DCRemoval(_FilteringTools);
             dcRemoval.InsertFilter(filtersFlowLayoutPanel);
@@ -242,61 +232,6 @@ namespace BSP_Using_AI.DetailsModify
             // Show instructions of the first goal
             featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" so that only high peaks are visible.\n" +
                                                     "Press next after you finish.";
-
-            // Enable discard and next button, and disable setFeaturesLabelsButton button
-            discardButton.Enabled = true;
-            nextButton.Enabled = true;
-            setFeaturesLabelsButton.Enabled = false;
-        }
-
-        private void discardButton_Click(object sender, EventArgs e)
-        {
-            // Show message for confirming the action
-            DialogResult dialogResult = MessageBox.Show("Are you sure about discarding features selection?", "Action confirmation", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.Yes)
-            {
-                // Disable save button in signal holder
-                _signalHolder.saveButton.Enabled = false;
-                // Enable everything except ai tools
-                enableAITools(false);
-                // Remove instructions
-                featuresSettingInstructionsLabel.Text = "";
-                // Enable setFeaturesLabelsButton, and disable other tools
-                setFeaturesLabelsButton.Enabled = true;
-                previousButton.Enabled = false;
-                nextButton.Enabled = false;
-                discardButton.Enabled = false;
-                nextButton.Text = "Next";
-
-                // Remove selected features
-                _arthtFeatures.Clear();
-                featuresTableLayoutPanel.Controls.Clear();
-
-                ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
-                foreach (string stateName in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Selection, SANamings.Labels })
-                    GeneralTools.loadXYInChart(signalChart, _Plots[stateName], null, null, null, 0, "ARTHTFormDetailsModify");
-
-                // Reset the signal
-                _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
-                for (int i = 0; i < _FilteringTools._RawSamples.Length; i++)
-                    _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
-                _FilteringTools.ApplyFilters(false);
-            }
-        }
-
-        private void enableAITools(bool enable)
-        {
-            // Remove all filters
-            _FilteringTools.RemoveAllFilters();
-            // Disable auto apply to filters
-            _FilteringTools.SetAutoApply(!enable);
-
-            signalFusionButton.Enabled = !enable;
-            signalsPickerComboBox.Enabled = !enable;
-            filtersComboBox.Enabled = !enable;
-
-            if (enable)
-                signalsPickerComboBox.SelectedIndex = 1;
         }
 
         //____________________________________________________________________________________________________________________________________________________//
@@ -370,7 +305,7 @@ namespace BSP_Using_AI.DetailsModify
                         if (_predictionOn)
                         {
                             rPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
-                                askForPrediction(rPeaksScanSamp.getFeatures(), ARTHTNamings.Step1RPeaksScanData));
+                                askForPrediction_ARTHT(rPeaksScanSamp.getFeatures(), ARTHTNamings.Step1RPeaksScanData));
                         }
                         else
                             rPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
@@ -489,7 +424,7 @@ namespace BSP_Using_AI.DetailsModify
                             if (_predictionOn)
                             {
                                 rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RemoveR },
-                                    askForPrediction(rPeaksSelectionSamp.getFeatures(), ARTHTNamings.Step2RPeaksSelectionData));
+                                    askForPrediction_ARTHT(rPeaksSelectionSamp.getFeatures(), ARTHTNamings.Step2RPeaksSelectionData));
 
                                 threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData].OutputsThresholds[0];
                                 // Check if this R state is selected not to be removed
@@ -603,7 +538,7 @@ namespace BSP_Using_AI.DetailsModify
                         if (_predictionOn)
                         {
                             beatPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
-                                askForPrediction(beatPeaksScanSamp.getFeatures(), ARTHTNamings.Step3BeatPeaksScanData));
+                                askForPrediction_ARTHT(beatPeaksScanSamp.getFeatures(), ARTHTNamings.Step3BeatPeaksScanData));
                             // Scan Q and S peaks with the predicted ART and HT parameters
                             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.ART));
                             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.HT));
@@ -753,7 +688,7 @@ namespace BSP_Using_AI.DetailsModify
                             if (_predictionOn)
                             {
                                 ptSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.PWave, ARTHTNamings.TWave },
-                                                                  askForPrediction(ptSelectionSamp.getFeatures(), ARTHTNamings.Step4PTSelectionData));
+                                                                  askForPrediction_ARTHT(ptSelectionSamp.getFeatures(), ARTHTNamings.Step4PTSelectionData));
                                 // Check if state is predicted as P or T peak
                                 if (ptSelectionSamp.getOutputByLabel(ARTHTNamings.PWave) > pProba)
                                 {
@@ -848,7 +783,7 @@ namespace BSP_Using_AI.DetailsModify
                             // Check if outputs should be predicted
                             if (_predictionOn)
                                 shortPRScanSamp.insertOutputArray(new string[] { ARTHTNamings.ShortPR },
-                                                             askForPrediction(shortPRScanSamp.getFeatures(), ARTHTNamings.Step5ShortPRScanData));
+                                                             askForPrediction_ARTHT(shortPRScanSamp.getFeatures(), ARTHTNamings.Step5ShortPRScanData));
                             else
                                 shortPRScanSamp.insertOutput(0,
                                                              ARTHTNamings.ShortPR,
@@ -971,7 +906,7 @@ namespace BSP_Using_AI.DetailsModify
                         {
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
-                            upstrokeScanSamp.insertOutputArray(new string[] { ARTHTNamings.TDT }, askForPrediction(upstrokeScanSamp.getFeatures(), ARTHTNamings.Step6UpstrokesScanData));
+                            upstrokeScanSamp.insertOutputArray(new string[] { ARTHTNamings.TDT }, askForPrediction_ARTHT(upstrokeScanSamp.getFeatures(), ARTHTNamings.Step6UpstrokesScanData));
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
                             // Set the selected _tdtThresholdRatio
@@ -1085,7 +1020,7 @@ namespace BSP_Using_AI.DetailsModify
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
                         // Check if outputs should be predicted
                         if (_predictionOn)
-                            deltaExamSamp.insertOutputArray(new string[] { ARTHTNamings.WPWPattern }, askForPrediction(deltaExamSamp.getFeatures(), ARTHTNamings.Step7DeltaExaminationData));
+                            deltaExamSamp.insertOutputArray(new string[] { ARTHTNamings.WPWPattern }, askForPrediction_ARTHT(deltaExamSamp.getFeatures(), ARTHTNamings.Step7DeltaExaminationData));
                         else
                             deltaExamSamp.insertOutput(0, ARTHTNamings.WPWPattern,
                                                        ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare])._exists);

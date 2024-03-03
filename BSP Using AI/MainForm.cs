@@ -1,7 +1,9 @@
 ﻿using Biological_Signal_Processing_Using_AI;
 using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
-using BSP_Using_AI.AITools;
 using BSP_Using_AI.Database;
 using BSP_Using_AI.SignalHolderFolder;
 using System;
@@ -12,6 +14,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 
 namespace BSP_Using_AI
 {
@@ -23,7 +26,7 @@ namespace BSP_Using_AI
 
         public bool scrollAllowed = true;
 
-        public TFBackThread _tFBackThread;
+        public ARTHT_Keras_NET_NN _tFBackThread;
 
         public MainForm()
         {
@@ -35,7 +38,7 @@ namespace BSP_Using_AI
             // Set the notification badge over "aiToolsButton" ready
             MainFormFolder.BadgeControl.AddBadgeTo(aiToolsButton, "0");
 
-            _tFBackThread = new TFBackThread();
+            _tFBackThread = new ARTHT_Keras_NET_NN();
             _tFBackThread._arthtModelsDic = _arthtModelsDic;
             Thread TFThread = new Thread(() => _tFBackThread.ThreadServer());
             TFThread.IsBackground = true;
@@ -179,28 +182,28 @@ namespace BSP_Using_AI
                         else if (row.Field<string>("type_name").Equals("K-Nearest neighbor") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for KNN
-                            KNNBackThread kNNBackThread = new KNNBackThread(_arthtModelsDic, null);
+                            ARTHT_KNN kNNBackThread = new ARTHT_KNN(_arthtModelsDic, null);
                             Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             knnThread.Start();
                         }
                         else if (row.Field<string>("type_name").Equals("Naive bayes") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for naive bayes
-                            NaiveBayesBackThread naiveBayesBackThread = new NaiveBayesBackThread(_arthtModelsDic, null);
+                            ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_arthtModelsDic, null);
                             Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             nbThread.Start();
                         }
                         else if (row.Field<string>("type_name").Equals(TFNETNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for Tensorflow.Net Neural Networks models
-                            TF_NET_NN tf_NET_NN = new TF_NET_NN(_arthtModelsDic, null);
+                            ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_arthtModelsDic, null);
                             Thread tfNetThread = new Thread(() => tf_NET_NN.initializeTFNETNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             tfNetThread.Start();
                         }
                         else if (row.Field<string>("type_name").Equals(TFKerasNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for Tensorflow.Keras Neural Networks models
-                            TF_NET_KERAS_NN tf_Keras_NN = new TF_NET_KERAS_NN(_arthtModelsDic, null);
+                            TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_arthtModelsDic, null);
                             Thread tfKerasThread = new Thread(() => tf_Keras_NN.initializeTFKerasNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             tfKerasThread.Start();
                         }
