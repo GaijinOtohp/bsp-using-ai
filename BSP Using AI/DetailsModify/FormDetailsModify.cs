@@ -19,17 +19,6 @@ namespace BSP_Using_AI.DetailsModify
         public Dictionary<string, IPlottable> _Plots = new Dictionary<string, IPlottable>();
 
         public SignalHolder _signalHolder { get; set; }
-
-        public ARTHTFeatures _arthtFeatures = new ARTHTFeatures();
-
-        bool _predictionOn = false;
-        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
-
-        bool _mouseDown = false;
-        int _previousMouseX;
-        int _previousMouseY;
-
-        public long _id;
         public FormDetailsModify(FilteringTools filteringTools, String path)
         {
             InitializeComponent();
@@ -66,6 +55,9 @@ namespace BSP_Using_AI.DetailsModify
             _Plots.Add(SANamings.StableStates, GeneralTools.AddScatterPlot(signalChart, Color.Black, label: SANamings.StableStates));
             _Plots.Add(SANamings.Selection, signalChart.Plot.AddBubblePlot());
             _Plots.Add(SANamings.Labels, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.Labels));
+            _Plots.Add(SANamings.SpanAnnotations, GeneralTools.AddScatterPlot(signalChart, Color.Transparent, label: SANamings.SpanAnnotations));
+            _Plots.Add(SANamings.PointHorizSpan, GeneralTools.AddHorizontalSpan(signalChart, Color.Blue, label: SANamings.PointHorizSpan, HorizSpan_Dragged));
+            _Plots.Add(SANamings.IntervalHorizSpan, GeneralTools.AddHorizontalSpan(signalChart, Color.Green, label: SANamings.IntervalHorizSpan, HorizSpan_Dragged));
 
             _FilteringTools.SetAutoApply(true);
         }
@@ -91,7 +83,7 @@ namespace BSP_Using_AI.DetailsModify
             {
                 initializeAIFilters();
                 initializeAITools();
-                previousButton_Click(null, null);
+                previousButton_Click_ARTHT(null, null);
             }
 
             // Add AI prediction models in modelTypeComboBox

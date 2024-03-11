@@ -40,7 +40,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
         public static double[,] MatTruncateRows(double[,] mat, int newMatStartingRow, int newMatRowSize)
         {
             double[,] result = new double[newMatRowSize, mat.GetLength(1)];
-            for (int row = 0; row < newMatRowSize; row++)
+            for (int row = 0; row < newMatRowSize && row + newMatStartingRow < mat.GetLength(0); row++)
                 for (int col = 0; col < mat.GetLength(1); col++)
                     result[row, col] = mat[row + newMatStartingRow, col];
 

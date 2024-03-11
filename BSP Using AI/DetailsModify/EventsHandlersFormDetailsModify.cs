@@ -12,9 +12,27 @@ namespace BSP_Using_AI.DetailsModify
     {
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
-        private void saveButton_Click(object sender, EventArgs e)
+        private void saveAsImageButton_Click(object sender, EventArgs e)
         {
             GeneralTools.saveChartAsImage(signalChart);
+        }
+
+        private void FormDetailsModify_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Send event to Annotations tools
+            FormDetailsModify_KeyDown_Anno(sender, e);
+        }
+
+        private void FormDetailsModify_KeyUp(object sender, KeyEventArgs e)
+        {
+            // Send event to Annotations tools
+            FormDetailsModify_KeyUp_Anno(sender, e);
+        }
+
+        private void signalChart_MouseUp(object sender, MouseEventArgs e)
+        {
+            // Send event to Annotations tools
+            signalChart_MouseUp_Anno(sender, e);
         }
 
         private void signalExhibitor_MouseMove(object sender, MouseEventArgs e)
@@ -27,6 +45,24 @@ namespace BSP_Using_AI.DetailsModify
         {
             // Send event to Annotations tools
             signalChart_MouseClick_Anno(sender, e);
+        }
+
+        private void nextButton_Click(object sender, EventArgs e)
+        {
+            // Send event to Annotations tools
+            nextButton_Click_Anno(sender, e);
+        }
+
+        private void previousButton_Click(object sender, EventArgs e)
+        {
+            // Send event to Annotations tools
+            previousButton_Click_Anno(sender, e);
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            // Send event to Annotations tools
+            saveButton_Click_Anno(sender, e);
         }
 
         private void predictButton_Click(object sender, EventArgs e)

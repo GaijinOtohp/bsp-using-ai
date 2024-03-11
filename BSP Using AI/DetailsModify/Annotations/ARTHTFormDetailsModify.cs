@@ -15,12 +15,24 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify
 {
     public partial class FormDetailsModify
     {
+        public ARTHTFeatures _arthtFeatures = new ARTHTFeatures();
+
+        bool _predictionOn = false;
+        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+
+        bool _mouseDown = false;
+        int _previousMouseX;
+        int _previousMouseY;
+
+        public long _id;
+
         public class ARTHTFiltersNames
         {
             public static string DCRemoval = "DCRemoval";
@@ -139,7 +151,7 @@ namespace BSP_Using_AI.DetailsModify
             // Initialize tools
             setFeaturesLabelsButton_Click_ARTHT(null, null);
             // Start prediction
-            nextButton_Click(null, null);
+            nextButton_Click_ARTHT(null, null);
         }
 
         public ARTHT_Keras_NET_NN _tFBackThread;
@@ -236,7 +248,7 @@ namespace BSP_Using_AI.DetailsModify
 
         //____________________________________________________________________________________________________________________________________________________//
         //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
-        private void nextButton_Click(object sender, EventArgs e)
+        private void nextButton_Click_ARTHT(object sender, EventArgs e)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -1074,7 +1086,7 @@ namespace BSP_Using_AI.DetailsModify
                 if (_predictionOn)
                 {
                     // If yes then press next button
-                    Thread nextButtonClickThread = new Thread(() => nextButton_Click(sender, e));
+                    Thread nextButtonClickThread = new Thread(() => nextButton_Click_ARTHT(sender, e));
                     nextButtonClickThread.Start();
                 }
             }));
@@ -1174,12 +1186,11 @@ namespace BSP_Using_AI.DetailsModify
             // Disable finish button
             nextButton.Enabled = false;
 
-            // Enable save button in signal holder
-            if (_signalHolder != null)
-                _signalHolder.saveButton.Enabled = true;
+            // Enable save button
+            saveButton.Enabled = true;
         }
 
-        private void previousButton_Click(object sender, EventArgs e)
+        private void previousButton_Click_ARTHT(object sender, EventArgs e)
         {
             ToolStripMenuItem featuresItems = null;
 
@@ -1198,8 +1209,8 @@ namespace BSP_Using_AI.DetailsModify
                     // This is for delta declaration
                     if (nextButton.Text.Equals("Finish"))
                     {
-                        // Disable save button in signal holder
-                        _signalHolder.saveButton.Enabled = false;
+                        // Disable save button
+                        saveButton.Enabled = false;
                         // Disable everything except ai tools
                         enableAITools(true);
 
@@ -1290,8 +1301,8 @@ namespace BSP_Using_AI.DetailsModify
                     // This is for short PR detection
                     if (nextButton.Text.Equals("Finish"))
                     {
-                        // Disable save button in signal holder
-                        _signalHolder.saveButton.Enabled = false;
+                        // Disable save button
+                        saveButton.Enabled = false;
                         // Disable everything except ai tools
                         enableAITools(true);
 
@@ -1766,6 +1777,24 @@ namespace BSP_Using_AI.DetailsModify
             if (_arthtFeatures._processedStep == 8)
                 // Set next button to finish
                 nextButton.Text = "Finish";
+        }
+
+        private void saveButton_Click_ARTHT(object sender, EventArgs e)
+        {
+            // Save the signal with its features in dataset
+            DbStimulator dbStimulator = new DbStimulator();
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Insert("dataset", new string[] { "sginal_name", "starting_index", "signal", "sampling_rate", "quantisation_step", "features" },
+                new Object[] { pathLabel.Text, _FilteringTools._startingInSec, GeneralTools.ObjectToByteArray(_FilteringTools._OriginalRawSamples), _FilteringTools._samplingRate,
+                               _FilteringTools._quantizationStep, GeneralTools.ObjectToByteArray(_arthtFeatures) }, "ARTHTFormDetailModify"));
+            dbStimulatorThread.Start();
+
+            // Update the notification badge for unfitted signals
+            Control badge = MainFormFolder.BadgeControl.GetBadge(this.FindForm());
+            badge.Text = (int.Parse(badge.Text) + 1).ToString();
+            badge.Visible = true;
+
+            // Disable save button
+            saveButton.Enabled = false;
         }
     }
 }

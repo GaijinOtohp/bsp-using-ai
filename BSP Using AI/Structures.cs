@@ -49,6 +49,9 @@ namespace Biological_Signal_Processing_Using_AI
             public static string StableStates { get; } = "Stable";
             public static string Selection { get; } = "Selection";
             public static string Labels { get; } = "Labels";
+            public static string PointHorizSpan { get; } = "Pointing horizontal span";
+            public static string IntervalHorizSpan { get; } = "Interval horizontal span";
+            public static string SpanAnnotations { get; } = "Span annotations";
 
             public static string Up { get; } = "up";
             public static string Down { get; } = "down";

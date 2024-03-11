@@ -57,6 +57,7 @@
             this.quantizationStepTextBox = new System.Windows.Forms.TextBox();
             this.samplingRateLabel = new System.Windows.Forms.Label();
             this.quantizationStepLabel = new System.Windows.Forms.Label();
+            this.saveButton = new System.Windows.Forms.Button();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -72,6 +73,7 @@
             this.signalChart.TabIndex = 1;
             this.signalChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalChart_MouseClick);
             this.signalChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
+            this.signalChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.signalChart_MouseUp);
             // 
             // contextMenuStrip1
             // 
@@ -369,7 +371,7 @@
             this.saveAsImageButton.TabIndex = 31;
             this.saveAsImageButton.Text = "Save as image";
             this.saveAsImageButton.UseVisualStyleBackColor = true;
-            this.saveAsImageButton.Click += new System.EventHandler(this.saveButton_Click);
+            this.saveAsImageButton.Click += new System.EventHandler(this.saveAsImageButton_Click);
             // 
             // quantizationStepTextBox
             // 
@@ -404,11 +406,26 @@
             this.quantizationStepLabel.TabIndex = 34;
             this.quantizationStepLabel.Text = "Quantization step";
             // 
+            // saveButton
+            // 
+            this.saveButton.BackColor = System.Drawing.Color.YellowGreen;
+            this.saveButton.Enabled = false;
+            this.saveButton.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.saveButton.Location = new System.Drawing.Point(246, 656);
+            this.saveButton.Margin = new System.Windows.Forms.Padding(2);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(99, 39);
+            this.saveButton.TabIndex = 36;
+            this.saveButton.Text = "Save";
+            this.saveButton.UseVisualStyleBackColor = false;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            // 
             // FormDetailsModify
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1104, 854);
+            this.Controls.Add(this.saveButton);
             this.Controls.Add(this.quantizationStepLabel);
             this.Controls.Add(this.samplingRateLabel);
             this.Controls.Add(this.quantizationStepTextBox);
@@ -434,10 +451,13 @@
             this.Controls.Add(this.signalsPickerComboBox);
             this.Controls.Add(this.spectrumChart);
             this.Controls.Add(this.signalChart);
+            this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(2);
             this.MinimumSize = new System.Drawing.Size(702, 46);
             this.Name = "FormDetailsModify";
             this.Text = "FormDetailsModify";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormDetailsModify_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.FormDetailsModify_KeyUp);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -474,5 +494,6 @@
         public System.Windows.Forms.TextBox quantizationStepTextBox;
         private System.Windows.Forms.Label samplingRateLabel;
         private System.Windows.Forms.Label quantizationStepLabel;
+        public System.Windows.Forms.Button saveButton;
     }
 }

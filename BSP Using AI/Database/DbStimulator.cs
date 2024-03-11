@@ -31,6 +31,9 @@ namespace BSP_Using_AI
             createTable("dataset", new string[] { "_id integer PRIMARY KEY", "sginal_name text NOT NULL", "starting_index integer NOT NULL",
                                     "signal blob NOT NULL", "sampling_rate integer NOT NULL", "quantisation_step integer NOT NULL",
                                     "features blob NOT NULL" }, _cnn);
+            createTable("anno_ds", new string[] { "_id integer PRIMARY KEY", "sginal_name text NOT NULL", "starting_index integer NOT NULL",
+                                    "signal_data blob NOT NULL", "sampling_rate integer NOT NULL", "quantisation_step integer NOT NULL",
+                                    "anno_objective text NOT NULL", "anno_data blob NOT NULL" }, _cnn);
         }
 
         /**

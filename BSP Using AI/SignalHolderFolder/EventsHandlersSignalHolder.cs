@@ -67,21 +67,6 @@ namespace BSP_Using_AI.SignalHolderFolder
             loadSignalStartingFrom(_FilteringTools._startingInSec - 5);
         }
 
-        private void saveButton_Click(object sender, EventArgs e)
-        {
-            // Save the signal with its features in dataset
-            DbStimulator dbStimulator = new DbStimulator();
-            Thread dbStimulatorThread = new Thread(() => dbStimulator.Insert("dataset", new string[] { "sginal_name", "starting_index", "signal", "sampling_rate", "quantisation_step", "features" },
-                new Object[] { pathLabel.Text, _FilteringTools._startingInSec, GeneralTools.ObjectToByteArray(_FilteringTools._OriginalRawSamples), _FilteringTools._samplingRate,
-                               _FilteringTools._quantizationStep, GeneralTools.ObjectToByteArray(_arthtFeatures) }, "SignalHolder"));
-            dbStimulatorThread.Start();
-
-            // Update the notification badge for unfitted signals
-            Control badge = MainFormFolder.BadgeControl.GetBadge(this.FindForm());
-            badge.Text = (int.Parse(badge.Text) + 1).ToString();
-            badge.Visible = true;
-        }
-
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
         {
             EventHandlers.sendSignalTool(_FilteringTools.Clone(), pathLabel.Text + "\\Collector");

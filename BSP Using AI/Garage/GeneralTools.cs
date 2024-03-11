@@ -13,6 +13,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace Biological_Signal_Processing_Using_AI.Garage
 {
@@ -51,6 +52,12 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             chart.Refresh();
         }
 
+        public static void TimeSpanVisibility(FormsPlot chart, IPlottable hSpan, bool visible)
+        {
+            hSpan.IsVisible = visible;
+            chart.Refresh();
+        }
+
         public static string[] CreateEmptyStrings(int length)
         {
             string[] strings = new string[length];
@@ -66,6 +73,18 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             Legend legend = chart.Plot.Legend();
             legend.Orientation = ScottPlot.Orientation.Horizontal;
             return scatterPlot;
+        }
+
+        public static HSpan AddHorizontalSpan(FormsPlot chart, Color color, string label, HorizSpan_Dragged_Delegate draggingHandler)
+        {
+            HSpan horizSpan = chart.Plot.AddHorizontalSpan(0, 0, Color.FromArgb(51, color), label: label);
+            horizSpan.Dragged += new System.EventHandler(draggingHandler);
+            horizSpan.DragEnabled = true;
+            horizSpan.BorderLineWidth = 2;
+            horizSpan.BorderLineStyle = LineStyle.Solid;
+            horizSpan.BorderColor = color;
+            horizSpan.IsVisible = false;
+            return horizSpan;
         }
 
         public static void loadSignalInChart(FormsPlot chart, double[] samples, double samplingRate, double startingInSec, string reference)
@@ -120,6 +139,16 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             else
                 // Else update the existen scatterplot
                 loadXYInChart(chart, scatterPlot, xValues, yValues, null, startingInSec, reference);
+        }
+
+        public static (double nearestX, double nearestY, int index) GetPointNearestXYSignalPlot(SignalPlot signalPlot, double cursorX, double cursorY)
+        {
+            int index = signalPlot.Ys.Select((y, i) => (Math.Abs(y - cursorY) + Math.Abs(i / signalPlot.SampleRate - cursorX), i)).Min().i;
+
+            double nearestX = index / signalPlot.SampleRate;
+            double nearestY = signalPlot.Ys[index];
+
+            return (nearestX, nearestY, index);
         }
 
         //*******************************************************************************************************//
@@ -733,7 +762,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             resetEverything = true;
         }
 
-        private static double Opposite(State secondLastState, State lastState, double samplingRate)
+        public static double Opposite(State secondLastState, State lastState, double samplingRate)
         {
             // Calculate tangent argument between last two states
             lastState._tangentFromLastState = (lastState._value - secondLastState._value) / ((lastState._index - secondLastState._index) / samplingRate);
