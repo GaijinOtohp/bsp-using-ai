@@ -132,13 +132,11 @@ namespace BSP_Using_AI
                 }
 
             // Open a new form
-            DatasetExplorerForm datasetExplorerForm = new DatasetExplorerForm();
+            DatasetExplorerForm datasetExplorerForm = new DatasetExplorerForm("Dataset explorer");
             datasetExplorerForm._mainForm = _mainForm;
-
-            datasetExplorerForm.Text = "Dataset explorer";
             datasetExplorerForm.Show();
 
-            datasetExplorerForm.queryForSignals();
+            datasetExplorerForm.queryForSignals_ARTHT();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://

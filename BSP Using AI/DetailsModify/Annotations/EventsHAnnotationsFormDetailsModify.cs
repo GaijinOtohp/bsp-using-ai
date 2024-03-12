@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.Garage;
+﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Annotations;
+using Biological_Signal_Processing_Using_AI.Garage;
 using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace BSP_Using_AI.DetailsModify
 
         private bool _intervalHorSpanDragged = false;
 
-        private AnnotationData _AnnotationData = new AnnotationData(CharacteristicWavesDelineation.ObjectiveName);
+        public AnnotationData _AnnotationData = new AnnotationData(CharacteristicWavesDelineation.ObjectiveName);
 
         private void UpdatePointsAnnoPlot()
         {
@@ -75,6 +76,16 @@ namespace BSP_Using_AI.DetailsModify
 
             // Add the new intervals annotations
             GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.SpanAnnotations], xValues, yValues, labels, signalPlot.OffsetX, "EventsHAnnotationsFormDetailsModify");
+        }
+
+        public void ShowAnnotationDetails()
+        {
+            foreach (AnnotationECG annoECG in _AnnotationData.GetAnnotations())
+                // Create the new annotation item and add it in featuresTableLayoutPanel
+                featuresTableLayoutPanel.Controls.Add(new AnnotationItemUserControl(annoECG, this));
+
+            // Update the annotations in the plots
+            UpdateAnnotationsPlots();
         }
 
         public void UpdateAnnotationsPlots()

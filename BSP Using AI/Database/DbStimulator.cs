@@ -46,6 +46,7 @@ namespace BSP_Using_AI
         {
             // Qyery for data and insert it in dataTable
             DataTable dataTable = (DataTable)selectRecordByArgs(table, projection, selection, selectionArgs, sortOrder, false, _cnn);
+            dataTable.TableName = table;
             // Return the dataTable to the querying class if it exists
             _recordsDbStimulatorReportHolder?.holdRecordReport(dataTable, callingClassName);
 

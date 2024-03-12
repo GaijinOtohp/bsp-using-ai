@@ -15,7 +15,13 @@
     <Compile Update="AITools\AIToolsForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="AITools\DatasetExplorer\ARTHT_Training_DatasetExplorerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="AITools\DatasetExplorer\DatasetExplorerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\DatasetExplorer\Training_DatasetExplorerForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="AITools\Details\DetailsForm.cs">

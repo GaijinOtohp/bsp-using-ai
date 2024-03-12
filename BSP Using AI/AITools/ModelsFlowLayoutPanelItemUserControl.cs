@@ -46,21 +46,20 @@ namespace BSP_Using_AI.AITools
         private void fitButton_Click(object sender, EventArgs e)
         {
             // Open DatasetExplorerForm for selecting training dataset
-            DatasetExplorerForm datasetExplorerForm = new DatasetExplorerForm();
+            DatasetExplorerForm datasetExplorerForm = new DatasetExplorerForm("Training dataset explorer");
             datasetExplorerForm._id = _id;
             datasetExplorerForm._aRTHTModels = _aRTHTModels;
             datasetExplorerForm._datasetSize = long.Parse(datasetSizeLabel.Text);
             datasetExplorerForm._updatesNum = int.Parse(updatesLabel.Text);
             datasetExplorerForm._aIToolsForm = (AIToolsForm)this.FindForm();
 
-            datasetExplorerForm.Text = "Training dataset explorer";
             datasetExplorerForm.deleteSelectionButton.Visible = false;
             datasetExplorerForm.unselectAllButton.Visible = false;
             datasetExplorerForm.fitSelectionButton.Visible = true;
             datasetExplorerForm.instrucitonLabel.Visible = true;
             datasetExplorerForm.Show();
 
-            datasetExplorerForm.queryForSignals();
+            datasetExplorerForm.queryForSignals_ARTHT();
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)

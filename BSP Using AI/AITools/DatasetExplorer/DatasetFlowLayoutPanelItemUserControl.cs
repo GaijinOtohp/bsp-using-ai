@@ -5,6 +5,7 @@ using System;
 using System.Data;
 using System.Threading;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
@@ -12,6 +13,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 {
     public partial class DatasetFlowLayoutPanelItemUserControl : UserControl, DbStimulatorReportHolder
     {
+        public string _Table;
         public long _id;
 
         public DatasetFlowLayoutPanelItemUserControl()
@@ -21,15 +23,49 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
-        private void showSignalDetails(FilteringTools filteringTools, ARTHTFeatures artHTFeatures)
+        private void showSignalDetails_ARTHT(DataRow row)
         {
+            double[] signal = GeneralTools.ByteArrayToObject<double[]>(row.Field<byte[]>("signal"));
+
+            FilteringTools filteringTools = new FilteringTools((int)row.Field<long>("sampling_rate"), row.Field<long>("quantisation_step"), null);
+            filteringTools.SetStartingInSecond(row.Field<long>("starting_index"));
+            filteringTools.SetOriginalSamples(signal);
+            ARTHTFeatures artHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
+
             // Open a new form
             FormDetailsModify formDetailsModify = new FormDetailsModify(filteringTools, signalNameLabel.Text + "\\Features details");
+            formDetailsModify.Text = "Features details";
             formDetailsModify._arthtFeatures = artHTFeatures;
 
             formDetailsModify.initializeAITools();
             formDetailsModify.finish();
 
+            showSignalDetails(formDetailsModify);
+        }
+
+        private void showSignalDetails_Anno(DataRow row)
+        {
+            double[] signal = GeneralTools.ByteArrayToObject<double[]>(row.Field<byte[]>("signal_data"));
+
+            FilteringTools filteringTools = new FilteringTools((int)row.Field<long>("sampling_rate"), row.Field<long>("quantisation_step"), null);
+            filteringTools.SetStartingInSecond(row.Field<long>("starting_index"));
+            filteringTools.SetOriginalSamples(signal);
+
+            AnnotationData annoData = GeneralTools.ByteArrayToObject<AnnotationData>(row.Field<byte[]>("anno_data"));
+
+            // Open a new form
+            FormDetailsModify formDetailsModify = new FormDetailsModify(filteringTools, signalNameLabel.Text + "\\Annotation details");
+            formDetailsModify.Text = "Annotation details";
+            formDetailsModify._AnnotationData = annoData;
+
+            formDetailsModify.aiGoalComboBox.Text = row.Field<string>("anno_objective");
+            formDetailsModify.ShowAnnotationDetails();
+
+            showSignalDetails(formDetailsModify);
+        }
+
+        private void showSignalDetails(FormDetailsModify formDetailsModify)
+        {
             formDetailsModify.signalFusionButton.Enabled = false;
             formDetailsModify.signalsPickerComboBox.Enabled = false;
             formDetailsModify.applyButton.Enabled = false;
@@ -43,23 +79,46 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
             formDetailsModify.signalsPickerComboBox.SelectedIndex = 1;
 
-            formDetailsModify.Text = "Features details";
             formDetailsModify.Show();
+        }
+
+        public void queryForSelectedSignal_ARTHT()
+        {
+            // Query for all signals in dataset table
+            DbStimulator dbStimulator = new DbStimulator();
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query(_Table,
+                                new string[] { "starting_index", "signal", "sampling_rate", "quantisation_step", "features" },
+                                "_id=?",
+                                new object[] { _id },
+                                "", "DatasetFlowLayoutPanelItemUserControl"));
+            dbStimulatorThread.Start();
+        }
+
+        public void queryForSelectedSignal_Anno()
+        {
+            // Query for all signals in dataset table
+            DbStimulator dbStimulator = new DbStimulator();
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query(_Table,
+                                new string[] { "starting_index", "signal_data", "sampling_rate", "quantisation_step", "anno_objective", "anno_data" },
+                                "_id=?",
+                                new object[] { _id },
+                                "", "DatasetFlowLayoutPanelItemUserControl"));
+            dbStimulatorThread.Start();
         }
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
         private void featuresDetailsButton_Click(object sender, EventArgs e)
         {
-            // Query for the signal and its features
-            DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
-                                new String[] { "starting_index", "signal", "sampling_rate", "quantisation_step", "features" },
-                                "_id=?",
-                                new Object[] { _id },
-                                "", "DatasetFlowLayoutPanelItemUserControl"));
-            dbStimulatorThread.Start();
+            // Check which table does this item belongs to
+            if (_Table.Equals("dataset"))
+                // This item belongs to ARTHT features table
+                queryForSelectedSignal_ARTHT();
+            else if (_Table.Equals("anno_ds"))
+                // This item belongs to Annotations table
+                queryForSelectedSignal_Anno();
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -76,18 +135,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             DialogResult dialogResult = MessageBox.Show("Are you sure about deleting the signal \"" + this.signalNameLabel.Text + "(" + this.startingIndexLabel.Text + ")" + "\"?", "Action confirmation", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
-                // Remove it from models table
-                DbStimulator dbStimulator = new DbStimulator();
-                dbStimulator.Delete("dataset",
-                                            "_id=?",
-                                            new Object[] { _id },
-                                            "DatasetFlowLayoutPanelItemUserControl");
+                // Remove it from the table
+                ((DatasetExplorerForm)this.FindForm()).DeleteDataById(_id, "DatasetFlowLayoutPanelItemUserControl");
 
                 // Reset badge number of MainForm
                 ((DatasetExplorerForm)this.FindForm())._mainForm.resetBadge();
 
                 // Refresh modelsFlowLayoutPanel
-                ((DatasetExplorerForm)this.FindForm()).queryForSignals();
+                ((DatasetExplorerForm)this.FindForm()).aiGoalComboBox_SelectedIndexChanged(null, null);
             }
         }
 
@@ -127,14 +182,13 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // Get signal and features
             foreach (DataRow row in dataTable.Rows)
             {
-                double[] signal = GeneralTools.ByteArrayToObject<double[]>(row.Field<byte[]>("signal"));
-                ARTHTFeatures artHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
-
-                FilteringTools filteringTools = new FilteringTools((int)row.Field<long>("sampling_rate"), row.Field<long>("quantisation_step"), null);
-                filteringTools.SetStartingInSecond(row.Field<long>("starting_index"));
-                filteringTools.SetOriginalSamples(signal);
                 // Show signal with features
-                this.Invoke(new MethodInvoker(delegate () { showSignalDetails(filteringTools, artHTFeatures); }));
+                if (_Table.Equals("dataset"))
+                    // This item belongs to ARTHT features table
+                    this.Invoke(new MethodInvoker(delegate () { showSignalDetails_ARTHT(row); }));
+                else if (_Table.Equals("anno_ds"))
+                    // This item belongs to Annotations table
+                    this.Invoke(new MethodInvoker(delegate () { showSignalDetails_Anno(row); }));
             }
         }
     }
