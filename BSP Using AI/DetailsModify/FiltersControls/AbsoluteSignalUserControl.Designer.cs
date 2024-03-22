@@ -1,7 +1,7 @@
 ﻿
-namespace BSP_Using_AI.DetailsModify.Filters
+namespace BSP_Using_AI.DetailsModify.FiltersControls
 {
-    partial class NormalizedSignalUserControl
+    partial class AbsoluteSignalUserControl
     {
         /// <summary> 
         /// Required designer variable.
@@ -30,25 +30,25 @@ namespace BSP_Using_AI.DetailsModify.Filters
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.normalizeSignalCheckBox = new System.Windows.Forms.CheckBox();
+            this.absoluteSignalCheckBox = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // normalizeSignalCheckBox
+            // absoluteSignalCheckBox
             // 
-            this.normalizeSignalCheckBox.AutoSize = true;
-            this.normalizeSignalCheckBox.Checked = true;
-            this.normalizeSignalCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.normalizeSignalCheckBox.Location = new System.Drawing.Point(22, 8);
-            this.normalizeSignalCheckBox.Margin = new System.Windows.Forms.Padding(2);
-            this.normalizeSignalCheckBox.Name = "normalizeSignalCheckBox";
-            this.normalizeSignalCheckBox.Size = new System.Drawing.Size(102, 17);
-            this.normalizeSignalCheckBox.TabIndex = 20;
-            this.normalizeSignalCheckBox.Text = "Normalize signal";
-            this.normalizeSignalCheckBox.UseVisualStyleBackColor = true;
-            this.normalizeSignalCheckBox.CheckStateChanged += new System.EventHandler(this.dcValueRemoveCheckBox_CheckStateChanged);
+            this.absoluteSignalCheckBox.AutoSize = true;
+            this.absoluteSignalCheckBox.Checked = true;
+            this.absoluteSignalCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.absoluteSignalCheckBox.Location = new System.Drawing.Point(22, 8);
+            this.absoluteSignalCheckBox.Margin = new System.Windows.Forms.Padding(2);
+            this.absoluteSignalCheckBox.Name = "absoluteSignalCheckBox";
+            this.absoluteSignalCheckBox.Size = new System.Drawing.Size(97, 17);
+            this.absoluteSignalCheckBox.TabIndex = 22;
+            this.absoluteSignalCheckBox.Text = "Absolute signal";
+            this.absoluteSignalCheckBox.UseVisualStyleBackColor = true;
+            this.absoluteSignalCheckBox.CheckStateChanged += new System.EventHandler(this.dcValueRemoveCheckBox_CheckStateChanged);
             // 
             // contextMenuStrip1
             // 
@@ -65,13 +65,13 @@ namespace BSP_Using_AI.DetailsModify.Filters
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
-            // NormalizedSignalUserControl
+            // AbsoluteSignalUserControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ContextMenuStrip = this.contextMenuStrip1;
-            this.Controls.Add(this.normalizeSignalCheckBox);
-            this.Name = "NormalizedSignalUserControl";
+            this.Controls.Add(this.absoluteSignalCheckBox);
+            this.Name = "AbsoluteSignalUserControl";
             this.Size = new System.Drawing.Size(284, 33);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -80,7 +80,7 @@ namespace BSP_Using_AI.DetailsModify.Filters
         }
 
         #endregion
-        public System.Windows.Forms.CheckBox normalizeSignalCheckBox;
+        public System.Windows.Forms.CheckBox absoluteSignalCheckBox;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
     }

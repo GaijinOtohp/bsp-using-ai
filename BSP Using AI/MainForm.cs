@@ -28,8 +28,127 @@ namespace BSP_Using_AI
 
         public ARTHT_Keras_NET_NN _tFBackThread;
 
+
+
+
+
+        public class staton
+        {
+            public int _index;
+            public double _value;
+
+            public double _prevMeanTan;
+            public double _nextMeanTan;
+            public double _deviationAngle; // Argument
+
+            public double _prevMeanMag;
+            public double _nextMeanMag;
+        }
+
+        private void TangentDeviationPoints(double[] signal, double sampleRate)
+        {
+            double amplitudeInterval = GeneralTools.amplitudeInterval(signal);
+            double magThreshold = 0.02d;
+            double angThreshold = 70d;
+
+            staton[] states = new staton[signal.Length];
+            staton latestSta = null;
+
+            for (int i = 0; i < signal.Length; i++)
+            {
+                // Set current sample
+                states[i] = new staton { _index = i, _value = signal[i] };
+
+                if (i == 0)
+                    latestSta = states[0];
+
+                int latStaShiftIndx = latestSta._index;
+
+                // Compute _prevMeanMag and _prevMeanTan of the current sample
+                if (i - latStaShiftIndx > 0)
+                {
+                    double xPrevDiff = (states[i]._index - latestSta._index) / sampleRate;
+                    double yPrevDiff = signal[states[i]._index] - signal[latestSta._index];
+
+                    double prevMag = Math.Sqrt(Math.Pow(xPrevDiff, 2) + Math.Pow(yPrevDiff, 2));
+                    states[i]._prevMeanMag = (states[i - 1]._prevMeanMag * (i - 1 - latStaShiftIndx) + prevMag) / (i - latStaShiftIndx);
+
+                    double prevTan = yPrevDiff / xPrevDiff;
+                    states[i]._prevMeanTan = (states[i - 1]._prevMeanTan * (i - 1 - latStaShiftIndx) + prevTan) / (i - latStaShiftIndx);
+                }
+
+                // Check if prevMeanMag is twice larger than amplitudeInterval * magThreshold
+                if (i - latStaShiftIndx > 1)
+                {
+                    // Update _nextMeanMag, _nextMeanTan, and _deviationAngle of the samples between the latest state and the current sample
+                    for (int j = latStaShiftIndx + 1; j < i; j++)
+                    {
+                        double xNextDiff = (states[i]._index - states[j]._index) / sampleRate;
+                        double yNextDiff = signal[states[i]._index] - signal[states[j]._index];
+
+                        double nextMag = Math.Sqrt(Math.Pow(xNextDiff, 2) + Math.Pow(yNextDiff, 2));
+                        states[j]._nextMeanMag = (states[j]._nextMeanMag * (i - 1 - j) + nextMag) / (i - j);
+
+                        double nextTan = yNextDiff / xNextDiff;
+                        states[j]._nextMeanTan = (states[j]._nextMeanTan * (i - 1 - j) + nextTan) / (i - j);
+
+                        states[j]._deviationAngle = (Math.Atan(states[j]._nextMeanTan) - Math.Atan(states[j]._prevMeanTan)) * 180 / Math.PI;
+                    }
+
+                    // Get the sample with the largest angle that exceeds angThreshold
+                    // and both of _prevMeanMag and _nextMeanMag exceeds amplitudeInterval * magThreshold
+                    staton[] tempLargest = states.Select((state, index) => (state, index)).Where(tuple => tuple.index > latStaShiftIndx && tuple.index < i).
+                                                                                            Where(tuple => tuple.state._nextMeanMag > amplitudeInterval * magThreshold
+                                                                                            && tuple.state._prevMeanMag > amplitudeInterval * magThreshold
+                                                                                            && Math.Abs(tuple.state._deviationAngle) > angThreshold).
+                                                                                            Select(tuple => tuple.state).ToArray();
+
+                    if (tempLargest.Length > 0)
+                    {
+                        latestSta = tempLargest.Select(state => (Math.Abs(state._deviationAngle), state)).Max().state;
+                        Debug.WriteLine(latestSta._index);
+                        Debug.WriteLine(latestSta._deviationAngle);
+                        // If new corner is created
+                        // then update all previousMeanMag and _prevMeanTan of the new corner's next samples
+                        latStaShiftIndx = latestSta._index;
+                        double[] prevMeanMags = new double[i - latStaShiftIndx + 1];
+                        double[] prevMeanTans = new double[i - latStaShiftIndx + 1];
+                        for (int j = 1; j <= i - latStaShiftIndx; j++)
+                        {
+                            double xPrevDiff = (states[j + latStaShiftIndx]._index - latestSta._index) / sampleRate;
+                            double yPrevDiff = signal[states[j + latStaShiftIndx]._index] - signal[latestSta._index];
+
+                            double prevMag = Math.Sqrt(Math.Pow(xPrevDiff, 2) + Math.Pow(yPrevDiff, 2));
+                            prevMeanMags[j] = prevMeanMags[j - 1] * (j - 1) + prevMag / j;
+                            states[j + latStaShiftIndx]._prevMeanMag = prevMeanMags[j];
+
+                            double prevTan = yPrevDiff / xPrevDiff;
+                            prevMeanTans[j] = prevMeanTans[j - 1] * (j - 1) + prevTan / j;
+                            states[j + latStaShiftIndx]._prevMeanTan = prevMeanTans[j];
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
         public MainForm()
         {
+
+            double[] aa = new double[1000];
+            for (int i = 0; i < 1000; i++)
+                if (i / 100 == 0)
+                    aa[i] = 1;
+                else
+                    aa[i] = 4;
+
+            //TangentDeviationPoints(aa, 500);
+
+
+
+
             InitializeComponent();
 
             // Set models reader to ready

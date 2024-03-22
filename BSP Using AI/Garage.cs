@@ -499,9 +499,9 @@ namespace BSP_Using_AI
             Dictionary<string, List<State>> statesDIc = new Dictionary<string, List<State>>(5)
             {
                 { SANamings.AllPeaks, new List<State>() },
-                { SANamings.UpPeaks, new List<State>() },
-                { SANamings.DownPeaks, new List<State>() },
-                { SANamings.StableStates, new List<State>() },
+                { SANamings.ScatterPlotsNames.UpPeaks, new List<State>() },
+                { SANamings.ScatterPlotsNames.DownPeaks, new List<State>() },
+                { SANamings.ScatterPlotsNames.StableStates, new List<State>() },
             };
 
             if (amplitudeInterval == 0 || samplingRate == 0) return statesDIc;
@@ -636,7 +636,7 @@ namespace BSP_Using_AI
                     // If yes then just add the new down state
                     State upState = new State() { Name = up.Name, _index = up._edgeIndex, _value = up._edgeValue, _firstApearanceValue = up._edgeValue };
                     statesDIc[SANamings.AllPeaks].Add(upState);
-                    statesDIc[SANamings.UpPeaks].Add(upState);
+                    statesDIc[SANamings.ScatterPlotsNames.UpPeaks].Add(upState);
                     lastUpState = upState;
                     // Reset everything
                     resetEverything = true;
@@ -655,7 +655,7 @@ namespace BSP_Using_AI
             {
                 State upState = new State() { Name = up.Name, _index = up._edgeIndex, _value = up._edgeValue, _firstApearanceValue = up._edgeValue };
                 statesDIc[SANamings.AllPeaks].Add(upState);
-                statesDIc[SANamings.UpPeaks].Add(upState);
+                statesDIc[SANamings.ScatterPlotsNames.UpPeaks].Add(upState);
                 lastUpState = upState;
                 // Reset everything
                 resetEverything = true;
@@ -672,7 +672,7 @@ namespace BSP_Using_AI
                     // If yes then just add the new down state
                     State downState = new State() { Name = down.Name, _index = down._edgeIndex, _value = down._edgeValue, _firstApearanceValue = down._edgeValue };
                     statesDIc[SANamings.AllPeaks].Add(downState);
-                    statesDIc[SANamings.DownPeaks].Add(downState);
+                    statesDIc[SANamings.ScatterPlotsNames.DownPeaks].Add(downState);
                     lastDownState = downState;
                     // Reset everything
                     resetEverything = true;
@@ -691,7 +691,7 @@ namespace BSP_Using_AI
             {
                 State downState = new State() { Name = down.Name, _index = down._edgeIndex, _value = down._edgeValue, _firstApearanceValue = down._edgeValue };
                 statesDIc[SANamings.AllPeaks].Add(downState);
-                statesDIc[SANamings.DownPeaks].Add(downState);
+                statesDIc[SANamings.ScatterPlotsNames.DownPeaks].Add(downState);
                 lastDownState = downState;
                 // Reset everything
                 resetEverything = true;
@@ -708,7 +708,7 @@ namespace BSP_Using_AI
                     // If yes then just add the new stable state
                     State stableState = new State() { Name = stable.Name, _index = stable._edgeIndex, _value = stable._edgeValue, _firstApearanceValue = stable._edgeValue };
                     statesDIc[SANamings.AllPeaks].Add(stableState);
-                    statesDIc[SANamings.StableStates].Add(stableState);
+                    statesDIc[SANamings.ScatterPlotsNames.StableStates].Add(stableState);
                     lastStableState = stableState;
                 }
                 else
@@ -722,7 +722,7 @@ namespace BSP_Using_AI
             {
                 State stableState = new State() { Name = stable.Name, _index = stable._edgeIndex, _value = stable._edgeValue, _firstApearanceValue = stable._edgeValue };
                 statesDIc[SANamings.AllPeaks].Add(stableState);
-                statesDIc[SANamings.StableStates].Add(stableState);
+                statesDIc[SANamings.ScatterPlotsNames.StableStates].Add(stableState);
                 lastStableState = stableState;
             }
             // Reset everything

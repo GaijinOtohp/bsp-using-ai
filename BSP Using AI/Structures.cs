@@ -42,16 +42,19 @@ namespace Biological_Signal_Processing_Using_AI
         /// </summary>
         public class SANamings
         {
+            public static class ScatterPlotsNames
+            {
+                public static string UpPeaks { get; } = "Up peaks";
+                public static string DownPeaks { get; } = "Down peaks";
+                public static string StableStates { get; } = "Stable";
+                public static string Labels { get; } = "Labels";
+                public static string SpanAnnotations { get; } = "Span annotations";
+            }
             public static string Signal { get; } = "Signal";
             public static string AllPeaks { get; } = "All peaks";
-            public static string UpPeaks { get; } = "Up peaks";
-            public static string DownPeaks { get; } = "Down peaks";
-            public static string StableStates { get; } = "Stable";
             public static string Selection { get; } = "Selection";
-            public static string Labels { get; } = "Labels";
             public static string PointHorizSpan { get; } = "Pointing horizontal span";
             public static string IntervalHorizSpan { get; } = "Interval horizontal span";
-            public static string SpanAnnotations { get; } = "Span annotations";
 
             public static string Up { get; } = "up";
             public static string Down { get; } = "down";

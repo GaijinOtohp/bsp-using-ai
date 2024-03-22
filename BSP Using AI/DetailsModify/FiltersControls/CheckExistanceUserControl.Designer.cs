@@ -1,5 +1,5 @@
 ﻿
-namespace BSP_Using_AI.DetailsModify.Filters
+namespace BSP_Using_AI.DetailsModify.FiltersControls
 {
     partial class CheckExistanceUserControl
     {

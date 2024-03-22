@@ -1,7 +1,7 @@
 ﻿
 using Biological_Signal_Processing_Using_AI;
 
-namespace BSP_Using_AI.DetailsModify.Filters
+namespace BSP_Using_AI.DetailsModify.FiltersControls
 {
     partial class SignalStatesViewerUserControl
     {

@@ -1,7 +1,8 @@
-﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+﻿using Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.Filters.IIRFilters;
+using BSP_Using_AI.DetailsModify.FiltersControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -140,39 +141,26 @@ namespace BSP_Using_AI.DetailsModify
 
                 List<FilterBase> sortedFiltersDic = _FiltersDic.OrderBy(filter => filter.Value._sortOrder).Select(filter => filter.Value).ToList();
 
+                bool reloadSignal = sortedFiltersDic.Count > 0 ? false : true;
                 foreach (FilterBase filter in sortedFiltersDic)
                     if (filter._activated)
                     {
-                        if (filter is DCRemoval)
-                            _FilteredSamples = GeneralTools.removeDCValue(_FilteredSamples);
-                        else if (filter is Normalize)
-                            _FilteredSamples = GeneralTools.normalizeSignal(_FilteredSamples);
-                        else if (filter is Absolute)
-                            _FilteredSamples = GeneralTools.absoluteSignal(_FilteredSamples);
-                        else if (filter is IIRFilter iirFilter)
-                            iirFilter.Filter(_FilteredSamples);
-                        else if (filter is DWT dwt)
-                            _FilteredSamples = dwt.TransformSamples(_FilteredSamples);
-                        else if (filter is PeaksAnalyzer peaksAnalyzer)
-                            if (peaksAnalyzer._autoApply || forceApply)
-                            {
-                                peaksAnalyzer.ScanPeaks(_FilteredSamples);
-                                // Show states in the chart
-                                if (peaksAnalyzer._FilterControl != null && _showResultInChart)
-                                    if (peaksAnalyzer._FilterControl.IsHandleCreated) ((SignalStatesViewerUserControl)peaksAnalyzer._FilterControl).showSignalStates(peaksAnalyzer._StatesDIc);
-                            }
+                        // Apply the filter to _FilteredSamples
+                        (_FilteredSamples, bool tempReloadSignal) = filter.ApplyFilter(_FilteredSamples, forceApply, _showResultInChart);
+                        reloadSignal |= tempReloadSignal;
                     }
 
-                // Show signal in the chart
-                if (_FormDetailModify != null && _showResultInChart)
-                    if (_FormDetailModify.IsHandleCreated)
-                        _FormDetailModify.loadSignal(_FilteredSamples, _samplingRate, _startingInSec);
+                if(reloadSignal)
+                    // Show signal in the chart
+                    if (_FormDetailModify != null && _showResultInChart)
+                        if (_FormDetailModify.IsHandleCreated)
+                            _FormDetailModify.loadSignal(_FilteredSamples, _samplingRate, _startingInSec);
 
                 _ignoreFiltering = false;
             }
         }
 
-        public partial class FilterBase
+        public abstract partial class FilterBase
         {
             public string Name { get; set; }
             public bool _activated { get; set; } = true;
@@ -182,6 +170,10 @@ namespace BSP_Using_AI.DetailsModify
 
             public Control _FilterControl;
             public bool _ignoreEvent { get; set; } = false;
+
+            public abstract Control InitializeFilterControl();
+            public abstract (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart);
+            public abstract void Activate(bool activate);
 
             /// <summary>
             /// Insert filter in filters dictionary and filters flow layout panel
@@ -196,33 +188,9 @@ namespace BSP_Using_AI.DetailsModify
                 // Append order of the filter to its name if the name already exists
                 if (_ParentFilteringTools._FiltersDic.ContainsKey(Name))
                     Name += _sortOrder;
-                // Check the type of the filter
-                if (this is DCRemoval dcRemoval)
-                    _FilterControl = new DCRemovalUserControl(dcRemoval);
-                else if (this is Normalize normalize)
-                    _FilterControl = new NormalizedSignalUserControl(normalize);
-                else if (this is Absolute absolute)
-                    _FilterControl = new AbsoluteSignalUserControl(absolute);
-                else if (this is ExistanceDeclare existanceDeclare)
-                    _FilterControl = new CheckExistanceUserControl(existanceDeclare);
-                else if (this is IIRFilter iirFilter)
-                    _FilterControl = new IIRFilterUserControl(iirFilter);
-                else if (this is DWT dwt)
-                {
-                    _FilterControl = new DWTUserControl(dwt);
-                    // Check if _FiltersDic in _ParentFilteringTools contains PeaksAnalyzer
-                    foreach (FilterBase filter in _ParentFilteringTools._FiltersDic.Values)
-                        if (filter is PeaksAnalyzer peaksAnalyzer)
-                            peaksAnalyzer._DWT = dwt;
-                }
-                else if (this is PeaksAnalyzer peaksAnalyzer)
-                {
-                    _FilterControl = new SignalStatesViewerUserControl(peaksAnalyzer);
-                    // Check if _FiltersDic in _ParentFilteringTools contains dwt filter
-                    foreach (FilterBase filter in _ParentFilteringTools._FiltersDic.Values)
-                        if (filter is DWT dWT)
-                            peaksAnalyzer._DWT = dWT;
-                }
+
+                // Initialize the filter user control
+                _FilterControl = InitializeFilterControl();
 
                 // Insert the filter in FiltersDic
                 _ParentFilteringTools._FiltersDic.Add(Name, this);
@@ -302,14 +270,7 @@ namespace BSP_Using_AI.DetailsModify
                 if (_FilterControl != null && !_ignoreEvent)
                 {
                     _ignoreEvent = true;
-                    if (this is DCRemoval)
-                        ((DCRemovalUserControl)_FilterControl).dcValueRemoveCheckBox.Checked = _activated;
-                    else if (this is Normalize)
-                        ((NormalizedSignalUserControl)_FilterControl).normalizeSignalCheckBox.Checked = _activated;
-                    else if (this is Absolute)
-                        ((AbsoluteSignalUserControl)_FilterControl).absoluteSignalCheckBox.Checked = _activated;
-                    else if (this is PeaksAnalyzer)
-                        ((SignalStatesViewerUserControl)_FilterControl).showStatesCheckBox.Checked = _activated;
+                    Activate(activate);
                     _ignoreEvent = false;
                 }
                 // Apply filtering
@@ -326,6 +287,18 @@ namespace BSP_Using_AI.DetailsModify
                 _ParentFilteringTools = parentFilteringTools;
                 Name = GetType().Name;
             }
+            public override Control InitializeFilterControl()
+            {
+                return new DCRemovalUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                return (GeneralTools.removeDCValue(filteredSamples), true);
+            }
+            public override void Activate(bool activate)
+            {
+                ((DCRemovalUserControl)_FilterControl).dcValueRemoveCheckBox.Checked = activate;
+            }
         }
         //______________________________________________________________________//
         //::::::::::::::::::::::::::::::Normalize::::::::::::::::::::::::::::::://
@@ -336,6 +309,18 @@ namespace BSP_Using_AI.DetailsModify
                 _ParentFilteringTools = parentFilteringTools;
                 Name = GetType().Name;
             }
+            public override Control InitializeFilterControl()
+            {
+                return new NormalizedSignalUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                return (GeneralTools.normalizeSignal(filteredSamples), true);
+            }
+            public override void Activate(bool activate)
+            {
+                ((NormalizedSignalUserControl)_FilterControl).normalizeSignalCheckBox.Checked = activate;
+            }
         }
         //______________________________________________________________________//
         //:::::::::::::::::::::::::::::::Absolute::::::::::::::::::::::::::::::://
@@ -345,6 +330,18 @@ namespace BSP_Using_AI.DetailsModify
             {
                 _ParentFilteringTools = parentFilteringTools;
                 Name = GetType().Name;
+            }
+            public override Control InitializeFilterControl()
+            {
+                return new AbsoluteSignalUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                return (GeneralTools.absoluteSignal(filteredSamples), true);
+            }
+            public override void Activate(bool activate)
+            {
+                ((AbsoluteSignalUserControl)_FilterControl).absoluteSignalCheckBox.Checked = activate;
             }
         }
         //______________________________________________________________________//
@@ -359,6 +356,18 @@ namespace BSP_Using_AI.DetailsModify
                 _ParentFilteringTools = parentFilteringTools;
                 _Label = label;
                 Name = GetType().Name;
+            }
+            public override Control InitializeFilterControl()
+            {
+                return new CheckExistanceUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                return (filteredSamples, false);
+            }
+            public override void Activate(bool activate)
+            {
+
             }
 
             public void SetExistance(bool exists)
@@ -411,6 +420,19 @@ namespace BSP_Using_AI.DetailsModify
                         _selectedType = FilterType.ChebyshevII;
                         break;
                 }
+            }
+            public override Control InitializeFilterControl()
+            {
+                return new IIRFilterUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                this.Filter(filteredSamples);
+                return (filteredSamples, true);
+            }
+            public override void Activate(bool activate)
+            {
+
             }
 
             public void SetFilterBand(int bandType)
@@ -546,6 +568,23 @@ namespace BSP_Using_AI.DetailsModify
             {
                 _ParentFilteringTools = parentFilteringTools;
                 Name = GetType().Name;
+            }
+            public override Control InitializeFilterControl()
+            {
+                // Check if _FiltersDic in _ParentFilteringTools contains PeaksAnalyzer
+                foreach (FilterBase filter in _ParentFilteringTools._FiltersDic.Values)
+                    if (filter is PeaksAnalyzer peaksAnalyzer)
+                        peaksAnalyzer._DWT = this;
+
+                return new DWTUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                return (this.TransformSamples(filteredSamples), true);
+            }
+            public override void Activate(bool activate)
+            {
+
             }
 
             public void SetWaveletType(WaveletType waveletType)
@@ -697,6 +736,30 @@ namespace BSP_Using_AI.DetailsModify
                 _ParentFilteringTools = parentFilteringTools;
                 Name = GetType().Name;
             }
+            public override Control InitializeFilterControl()
+            {
+                // Check if _FiltersDic in _ParentFilteringTools contains dwt filter
+                foreach (FilterBase filter in _ParentFilteringTools._FiltersDic.Values)
+                    if (filter is DWT dwt)
+                        this._DWT = dwt;
+
+                return new SignalStatesViewerUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                if (this._autoApply || forceApply)
+                {
+                    this.ScanPeaks(filteredSamples);
+                    // Show states in the chart
+                    if (this._FilterControl != null && showResultsInChart)
+                        if (this._FilterControl.IsHandleCreated) ((SignalStatesViewerUserControl)this._FilterControl).showSignalStates(this._StatesDIc);
+                }
+                return (filteredSamples, false);
+            }
+            public override void Activate(bool activate)
+            {
+                ((SignalStatesViewerUserControl)_FilterControl).showStatesCheckBox.Checked = activate;
+            }
 
             public void SetART(double art)
             {
@@ -773,6 +836,216 @@ namespace BSP_Using_AI.DetailsModify
                             _DWTLevelsStatesDIc.Add(_DWT._selectedLevel, statesDIc);
                         else
                             _DWTLevelsStatesDIc[_DWT._selectedLevel] = statesDIc;
+            }
+        }
+
+        //______________________________________________________________________//
+        //::::::::::::::::::::::::::Corners scanner::::::::::::::::::::::::::::://
+        public partial class CornersScanner : FilterBase
+        {
+            public class CornerSample
+            {
+                public int _index;
+                public double _value;
+
+                public double _prevTan;
+                public double _nextTan;
+                public double _deviationAngle; // Argument
+
+                public double _prevMag;
+                public double _nextMag;
+            }
+
+            private double[] SpanSamples;
+
+            private int _scanStartingIndex { get; set; } = 0;
+
+            public bool _autoApply { get; set; } = true;
+            public bool _showAngles { get; set; } = false;
+
+            private bool _forSelectionBubbles = false;
+            public delegate void SelectAllTypesPoints();
+            public SelectAllTypesPoints _SelectAllTypesPointsDelegate;
+
+            public double _art { get; set; } = 0.2; // Amplitude ratio threshold
+            public double _at { get; set; } = 20; // Angle threshold
+
+            public List<CornerSample> _CornersList { get; set; }
+
+            public CornersScanner(FilteringTools parentFilteringTools)
+            {
+                _ParentFilteringTools = parentFilteringTools;
+                Name = GetType().Name;
+            }
+            public override Control InitializeFilterControl()
+            {
+                return new CornersScannerUserControl(this);
+            }
+            public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
+            {
+                if (this._autoApply || forceApply)
+                {
+                    if (_forSelectionBubbles && SpanSamples != null)
+                    {
+                        this.ScanCorners(SpanSamples);
+                        _SelectAllTypesPointsDelegate();
+                    }
+                    else if (!_forSelectionBubbles)
+                    {
+                        this.ScanCorners(filteredSamples);
+                        // Show states in the chart
+                        if (this._FilterControl != null && showResultsInChart)
+                            if (this._FilterControl.IsHandleCreated) ((CornersScannerUserControl)this._FilterControl).showSignalCorners(this._CornersList);
+                    }
+                }
+                return (filteredSamples, false);
+            }
+            public override void Activate(bool activate)
+            {
+                ((CornersScannerUserControl)_FilterControl).showCornersCheckBox.Checked = activate;
+            }
+
+            public void SetART(double art)
+            {
+                if (art < 0 || art > 1)
+                    return;
+                _art = art;
+                // Update the control
+                UpdateControl();
+                _ParentFilteringTools?.ApplyFilters(false);
+            }
+            public void SetAT(double at)
+            {
+                if (at < 0 || at > 360)
+                    return;
+                _at = at;
+                // Update the control
+                UpdateControl();
+                _ParentFilteringTools?.ApplyFilters(false);
+            }
+            public void ActivateAutoApply(bool activate)
+            {
+                _autoApply = activate;
+                // Update the control
+                UpdateControl();
+                _ParentFilteringTools?.ApplyFilters(false);
+            }
+            public void ShowAngles(bool show)
+            {
+                _showAngles = show;
+                // Update the control
+                UpdateControl();
+                _ParentFilteringTools?.ApplyFilters(false);
+            }
+            public void SetScanStartIndex(int startingIndex)
+            {
+                _scanStartingIndex = startingIndex;
+            }
+            public void SetSpanSamples(double[] spanSamples)
+            {
+                SpanSamples = spanSamples;
+                _ParentFilteringTools?.ApplyFilters(false);
+            }
+            public void SetForSelectionBubbles(bool activate, SelectAllTypesPoints selectAllTypesPointsDelegate)
+            {
+                _forSelectionBubbles = activate;
+                _SelectAllTypesPointsDelegate = selectAllTypesPointsDelegate;
+            }
+
+            public void UpdateControl()
+            {
+                if (_FilterControl != null)
+                {
+                    CornersScannerUserControl cornersScanner = (CornersScannerUserControl)_FilterControl;
+                    if (!_ignoreEvent)
+                    {
+                        _ignoreEvent = true;
+                        cornersScanner.artScrollBar.Value = cornersScanner.artScrollBar.GetMax() - (int)(_art * cornersScanner.artScrollBar.GetMax());
+                        cornersScanner.artValueTextBox.Text = Math.Round(_art, 3).ToString();
+                        cornersScanner.angleThresholdScrollBar.Value = (int)(_at * 10);
+                        cornersScanner.atValueTextBox.Text = Math.Round(_at, 2).ToString();
+                        cornersScanner.autoApplyCheckBox.Checked = _autoApply;
+                        cornersScanner.showDeviationCheckBox.Checked = _showAngles;
+                        _ignoreEvent = false;
+                    }
+                }
+            }
+
+            //------------------------------------------------------------------------------//
+            private (double mag, double tan) MagTan(CornerSample beginningSample, CornerSample endingSample)
+            {
+                double xDiff = (endingSample._index - beginningSample._index) / (double)this._ParentFilteringTools._samplingRate;
+                double yDiff = endingSample._value - beginningSample._value;
+
+                double mag = Math.Sqrt(Math.Pow(xDiff, 2) + Math.Pow(yDiff, 2));
+                double tan = yDiff / xDiff;
+
+                return (mag, tan);
+            }
+
+            public List<CornerSample> ScanCorners(double[] samples)
+            {
+                _CornersList = new List<CornerSample>();
+                double amplitudeInterval = GeneralTools.amplitudeInterval(samples);
+
+                CornerSample[] corners = new CornerSample[samples.Length];
+                CornerSample latestCorner = null;
+
+
+                for (int i = 0; i < samples.Length; i++)
+                {
+                    // Set current sample
+                    // samples is an excerpt from the the _OriginalRawSamples.
+                    // That's why "_scanStartingIndex" is added as the padding of the excerpt
+                    corners[i] = new CornerSample { _index = _scanStartingIndex + i, _value = samples[i] };
+
+                    if (i == 0)
+                        latestCorner = corners[0];
+
+                    // Get the index of the last corner without the padding
+                    int latCorShiftIndx = latestCorner._index - _scanStartingIndex;
+
+                    // Compute _prevMag and _prevTan of the current sample
+                    if (i - latCorShiftIndx > 0)
+                        (corners[i]._prevMag, corners[i]._prevTan) = MagTan(latestCorner, corners[i]);
+
+                    // Check if the current sample is two indexes ahead of the latest corner
+                    if (i - latCorShiftIndx > 1)
+                    {
+                        // Update _nextMag, _nextTan, and _deviationAngle of the samples between the latest state and the current sample
+                        for (int j = latCorShiftIndx + 1; j < i; j++)
+                        {
+                            (corners[j]._nextMag, corners[j]._nextTan) = MagTan(corners[j], corners[i]);
+
+                            corners[j]._deviationAngle = (Math.Atan(corners[j]._nextTan) - Math.Atan(corners[j]._prevTan)) * 180 / Math.PI;
+                        }
+
+                        // Select the samples with the angle deviation that exceeds angThreshold
+                        // and both of _prevMeanMag and _nextMeanMag exceeds amplitudeInterval * magThreshold
+                        CornerSample[] selectedSamples = corners.Select((corner, index) => (corner, index)).Where(tuple => tuple.index > latCorShiftIndx && tuple.index < i).
+                                                                                               Where(tuple => tuple.corner._nextMag > amplitudeInterval * _art
+                                                                                               && tuple.corner._prevMag > amplitudeInterval * _art
+                                                                                               && Math.Abs(tuple.corner._deviationAngle) > _at).
+                                                                                               Select(tuple => tuple.corner).ToArray();
+
+                        // Check if there is any selected samples that fulfills the conditions
+                        if (selectedSamples.Length > 0)
+                        {
+                            // Select the one with the largest segments
+                            _CornersList.Add(selectedSamples.OrderByDescending(corner => corner._prevMag + corner._nextMag).ToArray()[0]);
+                            latestCorner = _CornersList[_CornersList.Count - 1];
+
+                            // If new corner is created
+                            // then update all previousMag and _prevTan of the new corner's next samples
+                            latCorShiftIndx = latestCorner._index - _scanStartingIndex;
+                            for (int j = 1; j <= i - latCorShiftIndx; j++)
+                                (corners[j + latCorShiftIndx]._prevMag, corners[j + latCorShiftIndx]._prevTan) = MagTan(latestCorner, corners[j + latCorShiftIndx]);
+                        }
+                    }
+                }
+
+
+                return _CornersList;
             }
         }
     }

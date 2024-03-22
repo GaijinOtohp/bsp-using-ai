@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,7 +26,7 @@ namespace BSP_Using_AI.DetailsModify
             public bool shift = false;
             public bool h = false;
             public bool l = false;
-            public bool d = false;
+            public bool c = false;
             public bool s = false;
         }
 
@@ -46,7 +47,7 @@ namespace BSP_Using_AI.DetailsModify
             string[] labels = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Point).Select(anno => anno.Name).ToArray();
 
             // Plot innotation data
-            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.Labels], xValues, yValues, labels, signalPlot.OffsetX, "EventsHAnnotationsFormDetailsModify");
+            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.Labels], xValues, yValues, labels, signalPlot.OffsetX, "EventsHAnnotationsFormDetailsModify");
         }
 
         private void UpdateIntervalsAnnoPlot()
@@ -75,7 +76,7 @@ namespace BSP_Using_AI.DetailsModify
             string[] labels = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Interval).Select(anno => anno.Name).ToArray();
 
             // Add the new intervals annotations
-            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.SpanAnnotations], xValues, yValues, labels, signalPlot.OffsetX, "EventsHAnnotationsFormDetailsModify");
+            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.SpanAnnotations], xValues, yValues, labels, signalPlot.OffsetX, "EventsHAnnotationsFormDetailsModify");
         }
 
         public void ShowAnnotationDetails()
@@ -309,9 +310,10 @@ namespace BSP_Using_AI.DetailsModify
                 _AnnotationData.Clear();
                 featuresTableLayoutPanel.Controls.Clear();
 
-                ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
-                foreach (string stateName in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Selection, SANamings.Labels, SANamings.SpanAnnotations })
-                    GeneralTools.loadXYInChart(signalChart, _Plots[stateName], null, null, null, 0, "EventsHAnnotationsFormDetailsModify");
+                ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
+                foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                    if (statesLabelProperty.GetValue(null) is string statesLabel)
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "EventsHAnnotationsFormDetailsModify");
 
                 // Reset the signal
                 _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];

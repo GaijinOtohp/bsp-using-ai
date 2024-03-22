@@ -1,4 +1,4 @@
-﻿namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
+﻿namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
 {
     partial class DWTUserControl
     {

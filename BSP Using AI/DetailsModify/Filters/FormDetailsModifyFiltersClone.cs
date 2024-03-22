@@ -1,6 +1,7 @@
-﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+﻿using Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls;
 using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.Filters.IIRFilters;
+using BSP_Using_AI.DetailsModify.FiltersControls;
 using System.Collections.Generic;
 using static Biological_Signal_Processing_Using_AI.Structures;
 

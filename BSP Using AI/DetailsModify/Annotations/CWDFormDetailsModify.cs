@@ -1,6 +1,7 @@
 ﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Annotations;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.Filters;
+using BSP_Using_AI.DetailsModify.FiltersControls;
 using ScottPlot;
 using ScottPlot.Plottable;
 using System;
@@ -16,11 +17,14 @@ using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.DetailsModify.FormDetailsModify.CornersScanner;
 
 namespace BSP_Using_AI.DetailsModify
 {
     public partial class FormDetailsModify
     {
+        private MouseEventArgs _MouseCursor = null;
+
         private bool _pointHorSpanDragged = false;
 
         private int _heighestPointInTimeSpanIndex = 0;
@@ -30,7 +34,7 @@ namespace BSP_Using_AI.DetailsModify
 
         public int _lastSelectedItem_shift = -1;
 
-        private void SelectHishest_LowestPoint()
+        private void SetPointsHighlitedSpanProperties()
         {
             SignalPlot signalPlot = (SignalPlot)_Plots[SANamings.Signal];
 
@@ -47,24 +51,29 @@ namespace BSP_Using_AI.DetailsModify
             if (_AnnoKeys.l)
                 _lowestPointInTimeSpanIndex = signalPlot.Ys.Select((y, indx) => (y, indx)).
                                                             Where(tuple => spanStart <= tuple.indx && tuple.indx <= spanEnd).Min().indx;
-
-            // Show the selected points
-            SelectHighlightedSpanPoints();
+            // check if C key is clicked for selecting the corners
+            if (_AnnoKeys.c)
+            {
+                ((CornersScanner)_FilteringTools._FiltersDic[typeof(CornersScanner).Name]).SetScanStartIndex(spanStart);
+                double[] spanSamples = signalPlot.Ys.Select((y, indx) => (y, indx)).
+                                                     Where(tuple => spanStart <= tuple.indx && tuple.indx <= spanEnd).
+                                                     Select(tuple => tuple.y).ToArray();
+                ((CornersScanner)_FilteringTools._FiltersDic[typeof(CornersScanner).Name]).SetSpanSamples(spanSamples);
+            }
+            else
+                // Show the selected points
+                SelectAllTypesPoints();
         }
 
         private void PointsTimesSpanVisibility()
         {
             // Check if the pointing horizontal span should be visible and it 
-            if ((_AnnoKeys.h || _AnnoKeys.l || _AnnoKeys.d))
+            if ((_AnnoKeys.h || _AnnoKeys.l || _AnnoKeys.c))
             {
                 // Check if the pointing horizontal span is not already visible
                 if (!_Plots[SANamings.PointHorizSpan].IsVisible)
-                {
                     // Show the horizontal span
                     GeneralTools.TimeSpanVisibility(signalChart, _Plots[SANamings.PointHorizSpan], true);
-                    // Compute the highest and lowest point in the highlighted span
-                    SelectHishest_LowestPoint();
-                }
             }
             // If not then check if it is visible
             else if (_Plots[SANamings.PointHorizSpan].IsVisible)
@@ -78,8 +87,20 @@ namespace BSP_Using_AI.DetailsModify
             }
         }
 
+        private void SelectAllTypesPoints()
+        {
+            // Check if Ctrl is clicked for labeling any point from the signal
+            if (_AnnoKeys.ctrl && _MouseCursor != null)
+                SelectPointCloseToCursor();
+
+            SelectHighlightedSpanPoints();
+        }
+
         private void SelectHighlightedSpanPoints()
         {
+            // Clear the old selection
+            ClearSelection();
+
             // Check if H is clicked for labeling the highest point in the highlighted time span
             if (_AnnoKeys.h)
                 // If yes then insert the selection for the highest point in the highlighted span
@@ -88,6 +109,10 @@ namespace BSP_Using_AI.DetailsModify
             if (_AnnoKeys.l)
                 // If yes then insert the selection for the lowest point in the highlighted span
                 SelectPoint(_lowestPointInTimeSpanIndex);
+            // Check if C is clicked for labeling the corners in the highlighted time span
+            if (_AnnoKeys.c)
+                // If yes then select the corners
+                SelectCorners();
 
             signalChart.Refresh();
         }
@@ -101,7 +126,39 @@ namespace BSP_Using_AI.DetailsModify
             // Insert the index in the temporary selected points list
             _SelectedPointsList.Add(index);
 
-            selectionBubble.Add(index / signalPlot.SampleRate, signalPlot.Ys[index], 5, Color.Red, 2, ForeColor);
+            selectionBubble.Add(index / signalPlot.SampleRate + signalPlot.OffsetX, signalPlot.Ys[index], 5, Color.Red, 2, ForeColor);
+        }
+
+        private void SelectPointCloseToCursor()
+        {
+            // Get the plots
+            Plot chartPlot = signalChart.Plot;
+            SignalPlot signalPlot = (SignalPlot)_Plots[SANamings.Signal];
+            ScatterPlot labelsScatPlot = (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.Labels];
+            BubblePlot selectionBubble = (BubblePlot)_Plots[SANamings.Selection];
+
+            // Get the cursor coordinates
+            (double curXCor, double curYCor) = chartPlot.GetCoordinate(_MouseCursor.X, _MouseCursor.Y);
+
+            // Get the nearest point in the signal to the cursor's coordinates
+            (double sigX, double sigY, int sigIndx) = GeneralTools.GetPointNearestXYSignalPlot(signalPlot, curXCor, curYCor);
+
+            // Get the pixel of the nearest point
+            (float xPix, float yPix) = chartPlot.GetPixel(sigX, sigY);
+
+            // Check if the nearest state is less than 20 pixels from the cursor
+            if (Math.Abs(_MouseCursor.X - xPix) < 20 && Math.Abs(_MouseCursor.Y - yPix) < 20)
+                // If yes then insert the new selection
+                SelectPoint(sigIndx);
+        }
+
+        private void SelectCorners()
+        {
+            BubblePlot selectionBubble = (BubblePlot)_Plots[SANamings.Selection];
+            List<CornerSample> cornersList = ((CornersScanner)_FilteringTools._FiltersDic[typeof(CornersScanner).Name])._CornersList;
+            if (cornersList != null)
+            foreach (CornerSample corner in cornersList)
+                SelectPoint(corner._index);
         }
 
         private void ClearSelection()
@@ -116,11 +173,19 @@ namespace BSP_Using_AI.DetailsModify
         //******************************************Annotation events********************************************//
         private void setFeaturesLabelsButton_Click_CWD(object sender, EventArgs e)
         {
+            // Set corners scanner
+            CornersScanner cornersScanner = new CornersScanner(_FilteringTools);
+            cornersScanner.SetForSelectionBubbles(true, SelectAllTypesPoints);
+            cornersScanner.InsertFilter(filtersFlowLayoutPanel);
+            ((CornersScannerUserControl)cornersScanner._FilterControl).showCornersCheckBox.Enabled = false;
+            ((CornersScannerUserControl)cornersScanner._FilterControl).showDeviationCheckBox.Enabled = false;
+            _FilteringTools.SetAutoApply(true);
+
             // Show the instructions of annotating the signal
             featuresSettingInstructionsLabel.Text = "Press \"Ctrl\" for labeling any point from the signal.\n" +
                                                     "Press \"H\" for labeling the highest point in the highlighted time span.\n" +
                                                     "Press \"L\" for labeling the lowest point in the highlighted time span.\n" +
-                                                    "Press \"D\" for labeling the tangent deviation corner points in the highlighted time span.\n" +
+                                                    "Press \"C\" for labeling the corner points in the highlighted time span.\n" +
                                                     "Press \"S\" for labeling the highlighted time span from the signal.\n" +
                                                     "Left-click for annotating the selection, and right-click for deleting the selection from the list.\n" +
                                                     "Press \"finish\" after finishing annotating the signal.";
@@ -137,26 +202,36 @@ namespace BSP_Using_AI.DetailsModify
             FormDetailsModify_KeyDownUp_CWD(sender, e, false);
         }
 
+        private bool ChangeKeyStatus(ref bool key, bool status)
+        {
+            key = status;
+            return true;
+        }
+
         private void FormDetailsModify_KeyDownUp_CWD(object sender, KeyEventArgs e, bool keyDown)
         {
+            bool updatePointsSpan = false;
             // Check if which key is clicked
             if (e.KeyCode == Keys.ControlKey && _AnnoKeys.ctrl != keyDown)
-                _AnnoKeys.ctrl = keyDown; // Control key is clicked (for labeling any point from the signal)
+                updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.ctrl, keyDown); // Control key is clicked (for labeling any point from the signal)
             if (e.KeyCode == Keys.ShiftKey && _AnnoKeys.shift != keyDown)
-                _AnnoKeys.shift = keyDown; // Control key is clicked (for labeling any point from the signal)
+                _AnnoKeys.shift = keyDown; // Shift key is clicked (for selecting multiple point to be deleted)
             if (e.KeyCode.ToString().ToUpper().Equals("H") && _AnnoKeys.h != keyDown)
-                _AnnoKeys.h = keyDown; // H key is clicked (for labeling the highest point in the highlighted time span)
+                updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.h, keyDown); // H key is clicked (for labeling the highest point in the highlighted time span)
             if (e.KeyCode.ToString().ToUpper().Equals("L") && _AnnoKeys.l != keyDown)
-                _AnnoKeys.l = keyDown; // L key is clicked (for labeling the lowest point in the highlighted time span)
-            if (e.KeyCode.ToString().ToUpper().Equals("D") && _AnnoKeys.d != keyDown)
-                _AnnoKeys.d = keyDown; // C key is clicked (for labeling the corner point in the highlighted time span)
+                updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.l, keyDown); // L key is clicked (for labeling the lowest point in the highlighted time span)
+            if (e.KeyCode.ToString().ToUpper().Equals("C") && _AnnoKeys.c != keyDown)
+                updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.c, keyDown); // C key is clicked (for labeling the corner point in the highlighted time span)
             if (e.KeyCode.ToString().ToUpper().Equals("S") && _AnnoKeys.s != keyDown)
-                _AnnoKeys.s = keyDown; // S key is clicked (for labeling the highlighted time span from the signal)
+                updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.s, keyDown); // S key is clicked (for labeling the highlighted time span from the signal)
 
             // Show or hide points horizontal span
             PointsTimesSpanVisibility();
             // Show or hide interval horizontal span
             IntervalTimesSpanVisibility();
+
+            if (updatePointsSpan)
+                SetPointsHighlitedSpanProperties();
         }
 
         private void signalChart_MouseUp_CWD(object sender, MouseEventArgs e)
@@ -165,41 +240,16 @@ namespace BSP_Using_AI.DetailsModify
             if (_pointHorSpanDragged)
             {
                 // Recompute the highest and lowest point in the new span
-                SelectHishest_LowestPoint();
+                SetPointsHighlitedSpanProperties();
                 _pointHorSpanDragged = false;
             }
         }
 
         private void signalExhibitor_MouseMove_CWD(object sender, MouseEventArgs e)
         {
-            // Get the plots
-            Plot chartPlot = signalChart.Plot;
-            SignalPlot signalPlot = (SignalPlot)_Plots[SANamings.Signal];
-            ScatterPlot labelsScatPlot = (ScatterPlot)_Plots[SANamings.Labels];
-            BubblePlot selectionBubble = (BubblePlot)_Plots[SANamings.Selection];
-
-            // Clear the old selection
-            ClearSelection();
-
-            // Check if Ctrl is clicked for labeling any point from the signal
+            _MouseCursor = e;
             if (_AnnoKeys.ctrl)
-            {
-                // Get the cursor coordinates
-                (double curXCor, double curYCor) = chartPlot.GetCoordinate(e.X, e.Y);
-
-                // Get the nearest point in the signal to the cursor's coordinates
-                (double sigX, double sigY, int sigIndx) = GeneralTools.GetPointNearestXYSignalPlot(signalPlot, curXCor, curYCor);
-
-                // Get the pixel of the nearest point
-                (float xPix, float yPix) = chartPlot.GetPixel(sigX, sigY);
-
-                // Check if the nearest state is less than 20 pixels from the cursor
-                if (Math.Abs(e.X - xPix) < 20 && Math.Abs(e.Y - yPix) < 20)
-                    // If yes then insert the new selection
-                    SelectPoint(sigIndx);
-            }
-
-            SelectHighlightedSpanPoints();
+                SelectAllTypesPoints();
         }
 
         private void signalChart_MouseClick_CWD(object sender, MouseEventArgs e)
@@ -207,7 +257,7 @@ namespace BSP_Using_AI.DetailsModify
             // Check if the cursor is not the dragging cursor
             // and if any annotation key is clicked
             if ((sender as FormsPlot).Cursor != Cursors.SizeWE &&
-                (_AnnoKeys.ctrl || _AnnoKeys.h || _AnnoKeys.l || _AnnoKeys.d || _AnnoKeys.s))
+                (_AnnoKeys.ctrl || _AnnoKeys.h || _AnnoKeys.l || _AnnoKeys.c || _AnnoKeys.s))
             {
                 // Add the annotations into _AnnotationData
                 foreach (int index in _SelectedPointsList)

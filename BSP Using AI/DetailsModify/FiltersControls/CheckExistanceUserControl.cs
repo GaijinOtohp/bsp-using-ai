@@ -1,7 +1,7 @@
 ﻿using System.Windows.Forms;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
-namespace BSP_Using_AI.DetailsModify.Filters
+namespace BSP_Using_AI.DetailsModify.FiltersControls
 {
     public partial class CheckExistanceUserControl : UserControl
     {

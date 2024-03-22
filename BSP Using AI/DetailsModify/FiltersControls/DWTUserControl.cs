@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify.DWT;
 
-namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
+namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
 {
     public partial class DWTUserControl : UserControl
     {

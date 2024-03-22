@@ -50,12 +50,12 @@ namespace BSP_Using_AI.DetailsModify
 
             // Insert signal, up, down, stable, selection, and labels plots in signalChart
             _Plots.Add(SANamings.Signal, signalChart.Plot.GetPlottables()[0]);
-            _Plots.Add(SANamings.UpPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.UpPeaks));
-            _Plots.Add(SANamings.DownPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Red, label: SANamings.DownPeaks));
-            _Plots.Add(SANamings.StableStates, GeneralTools.AddScatterPlot(signalChart, Color.Black, label: SANamings.StableStates));
+            _Plots.Add(SANamings.ScatterPlotsNames.UpPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.ScatterPlotsNames.UpPeaks));
+            _Plots.Add(SANamings.ScatterPlotsNames.DownPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Red, label: SANamings.ScatterPlotsNames.DownPeaks));
+            _Plots.Add(SANamings.ScatterPlotsNames.StableStates, GeneralTools.AddScatterPlot(signalChart, Color.Black, label: SANamings.ScatterPlotsNames.StableStates));
             _Plots.Add(SANamings.Selection, signalChart.Plot.AddBubblePlot());
-            _Plots.Add(SANamings.Labels, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.Labels));
-            _Plots.Add(SANamings.SpanAnnotations, GeneralTools.AddScatterPlot(signalChart, Color.Transparent, label: SANamings.SpanAnnotations));
+            _Plots.Add(SANamings.ScatterPlotsNames.Labels, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.ScatterPlotsNames.Labels));
+            _Plots.Add(SANamings.ScatterPlotsNames.SpanAnnotations, GeneralTools.AddScatterPlot(signalChart, Color.Transparent, label: SANamings.ScatterPlotsNames.SpanAnnotations));
             _Plots.Add(SANamings.PointHorizSpan, GeneralTools.AddHorizontalSpan(signalChart, Color.Blue, label: SANamings.PointHorizSpan, HorizSpan_Dragged));
             _Plots.Add(SANamings.IntervalHorizSpan, GeneralTools.AddHorizontalSpan(signalChart, Color.Green, label: SANamings.IntervalHorizSpan, HorizSpan_Dragged));
 

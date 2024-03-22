@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
-namespace BSP_Using_AI.DetailsModify.Filters
+namespace BSP_Using_AI.DetailsModify.FiltersControls
 {
     public partial class SignalStatesViewerUserControl : UserControl
     {
@@ -37,22 +37,22 @@ namespace BSP_Using_AI.DetailsModify.Filters
 
             string[] labelsUps = null, labelsDowns = null, labelsStables = null;
 
-            double[] xUps = statesDIc[SANamings.UpPeaks].Select(x => x._index / samplingRate).ToArray();
-            double[] yUps = statesDIc[SANamings.UpPeaks].Select(x => x._value).ToArray();
-            double[] xDowns = statesDIc[SANamings.DownPeaks].Select(x => x._index / samplingRate).ToArray();
-            double[] yDowns = statesDIc[SANamings.DownPeaks].Select(x => x._value).ToArray();
-            double[] xStables = statesDIc[SANamings.StableStates].Select(x => x._index / samplingRate).ToArray();
-            double[] yStables = statesDIc[SANamings.StableStates].Select(x => x._value).ToArray();
+            double[] xUps = statesDIc[SANamings.ScatterPlotsNames.UpPeaks].Select(x => x._index / samplingRate).ToArray();
+            double[] yUps = statesDIc[SANamings.ScatterPlotsNames.UpPeaks].Select(x => x._value).ToArray();
+            double[] xDowns = statesDIc[SANamings.ScatterPlotsNames.DownPeaks].Select(x => x._index / samplingRate).ToArray();
+            double[] yDowns = statesDIc[SANamings.ScatterPlotsNames.DownPeaks].Select(x => x._value).ToArray();
+            double[] xStables = statesDIc[SANamings.ScatterPlotsNames.StableStates].Select(x => x._index / samplingRate).ToArray();
+            double[] yStables = statesDIc[SANamings.ScatterPlotsNames.StableStates].Select(x => x._value).ToArray();
             if (_peaksAnalyzer._activateTangentDeviationScan)
             {
-                labelsUps = statesDIc[SANamings.UpPeaks].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
-                labelsDowns = statesDIc[SANamings.DownPeaks].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
-                labelsStables = statesDIc[SANamings.StableStates].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
+                labelsUps = statesDIc[SANamings.ScatterPlotsNames.UpPeaks].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
+                labelsDowns = statesDIc[SANamings.ScatterPlotsNames.DownPeaks].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
+                labelsStables = statesDIc[SANamings.ScatterPlotsNames.StableStates].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
             }
 
-            GeneralTools.loadXYInChart(signalChart, plots[SANamings.UpPeaks], xUps, yUps, labelsUps, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
-            GeneralTools.loadXYInChart(signalChart, plots[SANamings.DownPeaks], xDowns, yDowns, labelsDowns, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
-            GeneralTools.loadXYInChart(signalChart, plots[SANamings.StableStates], xStables, yStables, labelsStables, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.UpPeaks], xUps, yUps, labelsUps, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.DownPeaks], xDowns, yDowns, labelsDowns, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.StableStates], xStables, yStables, labelsStables, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
 
             return statesDIc;
         }
@@ -190,11 +190,11 @@ namespace BSP_Using_AI.DetailsModify.Filters
             Dictionary<string, IPlottable> plots = ((FormDetailsModify)FindForm())._Plots;
             // If checked then show states
             if (showStatesCheckBox.Checked)
-                foreach (string stateName in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Selection, SANamings.Labels })
+                foreach (string stateName in new string[] { SANamings.ScatterPlotsNames.UpPeaks, SANamings.ScatterPlotsNames.DownPeaks, SANamings.ScatterPlotsNames.StableStates, SANamings.Selection, SANamings.ScatterPlotsNames.Labels })
                     plots[stateName].IsVisible = true;
             // If not then hide states
             else
-                foreach (string stateName in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Selection, SANamings.Labels })
+                foreach (string stateName in new string[] { SANamings.ScatterPlotsNames.UpPeaks, SANamings.ScatterPlotsNames.DownPeaks, SANamings.ScatterPlotsNames.StableStates, SANamings.Selection, SANamings.ScatterPlotsNames.Labels })
                     plots[stateName].IsVisible = false;
             // Update _peaksAnalyzer
             if (!_peaksAnalyzer._ignoreEvent)
@@ -222,7 +222,7 @@ namespace BSP_Using_AI.DetailsModify.Filters
 
             // If checked then show accelerations
             // If not then hide accelerations
-            foreach (string stateName in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+            foreach (string stateName in new string[] { SANamings.ScatterPlotsNames.UpPeaks, SANamings.ScatterPlotsNames.DownPeaks, SANamings.ScatterPlotsNames.StableStates })
                 ((ScatterPlot)plots[stateName]).DataPointLabelFont.Color = showDeviationCheckBox.Checked ? Color.Black : Color.Transparent;
 
             // Update _peaksAnalyzer

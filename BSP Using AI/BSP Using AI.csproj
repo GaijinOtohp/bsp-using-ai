@@ -63,25 +63,28 @@
     <Compile Update="CustomVScrollBar.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="DetailsModify\Filters\AbsoluteSignalUserControl.cs">
+    <Compile Update="DetailsModify\FiltersControls\AbsoluteSignalUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="DetailsModify\Filters\CheckExistanceUserControl.cs">
+    <Compile Update="DetailsModify\FiltersControls\CheckExistanceUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="DetailsModify\Filters\DWTUserControl.cs">
+    <Compile Update="DetailsModify\FiltersControls\DWTUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="DetailsModify\Filters\IIRFilters\IIRFilterUserControl.cs">
+    <Compile Update="DetailsModify\FiltersControls\IIRFilters\IIRFilterUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="DetailsModify\Filters\DCRemovalUserControl.cs">
+    <Compile Update="DetailsModify\FiltersControls\DCRemovalUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="DetailsModify\Filters\NormalizedSignalUserControl.cs">
+    <Compile Update="DetailsModify\FiltersControls\NormalizedSignalUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="DetailsModify\Filters\SignalStatesViewerUserControl.cs">
+    <Compile Update="DetailsModify\FiltersControls\CornersScannerUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="DetailsModify\FiltersControls\SignalStatesViewerUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="MainFormFolder\SignalsCollectionFolder\UserControlSignalPower.cs">

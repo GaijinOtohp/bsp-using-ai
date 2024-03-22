@@ -2,9 +2,10 @@
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
-using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+using Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.Filters;
+using BSP_Using_AI.DetailsModify.FiltersControls;
 using ScottPlot;
 using ScottPlot.Plottable;
 using System;
@@ -12,6 +13,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
@@ -44,6 +46,11 @@ namespace BSP_Using_AI.DetailsModify
             public static string PeaksAnalyzer = "PeaksAnalyzer";
         }
 
+        private void ApplyFilters()
+        {
+            _FilteringTools.ApplyFilters(false);
+        }
+
         private void signalExhibitor_MouseMove_ARTHT(object sender, MouseEventArgs e)
         {
             // Check if AI tool is activated and in R selection step
@@ -53,9 +60,9 @@ namespace BSP_Using_AI.DetailsModify
 
                 // Get the states plots
                 Plot chartPlot = signalChart.Plot;
-                ScatterPlot upScatPlot = (ScatterPlot)_Plots[SANamings.UpPeaks];
-                ScatterPlot downScatPlot = (ScatterPlot)_Plots[SANamings.DownPeaks];
-                ScatterPlot stableScatPlot = (ScatterPlot)_Plots[SANamings.StableStates];
+                ScatterPlot upScatPlot = (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks];
+                ScatterPlot downScatPlot = (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.DownPeaks];
+                ScatterPlot stableScatPlot = (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.StableStates];
                 BubblePlot selectionBubble = (BubblePlot)_Plots[SANamings.Selection];
 
                 // Get the cursor coordinates
@@ -67,8 +74,8 @@ namespace BSP_Using_AI.DetailsModify
                 (double stableX, double stableY, int stableIndx) = stableScatPlot.GetPointNearest(curXCor, curYCor);
 
                 // Get the nearest state to the cursor
-                (double x, double y, int index, string stateLabel) = Math.Abs(curXCor - upX) + Math.Abs(curYCor - upY) < Math.Abs(curXCor - downX) + Math.Abs(curYCor - downY) ? (upX, upY, upIndx, SANamings.UpPeaks) : (downX, downY, downIndx, SANamings.DownPeaks);
-                (x, y, index, stateLabel) = Math.Abs(curXCor - x) + Math.Abs(curYCor - y) < Math.Abs(curXCor - stableX) + Math.Abs(curYCor - stableY) ? (x, y, index, stateLabel) : (stableX, stableY, stableIndx, SANamings.StableStates);
+                (double x, double y, int index, string stateLabel) = Math.Abs(curXCor - upX) + Math.Abs(curYCor - upY) < Math.Abs(curXCor - downX) + Math.Abs(curYCor - downY) ? (upX, upY, upIndx, SANamings.ScatterPlotsNames.UpPeaks) : (downX, downY, downIndx, SANamings.ScatterPlotsNames.DownPeaks);
+                (x, y, index, stateLabel) = Math.Abs(curXCor - x) + Math.Abs(curYCor - y) < Math.Abs(curXCor - stableX) + Math.Abs(curYCor - stableY) ? (x, y, index, stateLabel) : (stableX, stableY, stableIndx, SANamings.ScatterPlotsNames.StableStates);
 
                 // Get the pixel of the nearest state
                 (float xPic, float yPic) = chartPlot.GetPixel(x, y);
@@ -101,7 +108,7 @@ namespace BSP_Using_AI.DetailsModify
                 if (statesDic[SANamings.Selection].Count > 0)
                 {
                     // Get the index of the point
-                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                    foreach (string statesLabel in new string[] { SANamings.ScatterPlotsNames.UpPeaks, SANamings.ScatterPlotsNames.DownPeaks, SANamings.ScatterPlotsNames.StableStates })
                         for (int i = 0; i < statesDic[statesLabel].Count; i++)
                             if (statesDic[SANamings.Selection][0]._index == statesDic[statesLabel][i]._index)
                             {
@@ -297,7 +304,7 @@ namespace BSP_Using_AI.DetailsModify
                         {
                             // Normalize the absolute values of levelSignal
                             ((DWT)_FilteringTools._FiltersDic[ARTHTFiltersNames.DWT]).SelectLevel(i);
-                            _FilteringTools.ApplyFilters(false);
+                            ApplyFilters();
 
                             // Create the pdf of the signal
                             statParams = GeneralTools.statParams(_FilteringTools._FilteredSamples);
@@ -334,16 +341,16 @@ namespace BSP_Using_AI.DetailsModify
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.Absolute].RemoveFilter();
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.DWT].RemoveFilter();
                         // Refresh the signal to restore the original sampling rate from DWT effect
-                        _FilteringTools.ApplyFilters(false);
+                        ApplyFilters();
                         // Set ART and HT of peaks analyzer
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(rPeaksScanSamp.getOutputByLabel(ARTHTNamings.ART));
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(rPeaksScanSamp.getOutputByLabel(ARTHTNamings.HT));
                         // Apply the filters for the next step
-                        _FilteringTools.ApplyFilters(false);
+                        ApplyFilters();
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
                         // Set the up peaks labels ready
-                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Black;
-                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = GeneralTools.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
+                        ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabelFont.Color = Color.Black;
+                        ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabels = GeneralTools.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).PointCount);
                         signalChart.Refresh();
 
                         // Give the instruction for next goal, and enable previous button
@@ -358,7 +365,7 @@ namespace BSP_Using_AI.DetailsModify
                         Dictionary<int, State> rDictionary = new Dictionary<int, State>();
 
                         // Get the states of the normalized signal
-                        List<State> signalUpStates = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._StatesDIc[SANamings.UpPeaks];
+                        List<State> signalUpStates = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._StatesDIc[SANamings.ScatterPlotsNames.UpPeaks];
 
                         // Get the states of each of 3 levels of normalized absolute dwt
                         List<State> dwtUpStates;
@@ -368,7 +375,7 @@ namespace BSP_Using_AI.DetailsModify
                         {
                             lastSavedRIndx = 0;
                             // Get its states
-                            dwtUpStates = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._DWTLevelsStatesDIc[i][SANamings.UpPeaks];
+                            dwtUpStates = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._DWTLevelsStatesDIc[i][SANamings.ScatterPlotsNames.UpPeaks];
 
                             // Iterate through each up state from absoluteDWTStates and compare it with states in normalizedSignalStates
                             // and save the nearest state of normalizedSignalStates to the up state of absoluteDWTStates in qrsList as R state
@@ -448,7 +455,7 @@ namespace BSP_Using_AI.DetailsModify
                             {
                                 // Check if this R is selected
                                 // Start from the last saved qrs index in qrsList
-                                ScatterPlot upScatPlot = ((ScatterPlot)_Plots[SANamings.UpPeaks]);
+                                ScatterPlot upScatPlot = ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]);
                                 for (int j = 0; j < upScatPlot.PointCount; j++)
                                 {
                                     // Check if the state is getting closer
@@ -516,8 +523,8 @@ namespace BSP_Using_AI.DetailsModify
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(0.2d);
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(0.01d);
                         // Refresh the apply button if autoApply is checked
-                        ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
-                        _FilteringTools.ApplyFilters(false);
+                        ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
+                        ApplyFilters();
                         signalChart.Refresh();
 
                         // Give the instruction for next goal, and enable previous button
@@ -554,7 +561,7 @@ namespace BSP_Using_AI.DetailsModify
                             // Scan Q and S peaks with the predicted ART and HT parameters
                             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.ART));
                             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.HT));
-                            _FilteringTools.ApplyFilters(false);
+                            ApplyFilters();
                         }
                         else
                             beatPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
@@ -592,7 +599,7 @@ namespace BSP_Using_AI.DetailsModify
                                 _FilteringTools._RawSamples[i - _arthtFeatures.SignalBeats[nextBeatIndex]._startingIndex] = _FilteringTools._OriginalRawSamples[i];
                             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(0.01d);
                             // Refresh the apply button if autoApply is checked
-                            _FilteringTools.ApplyFilters(false);
+                            ApplyFilters();
 
                             // Give the instruction for next goal, and enable previous button
                             featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" for the segmentation of P and T waves.\n" + (nextBeatIndex + 1) + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
@@ -924,7 +931,7 @@ namespace BSP_Using_AI.DetailsModify
                             // Set the selected _tdtThresholdRatio
                             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetTDT(upstrokeScanSamp.getOutputByLabel(ARTHTNamings.TDT));
                             // Apply peaks scan with the new tangent deviation threshold parameter
-                            _FilteringTools.ApplyFilters(false);
+                            ApplyFilters();
                         }
                         else
                             upstrokeScanSamp.insertOutput(0, ARTHTNamings.TDT, ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._tdt);
@@ -1098,19 +1105,20 @@ namespace BSP_Using_AI.DetailsModify
             for (int i = BeatInfo._startingIndex; i < BeatInfo._endingIndex + 1; i++)
                 _FilteringTools._RawSamples[i - BeatInfo._startingIndex] = _FilteringTools._OriginalRawSamples[i];
 
-            foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Labels })
-                GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+            foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                if (statesLabelProperty.GetValue(null) is string statesLabel)
+                    GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
             ((BubblePlot)_Plots[SANamings.Selection]).Clear();
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(ARTHTSample.getOutputByLabel(ARTHTNamings.ART));
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(ARTHTSample.getOutputByLabel(ARTHTNamings.HT));
             if (TDTSample != null)
                 ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetTDT(TDTSample.getOutputByLabel(ARTHTNamings.TDT));
             // Apply changes
-            _FilteringTools.ApplyFilters(false);
+            ApplyFilters();
 
             // Set the up peaks labels ready
             Dictionary<string, List<State>> statesDic = ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._StatesDIc;
-            foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+            foreach (string statesLabel in new string[] { SANamings.ScatterPlotsNames.UpPeaks, SANamings.ScatterPlotsNames.DownPeaks, SANamings.ScatterPlotsNames.StableStates })
             {
                 ScatterPlot scatPlot = (ScatterPlot)_Plots[statesLabel];
                 scatPlot.DataPointLabelFont.Color = Color.Black;
@@ -1146,7 +1154,7 @@ namespace BSP_Using_AI.DetailsModify
             _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
             for (int i = 0; i < _FilteringTools._RawSamples.Length; i++)
                 _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
-            _FilteringTools.ApplyFilters(false);
+            ApplyFilters();
             double[] samples = _FilteringTools._FilteredSamples;
 
             List<object[]> peaksLabels = new List<object[]>();
@@ -1171,9 +1179,10 @@ namespace BSP_Using_AI.DetailsModify
                     peaksLabels.Add(new object[] { (double)beat._tIndex, samples[beat._tIndex], SANamings.T });
             }
 
-            foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
-            GeneralTools.loadXYInChart(signalChart, _Plots[SANamings.Labels],
+            foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                if (statesLabelProperty.GetValue(null) is string statesLabel)
+                    GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+            GeneralTools.loadXYInChart(signalChart, _Plots[SANamings.ScatterPlotsNames.Labels],
                                  peaksLabels.Select(labelX => (double)labelX[0] / _FilteringTools._samplingRate).ToArray(),
                                  peaksLabels.Select(labelY => (double)labelY[1]).ToArray(),
                                  peaksLabels.Select(label => (string)label[2]).ToArray(),
@@ -1290,8 +1299,9 @@ namespace BSP_Using_AI.DetailsModify
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._FilterControl.Enabled = true;
                     }
                     // Show the last beat with short PR
-                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates, SANamings.Labels })
-                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                        if (statesLabelProperty.GetValue(null) is string statesLabel)
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     setNextBeat(_arthtFeatures.SignalBeats[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[previousShortPRBeatIndx], null);
 
                     // Give the instruction for next goal, and enable previous button
@@ -1347,8 +1357,9 @@ namespace BSP_Using_AI.DetailsModify
                     // Uncheck short PR declaration in filtersFlowLayoutPanel
                     ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare]).SetExistance(false);
                     // Refresh the apply button if autoApply is checked
-                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                        if (statesLabelProperty.GetValue(null) is string statesLabel)
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     int selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1368,8 +1379,9 @@ namespace BSP_Using_AI.DetailsModify
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
 
                     // Set the next beat for segmentation
-                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                        if (statesLabelProperty.GetValue(null) is string statesLabel)
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1387,7 +1399,7 @@ namespace BSP_Using_AI.DetailsModify
                     // Set filters for this step
                     if (featuresItems.DropDownItems.Count + 1 == _arthtFeatures.SignalBeats.Count)
                     {
-                        foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
+                        foreach (string statesLabel in new string[] { SANamings.ScatterPlotsNames.UpPeaks, SANamings.ScatterPlotsNames.DownPeaks, SANamings.ScatterPlotsNames.StableStates })
                             ((ScatterPlot)_Plots[statesLabel]).DataPointLabelFont.Color = Color.Transparent;
 
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = true;
@@ -1403,9 +1415,10 @@ namespace BSP_Using_AI.DetailsModify
                     ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(0.01d);
 
                     // Refresh the apply button if autoApply is checked
-                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
-                    _FilteringTools.ApplyFilters(false);
+                    foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                        if (statesLabelProperty.GetValue(null) is string statesLabel)
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    ApplyFilters();
 
                     // Give the instruction for next goal, and enable previous button
                     featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" for the segmentation of P and T waves.\n" + (previousBeatIndex + 1) + "/" + _arthtFeatures.SignalBeats.Count + "\nPress next after you finish.";
@@ -1419,8 +1432,9 @@ namespace BSP_Using_AI.DetailsModify
                     _arthtFeatures.StepsDataDic[ARTHTNamings.Step2RPeaksSelectionData].removeLastSample();
 
                     // Refresh the apply button if autoApply is checked
-                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                        if (statesLabelProperty.GetValue(null) is string statesLabel)
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
                     _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
                     for (int i = 0; i < _FilteringTools._OriginalRawSamples.Length; i++)
                         _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
@@ -1450,7 +1464,7 @@ namespace BSP_Using_AI.DetailsModify
                     {
                         // Normalize the absolute values of levelSignal
                         ((DWT)_FilteringTools._FiltersDic[ARTHTFiltersNames.DWT]).SelectLevel(i);
-                        _FilteringTools.ApplyFilters(false);
+                        ApplyFilters();
                     }
                     // Reenable showing results in chart
                     _FilteringTools.ShowResultInChart(true);
@@ -1459,11 +1473,11 @@ namespace BSP_Using_AI.DetailsModify
                     dwt.RemoveFilter();
                     absolute.RemoveFilter();
                     // Show the signal
-                    _FilteringTools.ApplyFilters(false);
+                    ApplyFilters();
 
                     // Set the up peaks labels ready
-                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Black;
-                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabels = GeneralTools.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.UpPeaks]).PointCount);
+                    ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabelFont.Color = Color.Black;
+                    ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabels = GeneralTools.CreateEmptyStrings(((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).PointCount);
                     signalChart.Refresh();
 
                     // Give the instruction for next goal, and enable previous button
@@ -1493,12 +1507,13 @@ namespace BSP_Using_AI.DetailsModify
                     _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = true;
 
                     // Set the up peaks labels ready
-                    foreach (string statesLabel in new string[] { SANamings.UpPeaks, SANamings.DownPeaks, SANamings.StableStates })
-                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
-                    ((ScatterPlot)_Plots[SANamings.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
+                    foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
+                        if (statesLabelProperty.GetValue(null) is string statesLabel)
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
 
                     // Show the signal
-                    _FilteringTools.ApplyFilters(false);
+                    ApplyFilters();
 
                     // Show instructions of the first goal
                     featuresSettingInstructionsLabel.Text = "Set the best \"amplitude reatio threshold (ART)\" and \"horizontal threshold (HT)\" so that only high peaks are visible.\nPress next after you finish.";
