@@ -23,18 +23,7 @@ namespace BSP_Using_AI.DetailsModify
                 // Clone filters
                 clonedFilteringTools.SetAutoApply(false);
                 foreach (string filterName in _FiltersDic.Keys)
-                    if (_FiltersDic[filterName] is DCRemoval dcRemoval)
-                        clonedFilteringTools._FiltersDic.Add(filterName, dcRemoval.Clone(clonedFilteringTools));
-                    else if (_FiltersDic[filterName] is Normalize normalize)
-                        clonedFilteringTools._FiltersDic.Add(filterName, normalize.Clone(clonedFilteringTools));
-                    else if (_FiltersDic[filterName] is Absolute absolute)
-                        clonedFilteringTools._FiltersDic.Add(filterName, absolute.Clone(clonedFilteringTools));
-                    else if (_FiltersDic[filterName] is IIRFilter iirFilter)
-                        clonedFilteringTools._FiltersDic.Add(filterName, iirFilter.Clone(clonedFilteringTools));
-                    else if (_FiltersDic[filterName] is DWT dwt)
-                        clonedFilteringTools._FiltersDic.Add(filterName, dwt.Clone(clonedFilteringTools));
-                    else if (_FiltersDic[filterName] is PeaksAnalyzer peaksAnalyzer)
-                        clonedFilteringTools._FiltersDic.Add(filterName, peaksAnalyzer.Clone(clonedFilteringTools));
+                    clonedFilteringTools._FiltersDic.Add(filterName, _FiltersDic[filterName].Clone(clonedFilteringTools));
                 clonedFilteringTools.SetAutoApply(true);
                 // Clone other properties
                 clonedFilteringTools._autoApply = _autoApply;
@@ -48,6 +37,7 @@ namespace BSP_Using_AI.DetailsModify
 
         public partial class FilterBase
         {
+            public abstract FilterBase Clone(FilteringTools filteringTools);
             public void CloneBase(FilterBase sourceFilter)
             {
                 // Clone filter basic properties
@@ -62,7 +52,7 @@ namespace BSP_Using_AI.DetailsModify
         //:::::::::::::::::::::::::::::DC removal::::::::::::::::::::::::::::::://
         public partial class DCRemoval : FilterBase
         {
-            public DCRemoval Clone(FilteringTools filteringTools)
+            public override DCRemoval Clone(FilteringTools filteringTools)
             {
                 // Clone filter properties
                 DCRemoval clonedDCRemoval = new DCRemoval(filteringTools);
@@ -80,7 +70,7 @@ namespace BSP_Using_AI.DetailsModify
         //::::::::::::::::::::::::::::::Normalize::::::::::::::::::::::::::::::://
         public partial class Normalize : FilterBase
         {
-            public Normalize Clone(FilteringTools filteringTools)
+            public override Normalize Clone(FilteringTools filteringTools)
             {
                 // Clone filter properties
                 Normalize clonedNormalize = new Normalize(filteringTools);
@@ -98,7 +88,7 @@ namespace BSP_Using_AI.DetailsModify
         //:::::::::::::::::::::::::::::::Absolute::::::::::::::::::::::::::::::://
         public partial class Absolute : FilterBase
         {
-            public Absolute Clone(FilteringTools filteringTools)
+            public override Absolute Clone(FilteringTools filteringTools)
             {
                 // Clone filter properties
                 Absolute clonedAbsolute = new Absolute(filteringTools);
@@ -113,10 +103,28 @@ namespace BSP_Using_AI.DetailsModify
             }
         }
         //______________________________________________________________________//
+        //:::::::::::::::::::::::::Existance declare:::::::::::::::::::::::::::://
+        public partial class ExistanceDeclare : FilterBase
+        {
+            public override ExistanceDeclare Clone(FilteringTools filteringTools)
+            {
+                // Clone filter properties
+                ExistanceDeclare existanceDeclare = new ExistanceDeclare(filteringTools, _Label);
+                existanceDeclare.CloneBase(this);
+                // CLone the control
+                if (_FilterControl != null)
+                {
+                    existanceDeclare._FilterControl = new CheckExistanceUserControl(existanceDeclare);
+                    existanceDeclare.ActivateGenerally(_activated);
+                }
+                return existanceDeclare;
+            }
+        }
+        //______________________________________________________________________//
         //:::::::::::::::::::::::::::::IIR filter::::::::::::::::::::::::::::::://
         public partial class IIRFilter : FilterBase
         {
-            public IIRFilter Clone(FilteringTools filteringTools)
+            public override IIRFilter Clone(FilteringTools filteringTools)
             {
                 // Clone filter properties
                 IIRFilter clonedIIRFilter = new IIRFilter(filteringTools, Name);
@@ -144,7 +152,7 @@ namespace BSP_Using_AI.DetailsModify
         //:::::::::::::::::::::::::::::::::DWT:::::::::::::::::::::::::::::::::://
         public partial class DWT : FilterBase
         {
-            public DWT Clone(FilteringTools filteringTools)
+            public override DWT Clone(FilteringTools filteringTools)
             {
                 // Clone filter properties
                 DWT clonedDWT = new DWT(filteringTools);
@@ -175,7 +183,7 @@ namespace BSP_Using_AI.DetailsModify
         //::::::::::::::::::::::::::Peaks analyzer:::::::::::::::::::::::::::::://
         public partial class PeaksAnalyzer : FilterBase
         {
-            public PeaksAnalyzer Clone(FilteringTools filteringTools)
+            public override PeaksAnalyzer Clone(FilteringTools filteringTools)
             {
                 // Clone filter properties
                 PeaksAnalyzer clonedPeaksAnalyzer = new PeaksAnalyzer(filteringTools);
@@ -228,7 +236,7 @@ namespace BSP_Using_AI.DetailsModify
         //::::::::::::::::::::::::::Corners scanner::::::::::::::::::::::::::::://
         public partial class CornersScanner : FilterBase
         {
-            public CornersScanner Clone(FilteringTools filteringTools)
+            public override CornersScanner Clone(FilteringTools filteringTools)
             {
                 // Clone filter properties
                 CornersScanner clonedCornersScanner = new CornersScanner(filteringTools);
