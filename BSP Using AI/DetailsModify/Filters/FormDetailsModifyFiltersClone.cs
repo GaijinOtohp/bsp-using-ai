@@ -224,5 +224,37 @@ namespace BSP_Using_AI.DetailsModify
                 return clonedPeaksAnalyzer;
             }
         }
+        //______________________________________________________________________//
+        //::::::::::::::::::::::::::Corners scanner::::::::::::::::::::::::::::://
+        public partial class CornersScanner : FilterBase
+        {
+            public CornersScanner Clone(FilteringTools filteringTools)
+            {
+                // Clone filter properties
+                CornersScanner clonedCornersScanner = new CornersScanner(filteringTools);
+                clonedCornersScanner.SpanSamples = (double[])SpanSamples.Clone();
+                clonedCornersScanner._scanStartingIndex = _scanStartingIndex;
+                clonedCornersScanner._autoApply = _autoApply;
+                clonedCornersScanner._showAngles = _showAngles;
+                clonedCornersScanner._forSelectionBubbles = _forSelectionBubbles;
+                clonedCornersScanner._art = _art;
+                clonedCornersScanner._at = _at;
+
+                clonedCornersScanner._CornersList = new List<CornerSample>(_CornersList.Count);
+                foreach (CornerSample corner in _CornersList)
+                    clonedCornersScanner._CornersList.Add(corner.Clone());
+                clonedCornersScanner.CloneBase(this);
+                // CLone the control
+                if (_FilterControl != null)
+                {
+                    clonedCornersScanner._FilterControl = new CornersScannerUserControl(clonedCornersScanner);
+                    clonedCornersScanner.ActivateAutoApply(_autoApply);
+                    clonedCornersScanner.SetART(_art);
+                    clonedCornersScanner.SetAT(_at);
+                    clonedCornersScanner.ActivateGenerally(_activated);
+                }
+                return clonedCornersScanner;
+            }
+        }
     }
 }

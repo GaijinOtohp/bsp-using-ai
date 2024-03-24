@@ -854,6 +854,19 @@ namespace BSP_Using_AI.DetailsModify
 
                 public double _prevMag;
                 public double _nextMag;
+
+                public CornerSample Clone()
+                {
+                    return new CornerSample() 
+                    {   _index = _index,
+                        _value = _value,
+                        _prevTan = _prevTan,
+                        _nextTan = _nextTan,
+                        _deviationAngle = _deviationAngle,
+                        _prevMag = _prevMag,
+                        _nextMag = _nextMag
+                    };
+                }
             }
 
             private double[] SpanSamples;
