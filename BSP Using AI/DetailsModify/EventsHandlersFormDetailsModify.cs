@@ -155,6 +155,9 @@ namespace BSP_Using_AI.DetailsModify
                 case "Peaks analyzer":
                     filter = new PeaksAnalyzer(_FilteringTools);
                     break;
+                case "Corners scanner":
+                    filter = new CornersScanner(_FilteringTools);
+                    break;
                 default:
                     filter = new IIRFilter(_FilteringTools, (string)filtersComboBox.SelectedItem);
                     break;

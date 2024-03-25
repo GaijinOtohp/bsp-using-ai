@@ -186,7 +186,8 @@
             "Normalize signal",
             "Absolute signal",
             "DWT",
-            "Peaks analyzer"});
+            "Peaks analyzer",
+            "Corners scanner"});
             this.filtersComboBox.Location = new System.Drawing.Point(945, 48);
             this.filtersComboBox.Margin = new System.Windows.Forms.Padding(2);
             this.filtersComboBox.Name = "filtersComboBox";
