@@ -89,18 +89,20 @@ namespace BSP_Using_AI.DetailsModify
 
         private void SelectAllTypesPoints()
         {
+            // Clear the old selection
+            ClearSelection();
+
             // Check if Ctrl is clicked for labeling any point from the signal
             if (_AnnoKeys.ctrl && _MouseCursor != null)
                 SelectPointCloseToCursor();
 
             SelectHighlightedSpanPoints();
+
+            signalChart.Refresh();
         }
 
         private void SelectHighlightedSpanPoints()
         {
-            // Clear the old selection
-            ClearSelection();
-
             // Check if H is clicked for labeling the highest point in the highlighted time span
             if (_AnnoKeys.h)
                 // If yes then insert the selection for the highest point in the highlighted span
@@ -113,8 +115,6 @@ namespace BSP_Using_AI.DetailsModify
             if (_AnnoKeys.c)
                 // If yes then select the corners
                 SelectCorners();
-
-            signalChart.Refresh();
         }
 
         private void SelectPoint(int index)
