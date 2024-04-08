@@ -112,13 +112,13 @@ namespace BSP_Using_AI.DetailsModify.FiltersControls
                 // Get angle threshold from the textbox
                 double at = 0;
                 if (atValueTextBox.Text.Length > 0)
-                    at = double.Parse(atValueTextBox.Text) / 10d;
+                    at = double.Parse(atValueTextBox.Text);
                 // Check if it crosses the max of tdtThresholdScrollBar
                 if (at > 360)
                 {
                     // If yes then set it as the max of tdtThresholdScrollBar
                     at = 360d;
-                    atValueTextBox.Text = Math.Round(at * 10, 2).ToString();
+                    atValueTextBox.Text = Math.Round(at, 2).ToString();
                 }
                 // Change the tangent deviation tolerance threshold value
                 _cornersScanner.SetAT(at);
