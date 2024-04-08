@@ -985,9 +985,9 @@ namespace BSP_Using_AI.DetailsModify
             }
 
             //------------------------------------------------------------------------------//
-            private (double mag, double tan) MagTan(CornerSample beginningSample, CornerSample endingSample)
+            private static (double mag, double tan) MagTan(CornerSample beginningSample, CornerSample endingSample, double samplingRate)
             {
-                double xDiff = (endingSample._index - beginningSample._index) / (double)this._ParentFilteringTools._samplingRate;
+                double xDiff = (endingSample._index - beginningSample._index) / samplingRate;
                 double yDiff = endingSample._value - beginningSample._value;
 
                 double mag = Math.Sqrt(Math.Pow(xDiff, 2) + Math.Pow(yDiff, 2));
@@ -998,7 +998,13 @@ namespace BSP_Using_AI.DetailsModify
 
             public List<CornerSample> ScanCorners(double[] samples)
             {
-                _CornersList = new List<CornerSample>();
+                _CornersList = ScanCorners(samples, _scanStartingIndex, (double)this._ParentFilteringTools._samplingRate, _art, _at);
+                
+                return _CornersList;
+            }
+            public static List<CornerSample> ScanCorners(double[] samples, int scanStartingIndex, double samplingRate, double art, double at)
+            {
+                List<CornerSample> cornersList = new List<CornerSample>();
                 double amplitudeInterval = GeneralTools.amplitudeInterval(samples);
 
                 CornerSample[] corners = new CornerSample[samples.Length];
@@ -1010,17 +1016,17 @@ namespace BSP_Using_AI.DetailsModify
                     // Set current sample
                     // samples is an excerpt from the the _OriginalRawSamples.
                     // That's why "_scanStartingIndex" is added as the padding of the excerpt
-                    corners[i] = new CornerSample { _index = _scanStartingIndex + i, _value = samples[i] };
+                    corners[i] = new CornerSample { _index = scanStartingIndex + i, _value = samples[i] };
 
                     if (i == 0)
                         latestCorner = corners[0];
 
                     // Get the index of the last corner without the padding
-                    int latCorShiftIndx = latestCorner._index - _scanStartingIndex;
+                    int latCorShiftIndx = latestCorner._index - scanStartingIndex;
 
                     // Compute _prevMag and _prevTan of the current sample
                     if (i - latCorShiftIndx > 0)
-                        (corners[i]._prevMag, corners[i]._prevTan) = MagTan(latestCorner, corners[i]);
+                        (corners[i]._prevMag, corners[i]._prevTan) = MagTan(latestCorner, corners[i], samplingRate);
 
                     // Check if the current sample is two indexes ahead of the latest corner
                     if (i - latCorShiftIndx > 1)
@@ -1028,7 +1034,7 @@ namespace BSP_Using_AI.DetailsModify
                         // Update _nextMag, _nextTan, and _deviationAngle of the samples between the latest state and the current sample
                         for (int j = latCorShiftIndx + 1; j < i; j++)
                         {
-                            (corners[j]._nextMag, corners[j]._nextTan) = MagTan(corners[j], corners[i]);
+                            (corners[j]._nextMag, corners[j]._nextTan) = MagTan(corners[j], corners[i], samplingRate);
 
                             corners[j]._deviationAngle = (Math.Atan(corners[j]._nextTan) - Math.Atan(corners[j]._prevTan)) * 180 / Math.PI;
                         }
@@ -1036,29 +1042,29 @@ namespace BSP_Using_AI.DetailsModify
                         // Select the samples with the angle deviation that exceeds angThreshold
                         // and both of _prevMeanMag and _nextMeanMag exceeds amplitudeInterval * magThreshold
                         CornerSample[] selectedSamples = corners.Select((corner, index) => (corner, index)).Where(tuple => tuple.index > latCorShiftIndx && tuple.index < i).
-                                                                                               Where(tuple => tuple.corner._nextMag > amplitudeInterval * _art
-                                                                                               && tuple.corner._prevMag > amplitudeInterval * _art
-                                                                                               && Math.Abs(tuple.corner._deviationAngle) > _at).
+                                                                                               Where(tuple => tuple.corner._nextMag > amplitudeInterval * art
+                                                                                               && tuple.corner._prevMag > amplitudeInterval * art
+                                                                                               && Math.Abs(tuple.corner._deviationAngle) > at).
                                                                                                Select(tuple => tuple.corner).ToArray();
 
                         // Check if there is any selected samples that fulfills the conditions
                         if (selectedSamples.Length > 0)
                         {
                             // Select the one with the largest segments
-                            _CornersList.Add(selectedSamples.OrderByDescending(corner => corner._prevMag + corner._nextMag).ToArray()[0]);
-                            latestCorner = _CornersList[_CornersList.Count - 1];
+                            cornersList.Add(selectedSamples.OrderByDescending(corner => corner._prevMag + corner._nextMag).ToArray()[0]);
+                            latestCorner = cornersList[cornersList.Count - 1];
 
                             // If new corner is created
                             // then update all previousMag and _prevTan of the new corner's next samples
-                            latCorShiftIndx = latestCorner._index - _scanStartingIndex;
+                            latCorShiftIndx = latestCorner._index - scanStartingIndex;
                             for (int j = 1; j <= i - latCorShiftIndx; j++)
-                                (corners[j + latCorShiftIndx]._prevMag, corners[j + latCorShiftIndx]._prevTan) = MagTan(latestCorner, corners[j + latCorShiftIndx]);
+                                (corners[j + latCorShiftIndx]._prevMag, corners[j + latCorShiftIndx]._prevTan) = MagTan(latestCorner, corners[j + latCorShiftIndx], samplingRate);
                         }
                     }
                 }
 
 
-                return _CornersList;
+                return cornersList;
             }
         }
     }
