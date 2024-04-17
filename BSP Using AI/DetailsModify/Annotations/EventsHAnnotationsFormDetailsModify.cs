@@ -47,7 +47,7 @@ namespace BSP_Using_AI.DetailsModify
             string[] labels = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Point).Select(anno => anno.Name).ToArray();
 
             // Plot innotation data
-            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.Labels], xValues, yValues, labels, signalPlot.OffsetX, "EventsHAnnotationsFormDetailsModify");
+            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.Labels], xValues, yValues, labels, signalPlot.OffsetX, false, "EventsHAnnotationsFormDetailsModify");
         }
 
         private void UpdateIntervalsAnnoPlot()
@@ -76,7 +76,7 @@ namespace BSP_Using_AI.DetailsModify
             string[] labels = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Interval).Select(anno => anno.Name).ToArray();
 
             // Add the new intervals annotations
-            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.SpanAnnotations], xValues, yValues, labels, signalPlot.OffsetX, "EventsHAnnotationsFormDetailsModify");
+            GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.SpanAnnotations], xValues, yValues, labels, signalPlot.OffsetX, false, "EventsHAnnotationsFormDetailsModify");
         }
 
         public void ShowAnnotationDetails()
@@ -313,7 +313,7 @@ namespace BSP_Using_AI.DetailsModify
                 ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
                 foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                     if (statesLabelProperty.GetValue(null) is string statesLabel)
-                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "EventsHAnnotationsFormDetailsModify");
+                        GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "EventsHAnnotationsFormDetailsModify");
 
                 // Reset the signal
                 _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];

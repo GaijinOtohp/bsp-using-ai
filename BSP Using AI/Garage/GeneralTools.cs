@@ -21,7 +21,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
     {
         //*******************************************************************************************************//
         //*************************************INSERT SIGNAL VECTOR IN CHART*************************************//
-        public static void loadXYInChart(FormsPlot chart, IPlottable plottable, double[] xValues, double[] yValues, string[] labels, double startingInSec, string reference)
+        public static void loadXYInChart(FormsPlot chart, IPlottable plottable, double[] xValues, double[] yValues, string[] labels, double startingInSec, bool resetAxis, string reference)
         {
             if (plottable is ScatterPlot scatterPlot)
             {
@@ -47,7 +47,8 @@ namespace Biological_Signal_Processing_Using_AI.Garage
                 }
             }
             // Set the axis limits automatically to fit the data on the plot
-            chart.Plot.AxisAuto();
+            if (resetAxis)
+                chart.Plot.AxisAuto();
             // Display changes
             chart.Refresh();
         }
@@ -138,7 +139,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             }
             else
                 // Else update the existen scatterplot
-                loadXYInChart(chart, scatterPlot, xValues, yValues, null, startingInSec, reference);
+                loadXYInChart(chart, scatterPlot, xValues, yValues, null, startingInSec, true, reference);
         }
 
         public static (double nearestX, double nearestY, int index) GetPointNearestXYSignalPlot(SignalPlot signalPlot, double cursorX, double cursorY)
@@ -268,7 +269,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
 
         //*******************************************************************************************************//
         //*********************************************IQR OF SIGNAL*********************************************//
-        private static double signalIQR(double[] signal)
+        public static double signalIQR(double[] signal)
         {
             // Sort the signal
             double[] samples = new double[signal.Length];
@@ -284,7 +285,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             return Q3 - Q1;
         }
 
-        private static int medianIndex(int left, int right)
+        public static int medianIndex(int left, int right)
         {
             int median = right - left + 1;
             median = (median + 1) / 2 - 1;
@@ -1091,7 +1092,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    //Console.WriteLine(e.Message);
                 }
                 return default;
             }

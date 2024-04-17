@@ -50,9 +50,9 @@ namespace BSP_Using_AI.DetailsModify.FiltersControls
                 labelsStables = statesDIc[SANamings.ScatterPlotsNames.StableStates].Select(x => Math.Round(x._deviantionAngle, 2).ToString()).ToArray();
             }
 
-            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.UpPeaks], xUps, yUps, labelsUps, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
-            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.DownPeaks], xDowns, yDowns, labelsDowns, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
-            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.StableStates], xStables, yStables, labelsStables, _peaksAnalyzer._ParentFilteringTools._startingInSec, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.UpPeaks], xUps, yUps, labelsUps, _peaksAnalyzer._ParentFilteringTools._startingInSec, false, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.DownPeaks], xDowns, yDowns, labelsDowns, _peaksAnalyzer._ParentFilteringTools._startingInSec, false, "SignalStatesViewerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.StableStates], xStables, yStables, labelsStables, _peaksAnalyzer._ParentFilteringTools._startingInSec, false, "SignalStatesViewerUserControl");
 
             return statesDIc;
         }

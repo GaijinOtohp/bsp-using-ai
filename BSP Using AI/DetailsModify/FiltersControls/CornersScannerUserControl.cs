@@ -42,7 +42,7 @@ namespace BSP_Using_AI.DetailsModify.FiltersControls
                 labelsCornerss = cornersList.Select(corner => Math.Round(corner._deviationAngle, 2).ToString()).ToArray();
             }
 
-            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.Labels], xCorners, yCorners, labelsCornerss, startingInSec, "CornersScannerUserControl");
+            GeneralTools.loadXYInChart(signalChart, plots[SANamings.ScatterPlotsNames.Labels], xCorners, yCorners, labelsCornerss, startingInSec, true, "CornersScannerUserControl");
 
             return cornersList;
         }

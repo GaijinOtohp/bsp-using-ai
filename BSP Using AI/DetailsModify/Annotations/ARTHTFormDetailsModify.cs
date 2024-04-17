@@ -1107,7 +1107,7 @@ namespace BSP_Using_AI.DetailsModify
 
             foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                 if (statesLabelProperty.GetValue(null) is string statesLabel)
-                    GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
             ((BubblePlot)_Plots[SANamings.Selection]).Clear();
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(ARTHTSample.getOutputByLabel(ARTHTNamings.ART));
             ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(ARTHTSample.getOutputByLabel(ARTHTNamings.HT));
@@ -1181,12 +1181,12 @@ namespace BSP_Using_AI.DetailsModify
 
             foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                 if (statesLabelProperty.GetValue(null) is string statesLabel)
-                    GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                    GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
             GeneralTools.loadXYInChart(signalChart, _Plots[SANamings.ScatterPlotsNames.Labels],
                                  peaksLabels.Select(labelX => (double)labelX[0] / _FilteringTools._samplingRate).ToArray(),
                                  peaksLabels.Select(labelY => (double)labelY[1]).ToArray(),
                                  peaksLabels.Select(label => (string)label[2]).ToArray(),
-                                 _FilteringTools._startingInSec, "ARTHTFormDetailsModify");
+                                 _FilteringTools._startingInSec, true, "ARTHTFormDetailsModify");
 
             // Enable everything
             signalFusionButton.Enabled = true;
@@ -1301,7 +1301,7 @@ namespace BSP_Using_AI.DetailsModify
                     // Show the last beat with short PR
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                         if (statesLabelProperty.GetValue(null) is string statesLabel)
-                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
                     setNextBeat(_arthtFeatures.SignalBeats[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[previousShortPRBeatIndx], null);
 
                     // Give the instruction for next goal, and enable previous button
@@ -1359,7 +1359,7 @@ namespace BSP_Using_AI.DetailsModify
                     // Refresh the apply button if autoApply is checked
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                         if (statesLabelProperty.GetValue(null) is string statesLabel)
-                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
                     int selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1381,7 +1381,7 @@ namespace BSP_Using_AI.DetailsModify
                     // Set the next beat for segmentation
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                         if (statesLabelProperty.GetValue(null) is string statesLabel)
-                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
                     selectedBeatIndx = featuresItems.DropDownItems.Count;
                     setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -1417,7 +1417,7 @@ namespace BSP_Using_AI.DetailsModify
                     // Refresh the apply button if autoApply is checked
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                         if (statesLabelProperty.GetValue(null) is string statesLabel)
-                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
                     ApplyFilters();
 
                     // Give the instruction for next goal, and enable previous button
@@ -1434,7 +1434,7 @@ namespace BSP_Using_AI.DetailsModify
                     // Refresh the apply button if autoApply is checked
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                         if (statesLabelProperty.GetValue(null) is string statesLabel)
-                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
                     _FilteringTools._RawSamples = new double[_FilteringTools._OriginalRawSamples.Length];
                     for (int i = 0; i < _FilteringTools._OriginalRawSamples.Length; i++)
                         _FilteringTools._RawSamples[i] = _FilteringTools._OriginalRawSamples[i];
@@ -1509,7 +1509,7 @@ namespace BSP_Using_AI.DetailsModify
                     // Set the up peaks labels ready
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                         if (statesLabelProperty.GetValue(null) is string statesLabel)
-                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, "ARTHTFormDetailsModify");
+                            GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
                     ((ScatterPlot)_Plots[SANamings.ScatterPlotsNames.UpPeaks]).DataPointLabelFont.Color = Color.Transparent;
 
                     // Show the signal
