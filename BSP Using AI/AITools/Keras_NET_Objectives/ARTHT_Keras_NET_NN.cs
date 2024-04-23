@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -26,7 +27,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
         public AIBackThreadReportHolder _tFBackThreadReportHolderForAIToolsForm;
         public AIBackThreadReportHolder _tFBackThreadReportHolderForDetailsForm;
 
-        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
         private string _callingClass = null;
 
@@ -53,7 +54,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                             if (_callingClass.Equals("DetailsForm"))
                             {
                                 // If yes then create new model in _tempModelsList, and fit data inside it
-                                _tempModel = createTempNeuralNetworkModelForWPW(item.StepName, item.DataList, _arthtModelsDic[item.ModelsName].ARTHTModelsDic[item.StepName]._pcaActive, "");
+                                _tempModel = createTempNeuralNetworkModelForWPW(item.StepName, item.DataList, ((ARTHTModels)_objectivesModelsDic[item.ModelsName]).ARTHTModelsDic[item.StepName]._pcaActive, "");
                                 // Fit features in model
                                 _tempModel = Keras_NET_NN.fit(_tempModel, item.DataList, false);
                             }
@@ -68,7 +69,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                             if (_callingClass.Equals("DetailsForm"))
                                 queue.Enqueue(new QueueSignalInfo { Outputs = Keras_NET_NN.predict(item.Features, _tempModel, true) });
                             else
-                                queue.Enqueue(new QueueSignalInfo { Outputs = Keras_NET_NN.predict(item.Features, (KerasNETNeuralNetworkModel)_arthtModelsDic[item.ModelsName].ARTHTModelsDic[item.StepName], false) });
+                                queue.Enqueue(new QueueSignalInfo { Outputs = Keras_NET_NN.predict(item.Features, (KerasNETNeuralNetworkModel)((ARTHTModels)_objectivesModelsDic[item.ModelsName]).ARTHTModelsDic[item.StepName], false) });
                             signal.Set();
                             break;
                         case "createNeuralNetworkModelForWPW":
@@ -79,11 +80,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                             initializeNeuralNetworkModelsForWPW(item.aRTHTModels);
                             break;
                         case "Close":
-                            List<ARTHTModels> arthtModels = _arthtModelsDic.Values.ToList();
+                            List<ObjectiveBaseModel> arthtModels = _objectivesModelsDic.Values.ToList();
                             for (int i = 0; i < arthtModels.Count; i++)
-                                if (arthtModels[i].ARTHTModelsDic.ElementAt(0).Value is KerasNETNeuralNetworkModel)
+                                if (((ARTHTModels)arthtModels[i]).ARTHTModelsDic.ElementAt(0).Value is KerasNETNeuralNetworkModel)
                                 {
-                                    List<CustomBaseModel> neuralNetworkModels = arthtModels[i].ARTHTModelsDic.Values.ToList();
+                                    List<CustomArchiBaseModel> neuralNetworkModels = ((ARTHTModels)arthtModels[i]).ARTHTModelsDic.Values.ToList();
                                     for (int j = 0; j < neuralNetworkModels.Count; j++)
                                         ((KerasNETNeuralNetworkModel)neuralNetworkModels[j]).Model.Dispose();
                                 }
@@ -99,19 +100,20 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
             int tolatFitProgress = dataLists.Count;
             // Iterate through models from the selected ones in _targetsModelsHashtable
 
+            Dictionary<string, CustomArchiBaseModel> arthtModelsDic = ((ARTHTModels)_objectivesModelsDic[modelsName]).ARTHTModelsDic;
             // Fit features
             if (!stepName.Equals(""))
             {
-                _arthtModelsDic[modelsName].ARTHTModelsDic[stepName] = createTempNeuralNetworkModelForWPW(stepName, dataLists[stepName], _arthtModelsDic[modelsName].ARTHTModelsDic[stepName]._pcaActive,
-                                                        ((KerasNETNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName]).ModelPath);
+                arthtModelsDic[stepName] = createTempNeuralNetworkModelForWPW(stepName, dataLists[stepName], arthtModelsDic[stepName]._pcaActive,
+                                                        ((KerasNETNeuralNetworkModel)arthtModelsDic[stepName]).ModelPath);
                 // Fit features in model
-                Keras_NET_NN.fit((KerasNETNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName], dataLists[stepName], true);
+                Keras_NET_NN.fit((KerasNETNeuralNetworkModel)arthtModelsDic[stepName], dataLists[stepName], true);
             }
             else
-                foreach (string stepNa in _arthtModelsDic[modelsName].ARTHTModelsDic.Keys)
+                foreach (string stepNa in arthtModelsDic.Keys)
                 {
                     // Fit features in model
-                    Keras_NET_NN.fit((KerasNETNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepNa],
+                    Keras_NET_NN.fit((KerasNETNeuralNetworkModel)arthtModelsDic[stepNa],
                                                                              dataLists[stepNa], true);
 
                     // Update fitProgressBar
@@ -121,10 +123,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                 }
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
-            if (_arthtModelsDic[modelsName].DataIdsIntervalsList.Count > 0)
+            if (_objectivesModelsDic[modelsName].DataIdsIntervalsList.Count > 0)
             {
                 Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
-                    new Object[] { GeneralTools.ObjectToByteArray(_arthtModelsDic[modelsName].Clone()), datasetSize }, modelId, "TFBackThread"));
+                    new Object[] { GeneralTools.ObjectToByteArray(_objectivesModelsDic[modelsName].Clone()), datasetSize }, modelId, "TFBackThread"));
                 dbStimulatorThread.Start();
             }
 
@@ -137,7 +139,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
         {
             // Set models in name and path
             int modelIndx = 0;
-            while (_arthtModelsDic.ContainsKey("Neural network for WPW syndrome detection" + modelIndx))
+            while (_objectivesModelsDic.ContainsKey("Neural network for WPW syndrome detection" + modelIndx))
                 modelIndx++;
             //string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/TFModels/NN/WPW" + modelIndx + "/";
             string modelPath = "C:/Users/SMURF/Desktop/Tens/AIModels/TFModels/NN/WPW" + modelIndx + "/";
@@ -157,8 +159,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
             arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createNeuralNetModel(ARTHTNamings.Step7DeltaExaminationData, modelPath + 6, 6, 1); // For WPW syndrome declaration
 
             arthtModels.ModelName = KerasNETNeuralNetworkModel.ModelName;
-            arthtModels.ProblemName = " for WPW syndrome detection" + modelIndx;
-            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
+            arthtModels.ObjectiveName = " for WPW syndrome detection" + modelIndx;
+            _objectivesModelsDic.Add(arthtModels.ModelName + arthtModels.ObjectiveName, arthtModels);
 
             // Save path in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -211,13 +213,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
             string[] stepsNames = arthtModels.ARTHTModelsDic.Keys.ToArray();
             foreach (string stepName in stepsNames)
             {
-                KerasNETNeuralNetworkModel model = ((KerasNETModelLessNeuralNetwork)arthtModels.ARTHTModelsDic[stepName]).Clone();
+                KerasNETNeuralNetworkModel model = (KerasNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName].Clone();
                 model.Model = Sequential.LoadModel(model.ModelPath);
                 arthtModels.ARTHTModelsDic[stepName] = model;
             }
 
             // Insert models in _arthtModelsDic
-            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
+            _objectivesModelsDic.Add(arthtModels.ModelName + arthtModels.ObjectiveName, arthtModels);
         }
     }
 }

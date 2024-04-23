@@ -52,7 +52,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //::::::::::::::::::::::Base model::::::::::::::::::::::://
         [Serializable]
         [DataContract(IsReference = true)]
-        public class CustomBaseModel
+        public class CustomArchiBaseModel
         {
             [DataMember]
             public string Name { get; set; }
@@ -65,42 +65,32 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public ValidationData ValidationData = new ValidationData();
 
-            public object CloneBase()
+            protected virtual CustomArchiBaseModel CreateCloneInstance()
             {
-                object model = null;
-                if (this.GetType().Name.Equals("KNNModel"))
-                    model = new KNNModel();
-                else if (this.GetType().Name.Equals("NeuralNetworkModel"))
-                    model = new KerasNETModelLessNeuralNetwork();
-                else if (this.GetType().Name.Equals("ModelLessNeuralNetwork"))
-                    model = new KerasNETNeuralNetworkModel();
-                else if (this.GetType().Name.Equals("NaiveBayesModel"))
-                    model = new NaiveBayesModel();
-                else if (this.GetType().Name.Equals("TFNETNeuralNetworkModel"))
-                    model = new TFNETModelLessNeuralNetwork();
-                else if (this.GetType().Name.Equals("TFNETModelLessNeuralNetwork"))
-                    model = new TFNETNeuralNetworkModel();
-                else if (this.GetType().Name.Equals("TFKerasNeuralNetworkModel"))
-                    model = new TFKerasModelLessNeuralNetwork();
-                else if (this.GetType().Name.Equals("TFKerasModelLessNeuralNetwork"))
-                    model = new TFKerasNeuralNetworkModel();
-                ((CustomBaseModel)model).Name = Name;
-                ((CustomBaseModel)model)._pcaActive = _pcaActive;
+                return new CustomArchiBaseModel();
+            }
+            public virtual CustomArchiBaseModel Clone()
+            {
+                CustomArchiBaseModel baseArchiModelClone = CreateCloneInstance();
+
+                baseArchiModelClone.Name = Name;
+                baseArchiModelClone._pcaActive = _pcaActive;
 
                 foreach (PCAitem pcLoadingScores in PCA)
-                    ((CustomBaseModel)model).PCA.Add((PCAitem)pcLoadingScores.Clone());
+                    baseArchiModelClone.PCA.Add((PCAitem)pcLoadingScores.Clone());
 
-                ((CustomBaseModel)model).OutputsThresholds = (float[])OutputsThresholds.Clone();
-                ((CustomBaseModel)model).ValidationData = ValidationData.Clone();
+                if (OutputsThresholds != null)
+                    baseArchiModelClone.OutputsThresholds = (float[])OutputsThresholds.Clone();
+                baseArchiModelClone.ValidationData = ValidationData.Clone();
 
-                return model;
+                return baseArchiModelClone;
             }
         }
         //_______________________________________________________//
         //:::::::::::::::::::::::::::KNN::::::::::::::::::::::::://
         [Serializable]
         [DataContract(IsReference = true)]
-        public class KNNModel : CustomBaseModel
+        public class KNNModel : CustomArchiBaseModel
         {
             [DataMember]
             public static string ModelName = "K-Nearest neighbors";
@@ -109,9 +99,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public List<Sample> DataList = new List<Sample>();
 
-            public KNNModel Clone()
+            protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                KNNModel knnModel = (KNNModel)CloneBase();
+                return new KNNModel();
+            }
+            public override CustomArchiBaseModel Clone()
+            {
+                KNNModel knnModel = (KNNModel)base.Clone();
                 knnModel.k = k;
 
                 return knnModel;
@@ -133,33 +127,22 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //::::::::::::::::::::Neural Network::::::::::::::::::::://
         [Serializable]
         [DataContract(IsReference = true)]
-        public class KerasNETNeuralNetworkModel : CustomBaseModel
+        public class KerasNETNeuralNetworkModel : CustomArchiBaseModel
         {
             [DataMember]
             public static string ModelName = "Keras.NET Neural network";
             [DataMember]
             public string ModelPath;
-            [DataMember]
+            [IgnoreDataMemberAttribute]
             public BaseModel Model = new Sequential();
 
-            public KerasNETModelLessNeuralNetwork Clone()
+            protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                KerasNETModelLessNeuralNetwork neuralNetworkModel = (KerasNETModelLessNeuralNetwork)CloneBase();
-                neuralNetworkModel.ModelPath = ModelPath;
-
-                return neuralNetworkModel;
+                return new KerasNETNeuralNetworkModel();
             }
-        }
-        [Serializable]
-        [DataContract(IsReference = true)]
-        public class KerasNETModelLessNeuralNetwork : CustomBaseModel
-        {
-            [DataMember]
-            public string ModelPath;
-
-            public KerasNETNeuralNetworkModel Clone()
+            public override CustomArchiBaseModel Clone()
             {
-                KerasNETNeuralNetworkModel neuralNetworkModel = (KerasNETNeuralNetworkModel)CloneBase();
+                KerasNETNeuralNetworkModel neuralNetworkModel = (KerasNETNeuralNetworkModel)base.Clone();
                 neuralNetworkModel.ModelPath = ModelPath;
 
                 return neuralNetworkModel;
@@ -194,7 +177,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         //:::::::::::::::::::::::Naive Bayes::::::::::::::::::::://
         [Serializable]
         [DataContract(IsReference = true)]
-        public class NaiveBayesModel : CustomBaseModel
+        public class NaiveBayesModel : CustomArchiBaseModel
         {
             [DataMember]
             public static string ModelName = "Naive bayes";
@@ -203,9 +186,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public List<Partition[]> OutputsProbaList = new List<Partition[]>();
 
-            public NaiveBayesModel Clone()
+            protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                NaiveBayesModel naiveBayesModel = (NaiveBayesModel)CloneBase();
+                return new NaiveBayesModel();
+            }
+            public override CustomArchiBaseModel Clone()
+            {
+                NaiveBayesModel naiveBayesModel = (NaiveBayesModel)base.Clone();
                 naiveBayesModel._regression = _regression;
 
                 naiveBayesModel.OutputsProbaList = new List<Partition[]>();
@@ -272,84 +259,87 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         }
         //_______________________________________________________//
         //::::::::::::Tensorflow.Net Neural Network:::::::::::::://
+        [DataContract(IsReference = true)]
+        public class TFNETBaseModel
+        {
+            [DataMember]
+            public string ModelPath;
+            [IgnoreDataMemberAttribute]
+            public Session Session;
+
+            public TFNETBaseModel(string modelpath)
+            {
+                ModelPath = modelpath;
+            }
+        }
         [Serializable]
         [DataContract(IsReference = true)]
-        public class TFNETNeuralNetworkModel : CustomBaseModel
+        public class TFNETNeuralNetworkModel : CustomArchiBaseModel
         {
             [DataMember]
             public static string ModelName = "TF.NET Neural network";
             [DataMember]
-            public string ModelPath;
-            [DataMember]
-            public Session Session;
+            public TFNETBaseModel BaseModel;
 
-            public TFNETModelLessNeuralNetwork Clone()
+            protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                TFNETModelLessNeuralNetwork tfNETNeuralNetworkModel = (TFNETModelLessNeuralNetwork)CloneBase();
-                tfNETNeuralNetworkModel.ModelPath = ModelPath;
+                return new TFNETNeuralNetworkModel();
+            }
+            public override CustomArchiBaseModel Clone()
+            {
+                TFNETNeuralNetworkModel tfNETNeuralNetworkModel = (TFNETNeuralNetworkModel)base.Clone();
+                tfNETNeuralNetworkModel.BaseModel.ModelPath = BaseModel.ModelPath;
 
                 return tfNETNeuralNetworkModel;
-            }
-        }
-        [Serializable]
-        [DataContract(IsReference = true)]
-        public class TFNETModelLessNeuralNetwork : CustomBaseModel
-        {
-            [DataMember]
-            public string ModelPath;
-
-            public TFNETNeuralNetworkModel Clone()
-            {
-                TFNETNeuralNetworkModel tfNETNeuralNetworkModel = (TFNETNeuralNetworkModel)CloneBase();
-                tfNETNeuralNetworkModel.ModelPath = ModelPath;
-
-                return tfNETNeuralNetworkModel;
-            }
-        }
-        //_______________________________________________________//
-        //::::::::::::Tensorflow.Keras Neural Network:::::::::::://
-        [Serializable]
-        [DataContract(IsReference = true)]
-        public class TFKerasNeuralNetworkModel : CustomBaseModel
-        {
-            [DataMember]
-            public static string ModelName = "TF.Keras Neural network";
-            [DataMember]
-            public string ModelPath;
-            [DataMember]
-            public Tensorflow.Keras.Engine.IModel Model;
-
-            public TFKerasModelLessNeuralNetwork Clone()
-            {
-                TFKerasModelLessNeuralNetwork tfKerasNeuralNetworkModel = (TFKerasModelLessNeuralNetwork)CloneBase();
-                tfKerasNeuralNetworkModel.ModelPath = ModelPath;
-
-                return tfKerasNeuralNetworkModel;
-            }
-        }
-        [Serializable]
-        [DataContract(IsReference = true)]
-        public class TFKerasModelLessNeuralNetwork : CustomBaseModel
-        {
-            [DataMember]
-            public string ModelPath;
-
-            public TFKerasNeuralNetworkModel Clone()
-            {
-                TFKerasNeuralNetworkModel tfKerasNeuralNetworkModel = (TFKerasNeuralNetworkModel)CloneBase();
-                tfKerasNeuralNetworkModel.ModelPath = ModelPath;
-
-                return tfKerasNeuralNetworkModel;
             }
         }
         //_______________________________________________________//
         //:::::::::::::::::Reinforcement learning:::::::::::::::://
         [Serializable]
         [DataContract(IsReference = true)]
-        public class ReinforcementL : CustomBaseModel
+        public class TFNETReinforcementL : CustomArchiBaseModel
         {
             [DataMember]
             public static string ModelName = "Reinforcement learning";
+            [DataMember]
+            public TFNETBaseModel BaseModel;
+
+            protected override CustomArchiBaseModel CreateCloneInstance()
+            {
+                return new TFNETReinforcementL();
+            }
+            public override CustomArchiBaseModel Clone()
+            {
+                TFNETReinforcementL tfNETReinforcementLModel = (TFNETReinforcementL)base.Clone();
+                tfNETReinforcementLModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath);
+
+                return tfNETReinforcementLModel;
+            }
+        }
+        //_______________________________________________________//
+        //::::::::::::Tensorflow.Keras Neural Network:::::::::::://
+        [Serializable]
+        [DataContract(IsReference = true)]
+        public class TFKerasNeuralNetworkModel : CustomArchiBaseModel
+        {
+            [DataMember]
+            public static string ModelName = "TF.Keras Neural network";
+            [DataMember]
+            public string ModelPath;
+            [IgnoreDataMemberAttribute]
+            public Tensorflow.Keras.Engine.IModel Model;
+
+            protected override CustomArchiBaseModel CreateCloneInstance()
+            {
+                return new TFKerasNeuralNetworkModel();
+            }
+            public override CustomArchiBaseModel Clone()
+            {
+                TFKerasNeuralNetworkModel tfKerasNeuralNetworkModel = (TFKerasNeuralNetworkModel)base.Clone();
+                tfKerasNeuralNetworkModel.ModelPath = ModelPath;
+
+                return tfKerasNeuralNetworkModel;
+            }
         }
     }
 }

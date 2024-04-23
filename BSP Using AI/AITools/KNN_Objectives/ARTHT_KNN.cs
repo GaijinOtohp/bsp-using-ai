@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -18,12 +19,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
     {
         private AIBackThreadReportHolder _aiBackThreadReportHolderForAIToolsForm;
 
-        private Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        private Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
         ARTHTModels _aRTHTModels = null;
 
-        public ARTHT_KNN(Dictionary<string, ARTHTModels> arthtModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
+        public ARTHT_KNN(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
-            _arthtModelsDic = arthtModelsDic;
+            _objectivesModelsDic = objectivesModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
@@ -33,12 +34,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             int tolatFitProgress = dataLists.Count;
 
             // Iterate through models from the selected ones in _arthtModelsDic
-            ARTHTModels arthtModels = _arthtModelsDic[modelsName];
+            ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelsName];
 
             // Fit features
             if (!stepName.Equals(""))
             {
-                _arthtModelsDic[modelsName].ARTHTModelsDic[stepName] = createKNNModel(stepName, dataLists[stepName], _arthtModelsDic[modelsName].ARTHTModelsDic[stepName]._pcaActive);
+                arthtModels.ARTHTModelsDic[stepName] = createKNNModel(stepName, dataLists[stepName], arthtModels.ARTHTModelsDic[stepName]._pcaActive);
                 // Fit features in model
                 KNN.fit((KNNModel)arthtModels.ARTHTModelsDic[stepName],
                                                       dataLists[stepName]);
@@ -89,11 +90,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             // Insert models in _arthtModelsDic
             int modelIndx = 0;
             arthtModels.ModelName = KNNModel.ModelName;
-            arthtModels.ProblemName = " for WPW syndrome detection";
-            while (_arthtModelsDic.ContainsKey(arthtModels.ModelName + arthtModels.ProblemName + modelIndx))
+            arthtModels.ObjectiveName = " for WPW syndrome detection";
+            while (_objectivesModelsDic.ContainsKey(arthtModels.ModelName + arthtModels.ObjectiveName + modelIndx))
                 modelIndx++;
-            arthtModels.ProblemName = " for WPW syndrome detection" + modelIndx;
-            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
+            arthtModels.ObjectiveName = " for WPW syndrome detection" + modelIndx;
+            _objectivesModelsDic.Add(arthtModels.ModelName + arthtModels.ObjectiveName, arthtModels);
 
             // Save models in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -141,7 +142,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
         public void initializeNeuralNetworkModelsForWPW(ARTHTModels arthtModels)
         {
             // Insert models in _arthtModelsDic
-            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
+            _objectivesModelsDic.Add(arthtModels.ModelName + arthtModels.ObjectiveName, arthtModels);
             _aRTHTModels = arthtModels;
 
             // Query for the selected dataset

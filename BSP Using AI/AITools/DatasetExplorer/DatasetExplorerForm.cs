@@ -166,6 +166,12 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             _shiftClicked = false;
         }
 
+        private void fitSelectionButton_Click(object sender, EventArgs e)
+        {
+            // Send event to Training_DatasetExplorerForm
+            fitSelectionButton_Click_Training(sender, e);
+        }
+
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
         public void holdRecordReport(DataTable dataTable, string callingClassName)
@@ -201,14 +207,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
                     // Check if this form is for "Training dataset explorer"
                     if (this.Text.Equals("Training dataset explorer"))
-                        holdRecordReport_Training(dataTable, row, datasetFlowLayoutPanelItemUserControl);
+                        holdRecordReport_Training_Item(/*dataTable, */row, datasetFlowLayoutPanelItemUserControl);
 
                     if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Add(datasetFlowLayoutPanelItemUserControl); }));
                 }
             }
             // Set features for training
-            else if (callingClassName.Equals("DatasetExplorerFormForFeatures"))
-                holdRecordReport_ARTHT(dataTable, callingClassName);
+            else if (callingClassName.Contains("DatasetExplorerFormForTraining"))
+                holdRecordReport_Training(dataTable, callingClassName);
         }
     }
 }

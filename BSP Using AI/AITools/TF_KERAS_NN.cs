@@ -9,6 +9,7 @@ using Tensorflow;
 using Tensorflow.Keras.Engine;
 using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static Tensorflow.Binding;
@@ -19,11 +20,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
     {
         private AIBackThreadReportHolder _aiBackThreadReportHolderForAIToolsForm;
 
-        private Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        private Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
-        public TF_KERAS_NN(Dictionary<string, ARTHTModels> arthtModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
+        public TF_KERAS_NN(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
-            _arthtModelsDic = arthtModelsDic;
+            _objectivesModelsDic = objectivesModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
@@ -32,20 +33,21 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             int fitProgress = 0;
             int tolatFitProgress = dataLists.Count;
             // Iterate through models from the selected ones in _targetsModelsHashtable
+            ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelsName];
 
             // Fit features
             if (!stepName.Equals(""))
             {
-                _arthtModelsDic[modelsName].ARTHTModelsDic[stepName] = createTFKerasNeuralNetModel(stepName, dataLists[stepName], _arthtModelsDic[modelsName].ARTHTModelsDic[stepName]._pcaActive,
-                                                        ((TFKerasNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName]).ModelPath);
+                arthtModels.ARTHTModelsDic[stepName] = createTFKerasNeuralNetModel(stepName, dataLists[stepName], arthtModels.ARTHTModelsDic[stepName]._pcaActive,
+                                                        ((TFKerasNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).ModelPath);
                 // Fit features in model
-                fit((TFKerasNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepName], dataLists[stepName], true);
+                fit((TFKerasNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName], dataLists[stepName], true);
             }
             else
-                foreach (string stepNa in _arthtModelsDic[modelsName].ARTHTModelsDic.Keys)
+                foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
                 {
                     // Fit features in model
-                    fit((TFKerasNeuralNetworkModel)_arthtModelsDic[modelsName].ARTHTModelsDic[stepNa],
+                    fit((TFKerasNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepNa],
                                                                              dataLists[stepNa], true);
 
                     // Update fitProgressBar
@@ -55,10 +57,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 }
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
-            if (_arthtModelsDic[modelsName].DataIdsIntervalsList.Count > 0)
+            if (arthtModels.DataIdsIntervalsList.Count > 0)
             {
                 Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
-                    new object[] { GeneralTools.ObjectToByteArray(_arthtModelsDic[modelsName].Clone()), datasetSize }, modelId, "TF_NET_KERAS_NN"));
+                    new object[] { GeneralTools.ObjectToByteArray(arthtModels.Clone()), datasetSize }, modelId, "TF_NET_KERAS_NN"));
                 dbStimulatorThread.Start();
             }
 
@@ -154,7 +156,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         {
             // Set models in name and path
             int modelIndx = 0;
-            while (_arthtModelsDic.ContainsKey(TFKerasNeuralNetworkModel.ModelName + " for WPW syndrome detection" + modelIndx))
+            while (_objectivesModelsDic.ContainsKey(TFKerasNeuralNetworkModel.ModelName + " for WPW syndrome detection" + modelIndx))
                 modelIndx++;
             //string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/TFKerasModels/NN/WPW" + modelIndx + "/";
             string modelPath = @"./" + modelIndx + "/";
@@ -174,11 +176,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createTFKerasNeuralNetModel(ARTHTNamings.Step7DeltaExaminationData, modelPath + 6, 6, 1); // For WPW syndrome declaration
 
             arthtModels.ModelName = TFKerasNeuralNetworkModel.ModelName;// + " for WPW syndrome detection" + modelIndx;
-            arthtModels.ProblemName = " for WPW syndrome detection";
-            while (_arthtModelsDic.ContainsKey(arthtModels.ModelName + arthtModels.ProblemName + modelIndx))
+            arthtModels.ObjectiveName = " for WPW syndrome detection";
+            while (_objectivesModelsDic.ContainsKey(arthtModels.ModelName + arthtModels.ObjectiveName + modelIndx))
                 modelIndx++;
-            arthtModels.ProblemName = " for WPW syndrome detection" + modelIndx;
-            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
+            arthtModels.ObjectiveName = " for WPW syndrome detection" + modelIndx;
+            _objectivesModelsDic.Add(arthtModels.ModelName + arthtModels.ObjectiveName, arthtModels);
 
             // Save path in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -244,13 +246,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             string[] stepsNames = arthtModels.ARTHTModelsDic.Keys.ToArray();
             foreach (string stepName in stepsNames)
             {
-                TFKerasNeuralNetworkModel model = ((TFKerasModelLessNeuralNetwork)arthtModels.ARTHTModelsDic[stepName]).Clone();
+                TFKerasNeuralNetworkModel model = (TFKerasNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName].Clone();
                 model.Model = tf.keras.models.load_model(model.ModelPath);
                 arthtModels.ARTHTModelsDic[stepName] = model;
             }
 
             // Insert models in _arthtModelsDic
-            _arthtModelsDic.Add(arthtModels.ModelName + arthtModels.ProblemName, arthtModels);
+            _objectivesModelsDic.Add(arthtModels.ModelName + arthtModels.ObjectiveName, arthtModels);
         }
     }
 }

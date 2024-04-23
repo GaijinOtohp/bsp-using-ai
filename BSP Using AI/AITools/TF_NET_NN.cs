@@ -15,7 +15,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 {
     public class TF_NET_NN
     {
-        public static TFNETNeuralNetworkModel fit(TFNETNeuralNetworkModel model, List<Sample> dataList, bool saveModel = false, int suggestedBatchSize = 4)
+        public delegate Session ModelArchitectureDelegate(int inputDim, int outputDim);
+        public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList, bool saveModel = false, int suggestedBatchSize = 4)
         {
             if (model._pcaActive)
                 dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
@@ -23,7 +24,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             if (dataList.Count > 0)
             {
                 // Get the session from the model
-                Session session = model.Session;
+                Session session = baseModel.Session;
 
                 // Sort data into batches
                 int batchesCount = (dataList.Count / suggestedBatchSize) + (dataList.Count % suggestedBatchSize > 0 ? 1 : 0);
@@ -123,7 +124,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
                 // Save model
                 if (saveModel)
-                    SaveModelVariables(model.Session, model.ModelPath);
+                    SaveModelVariables(session, baseModel.ModelPath);
             }
 
             return model;
@@ -136,7 +137,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 features = GeneralTools.rearrangeInput(features, model.PCA);
 
             // Get the session from the model
-            Session session = model.Session;
+            Session session = model.BaseModel.Session;
 
             // Get the input and output variables from the graph
             Tensor input = session.graph.OperationByName("input_place_holder");
@@ -171,6 +172,41 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             System.IO.Directory.CreateDirectory(path);
             File.WriteAllBytes(path + "/model_variables.pb", output_graph_def.ToByteArray());
             //File.WriteAllText(path + "labels.txt", string.Join("\n", new string[] { "3output" }));
+        }
+
+        public static Session LoadModelVariables(string path, string inpTensorName, string outpTensorName, ModelArchitectureDelegate modelArchitectureDelegate)
+        {
+            // Load the learned graph variables values
+            Graph valsGraph = tf.train.load_graph(path + "/model_variables.pb");
+            // and create a temporal session for reading the variables tensors values
+            Session tempSess = tf.Session();
+            // Get the input and output tensors dimensions
+            int inputDim = (int)valsGraph.get_tensor_by_name(inpTensorName).dims[1];
+            int outputDim = (int)valsGraph.get_tensor_by_name(outpTensorName).dims[1];
+
+            // Activate restore mode to enable both eager mode (run operations immediately without the need of a graph)
+            // and graph mode (stores the new nodes to the default graph)
+            tf.Context.restore_mode();
+
+            // Create a new session for the model
+            Session session = modelArchitectureDelegate(inputDim, outputDim);
+
+            // Set the session graph as the default graph
+            session.graph.as_default();
+            // Get the global variables from the default graph
+            IVariableV1[] newVars = tf.global_variables();
+
+            // Initiate the new graph with learned graph variables values
+            for (int i = 0; i < newVars.Length; i++)
+            {
+                IVariableV1 var = newVars[i];
+                Tensor valsTensor = valsGraph.get_tensor_by_name(var.Name);
+                Tensorflow.NumPy.NDArray vals = tempSess.run(valsTensor);
+                Tensor operation = tf.assign(var, vals);
+                session.run(operation);
+            }
+
+            return session;
         }
 
         public static Tensor Layer(Tensor input, int outputDim, List<Operation> assignmentsList = null, string name = null)

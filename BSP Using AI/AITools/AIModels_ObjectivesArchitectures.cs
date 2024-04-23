@@ -6,80 +6,98 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
 {
     public class AIModels_ObjectivesArchitectures
     {
+        [Serializable]
+        [KnownType(typeof(CustomArchiBaseModel))]
+        [KnownType(typeof(KNNModel))]
+        [KnownType(typeof(KerasNETNeuralNetworkModel))]
+        [KnownType(typeof(NaiveBayesModel))]
+        [KnownType(typeof(TFNETNeuralNetworkModel))]
+        [KnownType(typeof(TFKerasNeuralNetworkModel))]
+        [KnownType(typeof(ARTHTModels))]
+        [KnownType(typeof(CWDReinforcementL))]
+        [DataContract(IsReference = true)]
+        public class ObjectiveBaseModel
+        {
+            [DataMember]
+            public string ModelName { get; set; }
+            [DataMember]
+            public string ObjectiveName { get; set; }
+            /// <summary>
+            /// Training Details:
+            /// Each train update creates a list of intervals (List<long[]>) of the _ids of the selected data
+            /// </summary>
+            [DataMember]
+            public List<List<long[]>> DataIdsIntervalsList { get; set; } = new List<List<long[]>>();
+
+            [DataMember]
+            public long _validationTimeCompelxity { get; set; }
+            [DataMember]
+            public string _ValidationInfo { get; set; }
+
+            protected virtual ObjectiveBaseModel CreateCloneInstance()
+            {
+                return new ObjectiveBaseModel();
+            }
+            public virtual ObjectiveBaseModel Clone()
+            {
+                ObjectiveBaseModel baseModelClone = CreateCloneInstance();
+                baseModelClone.ModelName = ModelName;
+                baseModelClone.ObjectiveName = ObjectiveName;
+                baseModelClone._validationTimeCompelxity = _validationTimeCompelxity;
+                baseModelClone._ValidationInfo = _ValidationInfo;
+
+                baseModelClone.DataIdsIntervalsList = new List<List<long[]>>();
+                foreach (List<long[]> clonedUpdateIntervals in DataIdsIntervalsList)
+                {
+                    List<long[]> updateIntervals = new List<long[]>();
+                    for (int i = 0; i < clonedUpdateIntervals.Count; i++)
+                        updateIntervals.Add((long[])clonedUpdateIntervals[i].Clone());
+                    baseModelClone.DataIdsIntervalsList.Add(updateIntervals);
+                }
+
+                return baseModelClone;
+            }
+        }
         public class WPWSyndromeDetection
         {
             public static string ObjectiveName = "WPW syndrome detection";
 
             //_______________________________________________________//
             //::::::::::::::::::::::ARTHT models::::::::::::::::::::://
-            [Serializable]
-            [KnownType(typeof(CustomBaseModel))]
-            [KnownType(typeof(KNNModel))]
-            [KnownType(typeof(KerasNETNeuralNetworkModel))]
-            [KnownType(typeof(KerasNETModelLessNeuralNetwork))]
-            [KnownType(typeof(NaiveBayesModel))]
-            [KnownType(typeof(TFNETNeuralNetworkModel))]
-            [KnownType(typeof(TFNETModelLessNeuralNetwork))]
-            [KnownType(typeof(TFKerasNeuralNetworkModel))]
-            [KnownType(typeof(TFKerasModelLessNeuralNetwork))]
-            [DataContract(IsReference = true)]
-            public class ARTHTModels
+            public class ARTHTModels : ObjectiveBaseModel
             {
                 [DataMember]
-                public string ModelName { get; set; }
-                [DataMember]
-                public string ProblemName { get; set; }
-                /// <summary>
-                /// Training Details:
-                /// Each train update creates a list of intervals (List<long[]>) of the _ids of the selected data
-                /// </summary>
-                [DataMember]
-                public List<List<long[]>> DataIdsIntervalsList { get; set; } = new List<List<long[]>>();
-
-                [DataMember]
-                public Dictionary<string, CustomBaseModel> ARTHTModelsDic = new Dictionary<string, CustomBaseModel>(7)
-            {
-                { ARTHTNamings.Step1RPeaksScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step2RPeaksSelectionData, new CustomBaseModel() },
-                { ARTHTNamings.Step3BeatPeaksScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step4PTSelectionData, new CustomBaseModel() },
-                { ARTHTNamings.Step5ShortPRScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step6UpstrokesScanData, new CustomBaseModel() },
-                { ARTHTNamings.Step7DeltaExaminationData, new CustomBaseModel() },
-            };
-
-                [DataMember]
-                public long _validationTimeCompelxity { get; set; }
-                [DataMember]
-                public string _ValidationInfo { get; set; }
-
-                public ARTHTModels Clone()
+                public Dictionary<string, CustomArchiBaseModel> ARTHTModelsDic = new Dictionary<string, CustomArchiBaseModel>(7)
                 {
-                    ARTHTModels aRTHTModels = new ARTHTModels();
-                    aRTHTModels.ModelName = ModelName;
-                    aRTHTModels.ProblemName = ProblemName;
-                    aRTHTModels._validationTimeCompelxity = _validationTimeCompelxity;
-                    aRTHTModels._ValidationInfo = _ValidationInfo;
+                    { ARTHTNamings.Step1RPeaksScanData, new CustomArchiBaseModel() },
+                    { ARTHTNamings.Step2RPeaksSelectionData, new CustomArchiBaseModel() },
+                    { ARTHTNamings.Step3BeatPeaksScanData, new CustomArchiBaseModel() },
+                    { ARTHTNamings.Step4PTSelectionData, new CustomArchiBaseModel() },
+                    { ARTHTNamings.Step5ShortPRScanData, new CustomArchiBaseModel() },
+                    { ARTHTNamings.Step6UpstrokesScanData, new CustomArchiBaseModel() },
+                    { ARTHTNamings.Step7DeltaExaminationData, new CustomArchiBaseModel() },
+                };
 
-                    aRTHTModels.DataIdsIntervalsList = new List<List<long[]>>();
-                    foreach (List<long[]> clonedUpdateIntervals in DataIdsIntervalsList)
-                    {
-                        List<long[]> updateIntervals = new List<long[]>();
-                        for (int i = 0; i < clonedUpdateIntervals.Count; i++)
-                            updateIntervals.Add((long[])clonedUpdateIntervals[i].Clone());
-                        aRTHTModels.DataIdsIntervalsList.Add(updateIntervals);
-                    }
+                protected override ObjectiveBaseModel CreateCloneInstance()
+                {
+                    return new ARTHTModels();
+                }
+                public override ObjectiveBaseModel Clone()
+                {
+                    ARTHTModels aRTHTModels = (ARTHTModels)base.Clone();
 
                     foreach (string stepName in ARTHTModelsDic.Keys)
                         // Each AI model has its own Clone method, and each Clone method returns a different AI model
                         // Then the Clone method should be Invoked from the object of the AI model type
-                        aRTHTModels.ARTHTModelsDic[stepName] = (CustomBaseModel)ARTHTModelsDic[stepName].GetType().GetMethod("Clone").Invoke(ARTHTModelsDic[stepName], null);
+                        aRTHTModels.ARTHTModelsDic[stepName] = ARTHTModelsDic[stepName].Clone();
 
                     return aRTHTModels;
                 }
@@ -134,9 +152,47 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         public class CharacteristicWavesDelineation
         {
             public static string ObjectiveName = "Characteristic waves delineation";
+
+            //_______________________________________________________//
+            //::::::::::::::::::::::CWD models::::::::::::::::::::://
+            public class CWDReinforcementL : ObjectiveBaseModel
+            {
+                [DataMember]
+                public TFNETReinforcementL CWDReinforcementLModel = new TFNETReinforcementL();
+
+                protected override ObjectiveBaseModel CreateCloneInstance()
+                {
+                    return new CWDReinforcementL();
+                }
+                public override ObjectiveBaseModel Clone()
+                {
+                    CWDReinforcementL cwdReinforcementL = (CWDReinforcementL)base.Clone();
+
+                    cwdReinforcementL.CWDReinforcementLModel = (TFNETReinforcementL)CWDReinforcementLModel.Clone();
+
+                    return cwdReinforcementL;
+                }
+            }
+
+            public class CWDNamigs
+            {
+                public static string RLCornersScanData = "Corners scan";
+
+                public static string MajorMean = "major mean";
+                public static string MajorStdDev = "major STD_DEV";
+                public static string MajorIQR = "major IQR";
+                public static string ChunkMin = "chunk min";
+                public static string ChunkMax = "chunk max";
+                public static string ChunkMean = "chunk mean";
+                public static string ChunkStdDev = "chunk STD_DEV";
+                public static string ChunkIQR = "chunk IQR";
+
+                public static string AT = "AT"; // Angle Threshold
+                public static string ART = "ART"; // Amplitude Ratio Threshold
+            }
         }
 
-        public class ArrhythmiaClassification
+        public class ArrhythmiaClassification : ObjectiveBaseModel
         {
             public static string ObjectiveName = "Arrhythmia classification";
         }

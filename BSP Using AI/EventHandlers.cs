@@ -47,7 +47,7 @@ namespace BSP_Using_AI
 
             // Open a new form
             AIToolsForm aIToolsForm = new AIToolsForm();
-            aIToolsForm._arthtModelsDic = ((MainForm)(sender as Control).FindForm())._arthtModelsDic;
+            aIToolsForm._objectivesModelsDic = ((MainForm)(sender as Control).FindForm())._objectivesModelsDic;
             aIToolsForm._mainForm = (MainForm)(sender as Control).FindForm();
             aIToolsForm._tFBackThread = ((MainForm)(sender as Control).FindForm())._tFBackThread;
             aIToolsForm._tFBackThread._tFBackThreadReportHolderForAIToolsForm = aIToolsForm;

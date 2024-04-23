@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -11,7 +12,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     public partial class DataVisualisationForm : Form
     {
-        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
         string _ModelName;
         string _ProblemName;
@@ -26,11 +27,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         int _firstMouseX;
         int _firstMouseY;
 
-        public DataVisualisationForm(Dictionary<string, ARTHTModels> arthtModelsDic, string modelName, string problemName, long modelId, string stepName, List<Sample> dataList)
+        public DataVisualisationForm(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, string modelName, string problemName, long modelId, string stepName, List<Sample> dataList)
         {
             InitializeComponent();
 
-            _arthtModelsDic = arthtModelsDic;
+            _objectivesModelsDic = objectivesModelsDic;
             _ModelName = modelName;
             _ProblemName = problemName;
             _modelId = modelId;

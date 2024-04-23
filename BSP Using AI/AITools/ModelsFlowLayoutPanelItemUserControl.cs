@@ -7,6 +7,8 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 
 namespace BSP_Using_AI.AITools
@@ -14,7 +16,7 @@ namespace BSP_Using_AI.AITools
     public partial class ModelsFlowLayoutPanelItemUserControl : UserControl, DbStimulatorReportHolder
     {
         public long _id;
-        public ARTHTModels _aRTHTModels;
+        public ObjectiveBaseModel _objectiveModel;
 
         public ModelsFlowLayoutPanelItemUserControl()
         {
@@ -38,7 +40,7 @@ namespace BSP_Using_AI.AITools
         private void detailsButton_Click(object sender, EventArgs e)
         {
             // Show details form and insert update details in trainingsDetailsListBox
-            DetailsForm detailsForm = new DetailsForm(_id, _aRTHTModels, ((AIToolsForm)this.FindForm())._tFBackThread);
+            DetailsForm detailsForm = new DetailsForm(_id, _objectiveModel, ((AIToolsForm)this.FindForm())._tFBackThread);
             detailsForm.Show();
             detailsForm.initializeForm();
         }
@@ -48,7 +50,7 @@ namespace BSP_Using_AI.AITools
             // Open DatasetExplorerForm for selecting training dataset
             DatasetExplorerForm datasetExplorerForm = new DatasetExplorerForm("Training dataset explorer");
             datasetExplorerForm._id = _id;
-            datasetExplorerForm._aRTHTModels = _aRTHTModels;
+            datasetExplorerForm._objectiveModel = _objectiveModel;
             datasetExplorerForm._datasetSize = long.Parse(datasetSizeLabel.Text);
             datasetExplorerForm._updatesNum = int.Parse(updatesLabel.Text);
             datasetExplorerForm._aIToolsForm = (AIToolsForm)this.FindForm();
@@ -59,7 +61,10 @@ namespace BSP_Using_AI.AITools
             datasetExplorerForm.instrucitonLabel.Visible = true;
             datasetExplorerForm.Show();
 
-            datasetExplorerForm.queryForSignals_ARTHT();
+            if (_objectiveModel is ARTHTModels)
+                datasetExplorerForm.queryForSignals_ARTHT();
+            else if (_objectiveModel is CWDReinforcementL)
+                datasetExplorerForm.queryForSignals_CWD();
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -69,7 +74,7 @@ namespace BSP_Using_AI.AITools
             if (dialogResult == DialogResult.Yes)
             {
                 // Remove model from _targetsModelsHashtable
-                ((AIToolsForm)this.FindForm())._arthtModelsDic.Remove(this.Name);
+                ((AIToolsForm)this.FindForm())._objectivesModelsDic.Remove(this.Name);
 
                 // Remove it from models table
                 DbStimulator dbStimulator = new DbStimulator();
@@ -78,16 +83,17 @@ namespace BSP_Using_AI.AITools
                                             new Object[] { _id },
                                             "ModelsFlowLayoutPanelItemUserControl");
 
-                // Check if this is Neural Network model
-                foreach (CustomBaseModel model in _aRTHTModels.ARTHTModelsDic.Values)
-                    if (model is KerasNETNeuralNetworkModel)
-                    {
-                        // Get the folder of the collected steps models
-                        string modelsPath = (model as KerasNETNeuralNetworkModel).ModelPath.Substring(0, (model as KerasNETNeuralNetworkModel).ModelPath.LastIndexOf("/"));
-                        // Remove the folder
-                        if (Directory.Exists(modelsPath))
-                            Directory.Delete(modelsPath, true);
-                    }
+                if (_objectiveModel is ARTHTModels arthtModels)
+                    // Check if this is Neural Network model
+                    foreach (CustomArchiBaseModel model in arthtModels.ARTHTModelsDic.Values)
+                        if (model is KerasNETNeuralNetworkModel)
+                        {
+                            // Get the folder of the collected steps models
+                            string modelsPath = (model as KerasNETNeuralNetworkModel).ModelPath.Substring(0, (model as KerasNETNeuralNetworkModel).ModelPath.LastIndexOf("/"));
+                            // Remove the folder
+                            if (Directory.Exists(modelsPath))
+                                Directory.Delete(modelsPath, true);
+                        }
 
                 // Refresh modelsFlowLayoutPanel
                 ((AIToolsForm)this.FindForm()).queryForModels();

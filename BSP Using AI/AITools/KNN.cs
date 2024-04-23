@@ -89,7 +89,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 for (int i = 0; i < parts; i++)
                 {
                     // Create KNNModel and validation list
-                    KNNModel kNNModel = model.Clone();
+                    KNNModel kNNModel = (KNNModel)model.Clone();
                     List<Sample> validationList = new List<Sample>();
                     if (parts == 1)
                         foreach (Sample sample in data)

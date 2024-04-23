@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -18,35 +19,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 {
     public partial class DatasetExplorerForm
     {
-        public ARTHTModels _aRTHTModels;
-
-        public long _datasetSize;
-        public int _updatesNum;
-        public AIToolsForm _aIToolsForm;
-
-        public void queryForTrainingDataset()
+        public void queryForTrainingDataset_ARTHT()
         {
             // Check if there was any added intervals
-            List<List<long[]>> dataIdsIntervalsList = _aRTHTModels.DataIdsIntervalsList;
-            if (!(_aRTHTModels.DataIdsIntervalsList.Count > _updatesNum))
+            if (!(_objectiveModel.DataIdsIntervalsList.Count > _updatesNum))
                 return;
 
             // Qurey for signals features in all last selected intervals from dataset
-            string selection = "_id>=? and _id<=?";
-            int intervalsNum = 1;
-            if (dataIdsIntervalsList.Count > 0)
-                intervalsNum += dataIdsIntervalsList[dataIdsIntervalsList.Count - 1].Count;
-            object[] selectionArgs = new object[intervalsNum * 2];
-            intervalsNum = 0;
-            selectionArgs[intervalsNum] = 0;
-            selectionArgs[intervalsNum + 1] = 0;
-            foreach (long[] datasetInterval in dataIdsIntervalsList[dataIdsIntervalsList.Count - 1])
-            {
-                intervalsNum += 2;
-                selection += " or _id>=? and _id<=?";
-                selectionArgs[intervalsNum] = datasetInterval[0];
-                selectionArgs[intervalsNum + 1] = datasetInterval[1];
-            }
+            (string selection, object[] selectionArgs) = SelectDataFromIntervals(null, null);
 
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
@@ -54,84 +34,18 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                                         new String[] { "features" },
                                         selection,
                                         selectionArgs,
-                                        "", "DatasetExplorerFormForFeatures"));
+                                        "", "DatasetExplorerFormForTraining_ARTHT"));
             dbStimulatorThread.Start();
         }
 
-        private void fitSelectionButton_Click(object sender, EventArgs e)
+        private void fitSelectionButton_Click_ARTHT(object sender, EventArgs e)
         {
-            // Create a list from signalsFlowLayoutPanel and sort it according to item._id
-            List<(bool enabled, bool selected, long id)> signalsList = new List<(bool enabled, bool selected, long id)>();
-            foreach (DatasetFlowLayoutPanelItemUserControl item in signalsFlowLayoutPanel.Controls)
-                signalsList.Add((item.Enabled, item.selectionCheckBox.Checked, item._id));
-            // Sort the list according to _id
-            signalsList.Sort((e1, e2) => { return e1.id.CompareTo(e2.id); });
-
-            // Set selected signals in _trainingDetails
-            List<long[]> datasetIntervalsList = new List<long[]>();
-            datasetIntervalsList.Add(new long[] { -1, -1 });
-            // Iterate through all signals in signalsFlowLayoutPanel
-            foreach ((bool enabled, bool selected, long id) item in signalsList)
-                // Check if current item is enabled
-                if (item.enabled)
-                {
-                    // If yes then check if it's selected for training
-                    if (item.selected)
-                    {
-                        // If yes then check if this should be in the start of the interval or end
-                        if (datasetIntervalsList[datasetIntervalsList.Count - 1][0] == -1)
-                        {
-                            // Then start and end of the interval
-                            datasetIntervalsList[datasetIntervalsList.Count - 1][0] = item.id;
-                            datasetIntervalsList[datasetIntervalsList.Count - 1][1] = item.id;
-                        }
-                        else
-                            // Update the end of the interval
-                            datasetIntervalsList[datasetIntervalsList.Count - 1][1] = item.id;
-                    }
-                    else
-                    {
-                        // If yes then check if last interval is set
-                        if (datasetIntervalsList[datasetIntervalsList.Count - 1][1] != -1)
-                            // If yes then start new interval
-                            datasetIntervalsList.Add(new long[] { -1, -1 });
-                    }
-                }
-                else
-                {
-                    // If yes then check if last interval is set
-                    if (datasetIntervalsList[datasetIntervalsList.Count - 1][1] != -1)
-                        // If yes then start new interval
-                        datasetIntervalsList.Add(new long[] { -1, -1 });
-                }
-
-            // Remove last interval if it's not defined
-            if (datasetIntervalsList[datasetIntervalsList.Count - 1][1] == -1)
-                datasetIntervalsList.RemoveAt(datasetIntervalsList.Count - 1);
-
-            // Insert new intervals in _trainingDetails if there exist any interval
-            if (datasetIntervalsList.Count > 0)
-                _aRTHTModels.DataIdsIntervalsList.Add(datasetIntervalsList);
-
             // Start training
-            queryForTrainingDataset();
-
-            // Close form
-            this.Close();
+            queryForTrainingDataset_ARTHT();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
-        private void holdRecordReport_Training_ARTHT(DataRow row, DatasetFlowLayoutPanelItemUserControl trainingItem)
-        {
-            // Check if its _id is included in _trainingDetails
-            foreach (List<long[]> training in _aRTHTModels.DataIdsIntervalsList)
-                foreach (long[] datasetInterval in training)
-                    if (row.Field<long>("_id") >= datasetInterval[0] && row.Field<long>("_id") <= datasetInterval[1])
-                        // If yes then disable the UserControl 
-                        trainingItem.Enabled = false;
-        }
-
         public void holdRecordReport_ARTHT(DataTable dataTable, string callingClassName)
         {
             // Initialize lists of features for each step
@@ -154,14 +68,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // Send features for fitting
             // Check which model is selected
             long datasetSize = _datasetSize + dataTable.Rows.Count;
-            if (_aRTHTModels.ModelName.Equals(KerasNETNeuralNetworkModel.ModelName))
+            if (_objectiveModel.ModelName.Equals(KerasNETNeuralNetworkModel.ModelName))
             {
                 // This is for neural network
                 _aIToolsForm._tFBackThread._queue.Enqueue(new QueueSignalInfo()
                 {
                     TargetFunc = "fit",
                     CallingClass = "DatasetExplorerForm",
-                    ModelsName = _aRTHTModels.ModelName + _aRTHTModels.ProblemName,
+                    ModelsName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName,
                     DataLists = dataLists,
                     _datasetSize = datasetSize,
                     _modelId = _id,
@@ -169,32 +83,32 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 });
                 _aIToolsForm._tFBackThread._signal.Set();
             }
-            else if (_aRTHTModels.ModelName.Equals(KNNModel.ModelName))
+            else if (_objectiveModel.ModelName.Equals(KNNModel.ModelName))
             {
                 // This is for knn
-                ARTHT_KNN kNNBackThread = new ARTHT_KNN(_aIToolsForm._arthtModelsDic, _aIToolsForm);
-                Thread knnThread = new Thread(() => kNNBackThread.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
+                ARTHT_KNN kNNBackThread = new ARTHT_KNN(_aIToolsForm._objectivesModelsDic, _aIToolsForm);
+                Thread knnThread = new Thread(() => kNNBackThread.fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataLists, datasetSize, _id, ""));
                 knnThread.Start();
             }
-            else if (_aRTHTModels.ModelName.Equals(NaiveBayesModel.ModelName))
+            else if (_objectiveModel.ModelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes
-                ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_aIToolsForm._arthtModelsDic, _aIToolsForm);
-                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
+                ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_aIToolsForm._objectivesModelsDic, _aIToolsForm);
+                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataLists, datasetSize, _id, ""));
                 nbThread.Start();
             }
-            else if (_aRTHTModels.ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
+            else if (_objectiveModel.ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Net Neural Networks models
-                ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_aIToolsForm._arthtModelsDic, _aIToolsForm);
-                Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
+                ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_aIToolsForm._objectivesModelsDic, _aIToolsForm);
+                Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataLists, datasetSize, _id, ""));
                 tfNetThread.Start();
             }
-            else if (_aRTHTModels.ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
+            else if (_objectiveModel.ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Keras Neural Networks models
-                TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_aIToolsForm._arthtModelsDic, _aIToolsForm);
-                Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_aRTHTModels.ModelName + _aRTHTModels.ProblemName, dataLists, datasetSize, _id, ""));
+                TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_aIToolsForm._objectivesModelsDic, _aIToolsForm);
+                Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataLists, datasetSize, _id, ""));
                 tfKerasThread.Start();
             }
         }

@@ -2,6 +2,7 @@
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.RL_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.DatasetExplorer;
@@ -22,7 +23,7 @@ namespace BSP_Using_AI
     {
         public MainForm _mainForm;
 
-        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
         public ARTHT_Keras_NET_NN _tFBackThread;
 
@@ -31,7 +32,7 @@ namespace BSP_Using_AI
             InitializeComponent();
 
             // Include the available AI models types in modelTypeComboBox
-            string[] modelsTypes = typeof(CustomBaseModel).Assembly.GetExportedTypes().Where(type => type.IsSubclassOf(typeof(CustomBaseModel)) && type.GetField("ModelName") != null).
+            string[] modelsTypes = typeof(CustomArchiBaseModel).Assembly.GetExportedTypes().Where(type => type.IsSubclassOf(typeof(CustomArchiBaseModel)) && type.GetField("ModelName") != null).
                                                                                        Select(type => (string)type.GetField("ModelName").GetValue(null)).ToArray();
             modelTypeComboBox.DataSource = modelsTypes;
             // Include the available objectives in aiGoalComboBox
@@ -87,30 +88,42 @@ namespace BSP_Using_AI
                 else if (modelTypeComboBox.SelectedItem.Equals(KNNModel.ModelName))
                 {
                     // If yes then this is for KNN models
-                    ARTHT_KNN kNNBackThread = new ARTHT_KNN(_arthtModelsDic, this);
+                    ARTHT_KNN kNNBackThread = new ARTHT_KNN(_objectivesModelsDic, this);
                     Thread knnThread = new Thread(() => kNNBackThread.createKNNkModelForWPW());
                     knnThread.Start();
                 }
                 else if (modelTypeComboBox.SelectedItem.Equals(NaiveBayesModel.ModelName))
                 {
                     // If yes then this is for Naive Bayes models
-                    ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_arthtModelsDic, this);
+                    ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_objectivesModelsDic, this);
                     Thread nbThread = new Thread(() => naiveBayesBackThread.createNBModelForWPW());
                     nbThread.Start();
                 }
                 else if (modelTypeComboBox.SelectedItem.Equals(TFNETNeuralNetworkModel.ModelName))
                 {
                     // If yes then this is for Tensorflow.Net Neural Networks models
-                    ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_arthtModelsDic, this);
+                    ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_objectivesModelsDic, this);
                     Thread tfNetThread = new Thread(() => tf_NET_NN.createTFNETNeuralNetworkModelForWPW());
                     tfNetThread.Start();
                 }
                 else if (modelTypeComboBox.SelectedItem.Equals(TFKerasNeuralNetworkModel.ModelName))
                 {
                     // If yes then this is for Tensorflow.Keras Neural Networks models
-                    TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_arthtModelsDic, this);
+                    TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_objectivesModelsDic, this);
                     Thread tfKerasThread = new Thread(() => tf_Keras_NN.createTFKerasNeuralNetworkModelForWPW());
                     tfKerasThread.Start();
+                }
+            }
+            else if (aiGoalComboBox.SelectedItem.Equals(CharacteristicWavesDelineation.ObjectiveName))
+            {
+                // This is for characteristic waves dlineation
+                // Check which model is selected
+                if (modelTypeComboBox.SelectedItem.Equals(TFNETReinforcementL.ModelName))
+                {
+                    // If yes then this is for Reinforcement learning models
+                    CWD_RL_TFNET cwdRLTFNET = new CWD_RL_TFNET(_objectivesModelsDic, this);
+                    Thread cwdRLTFNETThread = new Thread(() => cwdRLTFNET.createTFNETRLModelForCWD());
+                    cwdRLTFNETThread.Start();
                 }
             }
         }
@@ -155,8 +168,8 @@ namespace BSP_Using_AI
             List<string> namesList = new List<string>();
             foreach (DataRow row in rowsList)
             {
-                ARTHTModels aRTHTModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
-                namesList.Add(aRTHTModels.ModelName + aRTHTModels.ProblemName);
+                ObjectiveBaseModel objectiveBaseModel = GeneralTools.ByteArrayToObject<ObjectiveBaseModel>(row.Field<byte[]>("the_model"));
+                namesList.Add(objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName);
             }
             rowsList = GeneralTools.OrderByTextWithNumbers(rowsList, namesList);
 
@@ -166,20 +179,20 @@ namespace BSP_Using_AI
                 // Create an item of the model
                 ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl();
 
-                ARTHTModels aRTHTModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
+                ObjectiveBaseModel objectiveBaseModel = GeneralTools.ByteArrayToObject<ObjectiveBaseModel>(row.Field<byte[]>("the_model"));
 
-                modelsFlowLayoutPanelItemUserControl.Name = aRTHTModels.ModelName + aRTHTModels.ProblemName;
-                modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = aRTHTModels.ModelName + aRTHTModels.ProblemName;
+                modelsFlowLayoutPanelItemUserControl.Name = objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName;
+                modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName;
                 modelsFlowLayoutPanelItemUserControl.datasetSizeLabel.Text = row.Field<long>("dataset_size").ToString();
-                modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = aRTHTModels.DataIdsIntervalsList.Count().ToString();
+                modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = objectiveBaseModel.DataIdsIntervalsList.Count().ToString();
                 modelsFlowLayoutPanelItemUserControl.unfittedDataLabel.Text = "0";
                 modelsFlowLayoutPanelItemUserControl._id = row.Field<long>("_id");
                 for (int i = 0; i < 240; i++)
-                    if (!_arthtModelsDic.ContainsKey(aRTHTModels.ModelName + aRTHTModels.ProblemName))
+                    if (!_objectivesModelsDic.ContainsKey(objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName))
                         Thread.Sleep(500);
                     else
                         break;
-                modelsFlowLayoutPanelItemUserControl._aRTHTModels = _arthtModelsDic[aRTHTModels.ModelName + aRTHTModels.ProblemName];
+                modelsFlowLayoutPanelItemUserControl._objectiveModel = _objectivesModelsDic[objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName];
 
                 if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Add(modelsFlowLayoutPanelItemUserControl); }));
             }

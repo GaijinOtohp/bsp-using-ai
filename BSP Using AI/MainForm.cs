@@ -3,17 +3,19 @@ using Biological_Signal_Processing_Using_AI.AITools;
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.RL_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.Database;
 using BSP_Using_AI.SignalHolderFolder;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 
 namespace BSP_Using_AI
@@ -22,143 +24,24 @@ namespace BSP_Using_AI
     {
         public long _largestDatasetSize = 0;
 
-        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
         public bool scrollAllowed = true;
 
         public ARTHT_Keras_NET_NN _tFBackThread;
 
-
-
-
-
-        public class staton
-        {
-            public int _index;
-            public double _value;
-
-            public double _prevMeanTan;
-            public double _nextMeanTan;
-            public double _deviationAngle; // Argument
-
-            public double _prevMeanMag;
-            public double _nextMeanMag;
-        }
-
-        private void TangentDeviationPoints(double[] signal, double sampleRate)
-        {
-            double amplitudeInterval = GeneralTools.amplitudeInterval(signal);
-            double magThreshold = 0.02d;
-            double angThreshold = 70d;
-
-            staton[] states = new staton[signal.Length];
-            staton latestSta = null;
-
-            for (int i = 0; i < signal.Length; i++)
-            {
-                // Set current sample
-                states[i] = new staton { _index = i, _value = signal[i] };
-
-                if (i == 0)
-                    latestSta = states[0];
-
-                int latStaShiftIndx = latestSta._index;
-
-                // Compute _prevMeanMag and _prevMeanTan of the current sample
-                if (i - latStaShiftIndx > 0)
-                {
-                    double xPrevDiff = (states[i]._index - latestSta._index) / sampleRate;
-                    double yPrevDiff = signal[states[i]._index] - signal[latestSta._index];
-
-                    double prevMag = Math.Sqrt(Math.Pow(xPrevDiff, 2) + Math.Pow(yPrevDiff, 2));
-                    states[i]._prevMeanMag = (states[i - 1]._prevMeanMag * (i - 1 - latStaShiftIndx) + prevMag) / (i - latStaShiftIndx);
-
-                    double prevTan = yPrevDiff / xPrevDiff;
-                    states[i]._prevMeanTan = (states[i - 1]._prevMeanTan * (i - 1 - latStaShiftIndx) + prevTan) / (i - latStaShiftIndx);
-                }
-
-                // Check if prevMeanMag is twice larger than amplitudeInterval * magThreshold
-                if (i - latStaShiftIndx > 1)
-                {
-                    // Update _nextMeanMag, _nextMeanTan, and _deviationAngle of the samples between the latest state and the current sample
-                    for (int j = latStaShiftIndx + 1; j < i; j++)
-                    {
-                        double xNextDiff = (states[i]._index - states[j]._index) / sampleRate;
-                        double yNextDiff = signal[states[i]._index] - signal[states[j]._index];
-
-                        double nextMag = Math.Sqrt(Math.Pow(xNextDiff, 2) + Math.Pow(yNextDiff, 2));
-                        states[j]._nextMeanMag = (states[j]._nextMeanMag * (i - 1 - j) + nextMag) / (i - j);
-
-                        double nextTan = yNextDiff / xNextDiff;
-                        states[j]._nextMeanTan = (states[j]._nextMeanTan * (i - 1 - j) + nextTan) / (i - j);
-
-                        states[j]._deviationAngle = (Math.Atan(states[j]._nextMeanTan) - Math.Atan(states[j]._prevMeanTan)) * 180 / Math.PI;
-                    }
-
-                    // Get the sample with the largest angle that exceeds angThreshold
-                    // and both of _prevMeanMag and _nextMeanMag exceeds amplitudeInterval * magThreshold
-                    staton[] tempLargest = states.Select((state, index) => (state, index)).Where(tuple => tuple.index > latStaShiftIndx && tuple.index < i).
-                                                                                            Where(tuple => tuple.state._nextMeanMag > amplitudeInterval * magThreshold
-                                                                                            && tuple.state._prevMeanMag > amplitudeInterval * magThreshold
-                                                                                            && Math.Abs(tuple.state._deviationAngle) > angThreshold).
-                                                                                            Select(tuple => tuple.state).ToArray();
-
-                    if (tempLargest.Length > 0)
-                    {
-                        latestSta = tempLargest.Select(state => (Math.Abs(state._deviationAngle), state)).Max().state;
-                        Debug.WriteLine(latestSta._index);
-                        Debug.WriteLine(latestSta._deviationAngle);
-                        // If new corner is created
-                        // then update all previousMeanMag and _prevMeanTan of the new corner's next samples
-                        latStaShiftIndx = latestSta._index;
-                        double[] prevMeanMags = new double[i - latStaShiftIndx + 1];
-                        double[] prevMeanTans = new double[i - latStaShiftIndx + 1];
-                        for (int j = 1; j <= i - latStaShiftIndx; j++)
-                        {
-                            double xPrevDiff = (states[j + latStaShiftIndx]._index - latestSta._index) / sampleRate;
-                            double yPrevDiff = signal[states[j + latStaShiftIndx]._index] - signal[latestSta._index];
-
-                            double prevMag = Math.Sqrt(Math.Pow(xPrevDiff, 2) + Math.Pow(yPrevDiff, 2));
-                            prevMeanMags[j] = prevMeanMags[j - 1] * (j - 1) + prevMag / j;
-                            states[j + latStaShiftIndx]._prevMeanMag = prevMeanMags[j];
-
-                            double prevTan = yPrevDiff / xPrevDiff;
-                            prevMeanTans[j] = prevMeanTans[j - 1] * (j - 1) + prevTan / j;
-                            states[j + latStaShiftIndx]._prevMeanTan = prevMeanTans[j];
-                        }
-                    }
-                }
-            }
-        }
-
-
-
-
         public MainForm()
         {
-
-            double[] aa = new double[1000];
-            for (int i = 0; i < 1000; i++)
-                if (i / 100 == 0)
-                    aa[i] = 1;
-                else
-                    aa[i] = 4;
-
-            //TangentDeviationPoints(aa, 500);
-
-
-
-
             InitializeComponent();
 
             // Set models reader to ready
-            _arthtModelsDic = new Dictionary<string, ARTHTModels>();
+            _objectivesModelsDic = new Dictionary<string, ObjectiveBaseModel>();
 
             // Set the notification badge over "aiToolsButton" ready
             MainFormFolder.BadgeControl.AddBadgeTo(aiToolsButton, "0");
 
             _tFBackThread = new ARTHT_Keras_NET_NN();
-            _tFBackThread._arthtModelsDic = _arthtModelsDic;
+            _tFBackThread._objectivesModelsDic = _objectivesModelsDic;
             Thread TFThread = new Thread(() => _tFBackThread.ThreadServer());
             TFThread.IsBackground = true;
             TFThread.Start();
@@ -276,8 +159,8 @@ namespace BSP_Using_AI
                     List<string> namesList = new List<string>();
                     foreach (DataRow row in rowsList)
                     {
-                        ARTHTModels aRTHTModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
-                        namesList.Add(aRTHTModels.ModelName + aRTHTModels.ProblemName);
+                        ObjectiveBaseModel objectiveBaseModel = GeneralTools.ByteArrayToObject<ObjectiveBaseModel>(row.Field<byte[]>("the_model"));
+                        namesList.Add(objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName);
                     }
                     rowsList = GeneralTools.OrderByTextWithNumbers(rowsList, namesList);
 
@@ -301,30 +184,37 @@ namespace BSP_Using_AI
                         else if (row.Field<string>("type_name").Equals("K-Nearest neighbor") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for KNN
-                            ARTHT_KNN kNNBackThread = new ARTHT_KNN(_arthtModelsDic, null);
+                            ARTHT_KNN kNNBackThread = new ARTHT_KNN(_objectivesModelsDic, null);
                             Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             knnThread.Start();
                         }
                         else if (row.Field<string>("type_name").Equals("Naive bayes") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for naive bayes
-                            ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_arthtModelsDic, null);
+                            ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_objectivesModelsDic, null);
                             Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             nbThread.Start();
                         }
                         else if (row.Field<string>("type_name").Equals(TFNETNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for Tensorflow.Net Neural Networks models
-                            ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_arthtModelsDic, null);
+                            ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_objectivesModelsDic, null);
                             Thread tfNetThread = new Thread(() => tf_NET_NN.initializeTFNETNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             tfNetThread.Start();
                         }
                         else if (row.Field<string>("type_name").Equals(TFKerasNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
                         {
                             // Create models for Tensorflow.Keras Neural Networks models
-                            TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_arthtModelsDic, null);
+                            TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_objectivesModelsDic, null);
                             Thread tfKerasThread = new Thread(() => tf_Keras_NN.initializeTFKerasNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
                             tfKerasThread.Start();
+                        }
+                        else if (row.Field<string>("type_name").Equals(TFNETReinforcementL.ModelName) && row.Field<string>("model_target").Equals(CharacteristicWavesDelineation.ObjectiveName))
+                        {
+                            // Create models for Tensorflow.Keras Neural Networks models
+                            CWD_RL_TFNET cwd_RLTFNET = new CWD_RL_TFNET(_objectivesModelsDic, null);
+                            Thread cwd_RLTFNETThread = new Thread(() => cwd_RLTFNET.initializeRLModelForCWD(GeneralTools.ByteArrayToObject<CWDReinforcementL>(row.Field<byte[]>("the_model"))));
+                            cwd_RLTFNETThread.Start();
                         }
                     }
                     // If yes then query for last signal id from the most trained model

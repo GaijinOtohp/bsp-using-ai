@@ -47,7 +47,7 @@ namespace BSP_Using_AI.SignalHolderFolder
 
             // Open a new form
             FormDetailsModify formDetailsModify = new FormDetailsModify(_FilteringTools.Clone(), pathLabel.Text + "\\Modify");
-            formDetailsModify._arthtModelsDic = ((MainForm)FindForm())._arthtModelsDic;
+            formDetailsModify._objectivesModelsDic = ((MainForm)FindForm())._objectivesModelsDic;
             formDetailsModify._tFBackThread = ((MainForm)FindForm())._tFBackThread;
             formDetailsModify.initializeForm(this);
 

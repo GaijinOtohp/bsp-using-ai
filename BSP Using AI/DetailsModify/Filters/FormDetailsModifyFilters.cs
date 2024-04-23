@@ -869,6 +869,12 @@ namespace BSP_Using_AI.DetailsModify
                 }
             }
 
+            public class Interval
+            {
+                public int starting;
+                public int ending;
+            }
+
             private double[] SpanSamples;
 
             private int _scanStartingIndex { get; set; } = 0;
@@ -1065,6 +1071,30 @@ namespace BSP_Using_AI.DetailsModify
 
 
                 return cornersList;
+            }
+
+            public static List<Interval> ApproximateIndexesToIntervals(int[] indexes, double tolerance, double[] fullSignal)
+            {
+                List<Interval> intervals = new List<Interval>();
+
+                for (int i = 0; i < indexes.Length; i++)
+                {
+                    Interval indexInterval = new Interval();
+                    if (i - 1 >= 0)
+                        indexInterval.starting = indexes[i] - (int)(tolerance * (indexes[i] - indexes[i - 1]) / 100f);
+                    else
+                        indexInterval.starting = indexes[i] - (int)(tolerance * (indexes[i] - 0) / 100f);
+
+                    if (i + 1 < indexes.Length)
+                        indexInterval.ending = indexes[i] + (int)(tolerance * (indexes[i + 1] - indexes[i]) / 100f);
+                    else
+                        indexInterval.ending = indexes[i] + (int)(tolerance * ((fullSignal.Length - 1) - indexes[i]) / 100f);
+
+                    intervals.Add(indexInterval);
+                }
+
+
+                return intervals;
             }
         }
     }

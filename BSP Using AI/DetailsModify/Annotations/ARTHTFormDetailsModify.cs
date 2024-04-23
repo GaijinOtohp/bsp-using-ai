@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -27,7 +28,7 @@ namespace BSP_Using_AI.DetailsModify
         public ARTHTFeatures _arthtFeatures = new ARTHTFeatures();
 
         bool _predictionOn = false;
-        public Dictionary<string, ARTHTModels> _arthtModelsDic = null;
+        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
         bool _mouseDown = false;
         int _previousMouseX;
@@ -174,6 +175,7 @@ namespace BSP_Using_AI.DetailsModify
                 modelName = (modelTypeComboBox.SelectedItem as dynamic).modelName;
                 modelNameProblem = (modelTypeComboBox.SelectedItem as dynamic).modelNameProblem;
             }));
+            ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelNameProblem];
             // Check which model is selected
             if (modelName.Equals(KerasNETNeuralNetworkModel.ModelName))
             {
@@ -201,22 +203,22 @@ namespace BSP_Using_AI.DetailsModify
             else if (modelName.Equals(KNNModel.ModelName))
             {
                 // This is for knn
-                return KNN.predict(features, (KNNModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+                return KNN.predict(features, (KNNModel)arthtModels.ARTHTModelsDic[stepName]);
             }
             else if (modelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes
-                return NaiveBayes.predict(features, (NaiveBayesModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+                return NaiveBayes.predict(features, (NaiveBayesModel)arthtModels.ARTHTModelsDic[stepName]);
             }
             else if (modelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Net Neural Networks
-                return TF_NET_NN.predict(features, (TFNETNeuralNetworkModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+                return TF_NET_NN.predict(features, (TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]);
             }
             else if (modelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Keras Neural Networks
-                return TF_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)_arthtModelsDic[modelNameProblem].ARTHTModelsDic[stepName]);
+                return TF_KERAS_NN.predict(features, (TFKerasNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]);
             }
 
             return null;
@@ -284,6 +286,8 @@ namespace BSP_Using_AI.DetailsModify
 
                 if (_arthtFeatures._processedStep == 0)
                     _arthtFeatures._processedStep = 1;
+
+                ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelTypeComboBox.Text];
 
                 // Get curretn step threshold
                 float threshold = 0.5f;
@@ -445,7 +449,7 @@ namespace BSP_Using_AI.DetailsModify
                                 rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RemoveR },
                                     askForPrediction_ARTHT(rPeaksSelectionSamp.getFeatures(), ARTHTNamings.Step2RPeaksSelectionData));
 
-                                threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData].OutputsThresholds[0];
+                                threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData].OutputsThresholds[0];
                                 // Check if this R state is selected not to be removed
                                 if (rPeaksSelectionSamp.getOutputByLabel(ARTHTNamings.RemoveR) < threshold)
                                     // If yes then add current state as R
@@ -837,7 +841,7 @@ namespace BSP_Using_AI.DetailsModify
                             _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
                             // Get short PR declaration step threshold from the model if prediction is activated
                             if (_predictionOn)
-                                threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                                threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
                             // Get number of declared short PR
                             for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
                                 if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
@@ -886,7 +890,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Get short PR declaration step threshold from the model if prediction is activated
                         if (_predictionOn)
-                            threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
                         // Get current short PR beat and next short PR beat
                         shortPRNmbr = 0;
                         shortPRBeatIndx = -1;
@@ -1000,7 +1004,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Get short PR declaration step threshold from the model if prediction is activated
                         if (_predictionOn)
-                            threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
                         // Get current short PR beat and next short PR beat
                         shortPRNmbr = 0;
                         shortPRBeatIndx = -1;
@@ -1050,7 +1054,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Get WPW declaration step threshold from the model if prediction is activated
                         if (_predictionOn)
-                            threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData].OutputsThresholds[0];
+                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData].OutputsThresholds[0];
                         // Set WPW syndrome index if existed
                         if (deltaExamSamp.getOutputByLabel(ARTHTNamings.WPWPattern) > threshold)
                             _arthtFeatures.SignalBeats[shortPRBeatIndx]._wpwDetected = true;
@@ -1210,7 +1214,7 @@ namespace BSP_Using_AI.DetailsModify
             // Get short PR declaration step threshold from the model if prediction is activated
             float threshold = 0.5f;
             if (_predictionOn)
-                threshold = _arthtModelsDic[modelTypeComboBox.Text].ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                threshold = ((ARTHTModels)_objectivesModelsDic[modelTypeComboBox.Text]).ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
             // Check which step of features selectoin is this
             switch (_arthtFeatures._processedStep)
             {

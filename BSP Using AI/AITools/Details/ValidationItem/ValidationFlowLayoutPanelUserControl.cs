@@ -38,7 +38,7 @@ namespace BSP_Using_AI.AITools.Details
 
         private void ValidationFlowLayoutPanelUserControl_Click(object sender, EventArgs e)
         {
-            queryForSelectedDataset(((DetailsForm)this.FindForm())._aRTHTModels.DataIdsIntervalsList, this);
+            queryForSelectedDataset(((DetailsForm)this.FindForm())._objectiveModel.DataIdsIntervalsList, this);
         }
 
         public static void queryForSelectedDataset(List<List<long[]>> dataIdsIntervalsList, DbStimulatorReportHolder dbStimulatorReportHolder)
@@ -95,8 +95,8 @@ namespace BSP_Using_AI.AITools.Details
             }
 
             // Send data to DataVisualisationForm
-            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._arthtModelsDic,
-                                                                                    ((DetailsForm)this.FindForm())._aRTHTModels.ModelName, ((DetailsForm)this.FindForm())._aRTHTModels.ProblemName,
+            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._objectivesModelsDic,
+                                                                                    ((DetailsForm)this.FindForm())._objectiveModel.ModelName, ((DetailsForm)this.FindForm())._objectiveModel.ObjectiveName,
                                                                                     ((DetailsForm)this.FindForm())._modelId, stepName, dataList);
             dataVisualisationForm.stepLabel.Text = modelTargetLabel.Text;
             this.Invoke(new MethodInvoker(delegate () { dataVisualisationForm.Show(); }));

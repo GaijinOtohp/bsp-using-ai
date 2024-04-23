@@ -34,6 +34,7 @@ namespace BSP_Using_AI
             createTable("anno_ds", new string[] { "_id integer PRIMARY KEY", "sginal_name text NOT NULL", "starting_index integer NOT NULL",
                                     "signal_data blob NOT NULL", "sampling_rate integer NOT NULL", "quantisation_step integer NOT NULL",
                                     "anno_objective text NOT NULL", "anno_data blob NOT NULL" }, _cnn);
+            createTable("cwd_rl_dataset", new string[] { "_id integer PRIMARY KEY", "sginal_data_key text NOT NULL", "training_data blob NOT NULL" }, _cnn);
         }
 
         /**
@@ -175,6 +176,7 @@ namespace BSP_Using_AI
                 selectRecordSql += " FROM " + table + " WHERE ";
             int startingIndex = 0;
             if (selectionArgs != null)
+            {
                 for (int i = 0; i < selectionArgs.Length; i++)
                 {
                     selectRecordSql += selection.Substring(startingIndex, selection.IndexOf("?", selection.IndexOf("?", startingIndex)) - startingIndex);
@@ -182,6 +184,8 @@ namespace BSP_Using_AI
                     selectRecordSql += "@" + i;
                     startingIndex = selection.IndexOf("?", startingIndex) + 1;
                 }
+                selectRecordSql += selection.Substring(startingIndex, selection.Length - startingIndex);
+            }
             selectRecordSql += " " + sortOrder;
 
             // Create the command with its string

@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -88,8 +89,8 @@ namespace BSP_Using_AI.DetailsModify
 
             // Add AI prediction models in modelTypeComboBox
             List<(string modelName, string modelNameProblem)> modelsNamesList = new List<(string, string)>();
-            foreach (ARTHTModels model in ((MainForm)signalHolder.FindForm())._arthtModelsDic.Values)
-                modelsNamesList.Add((model.ModelName, model.ModelName + model.ProblemName));
+            foreach (ObjectiveBaseModel model in ((MainForm)signalHolder.FindForm())._objectivesModelsDic.Values)
+                modelsNamesList.Add((model.ModelName, model.ModelName + model.ObjectiveName));
             modelsNamesList = GeneralTools.OrderByTextWithNumbers(modelsNamesList, modelsNamesList.Select(item => item.modelNameProblem).ToList());
             modelTypeComboBox.DisplayMember = "modelNameProblem";
             modelTypeComboBox.ValueMember = "modelName";
