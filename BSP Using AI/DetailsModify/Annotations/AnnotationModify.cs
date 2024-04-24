@@ -104,6 +104,8 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
                 endngIndex = int.Parse(endingIndexTextBox.Text);
 
             _AnnoItem.SetNewVals(name, startingIndex, endngIndex);
+
+            this.Close();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
