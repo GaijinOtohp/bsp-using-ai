@@ -288,7 +288,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public override CustomArchiBaseModel Clone()
             {
                 TFNETNeuralNetworkModel tfNETNeuralNetworkModel = (TFNETNeuralNetworkModel)base.Clone();
-                tfNETNeuralNetworkModel.BaseModel.ModelPath = BaseModel.ModelPath;
+                tfNETNeuralNetworkModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath);
 
                 return tfNETNeuralNetworkModel;
             }
