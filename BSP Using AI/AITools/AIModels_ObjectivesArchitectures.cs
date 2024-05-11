@@ -158,7 +158,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public class CWDReinforcementL : ObjectiveBaseModel
             {
                 [DataMember]
-                public TFNETReinforcementL CWDReinforcementLModel = new TFNETReinforcementL();
+                public TFNETReinforcementL CWDReinforcementLModel = new TFNETReinforcementL("", 0, 0);
 
                 protected override ObjectiveBaseModel CreateCloneInstance()
                 {
