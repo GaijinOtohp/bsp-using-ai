@@ -124,7 +124,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
                 // Save model
                 if (saveModel)
-                    SaveModelVariables(session, baseModel.ModelPath);
+                    SaveModelVariables(session, baseModel.ModelPath, new string[] { "output" });
             }
 
             return model;
@@ -165,10 +165,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             saver.restore(session, path + "_with_graph");
         }
 
-        public static void SaveModelVariables(Session session, string path)
+        public static void SaveModelVariables(Session session, string path, string[] outputsNames)
         {
             var output_graph_def = tf.graph_util.convert_variables_to_constants(
-                session, session.graph.as_graph_def(), new string[] { "output" });
+                session, session.graph.as_graph_def(), outputsNames);
             System.IO.Directory.CreateDirectory(path);
             File.WriteAllBytes(path + "/model_variables.pb", output_graph_def.ToByteArray());
             //File.WriteAllText(path + "labels.txt", string.Join("\n", new string[] { "3output" }));
@@ -223,13 +223,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             Operation biasesAssign = tf.assign(biasesVar, tf.random.normal(outputDim, 0, 1f / (float)inputDim));
 
             // Perform the Times operation with the weights and biases
-            Tensor layer = tf.add(tf.matmul(input, weightsVar), biasesVar, name);
+            Tensor output = tf.add(tf.matmul(input, weightsVar), biasesVar, name);
 
             // Insert the assignemnts to assignmentsList if its not null
             assignmentsList?.Add(weightsAssign);
             assignmentsList?.Add(biasesAssign);
 
-            return layer;
+            return output;
         }
 
         public static Tensor HardSigmoid(Tensor input, string name = null)

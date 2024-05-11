@@ -1,0 +1,550 @@
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Tensorflow;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.Structures;
+using static Tensorflow.Binding;
+
+namespace Biological_Signal_Processing_Using_AI.AITools
+{
+    public class TF_NET_LSTM
+    {
+        public class SequenceBatches
+        {
+            public int _SequenceLength;
+
+            public List<float[,]> inputBatches;
+            public List<float[,]> outputBatches;
+
+            public SequenceBatches(int sequenceLength)
+            {
+                _SequenceLength = sequenceLength;
+
+                inputBatches = new List<float[,]>(sequenceLength);
+                outputBatches = new List<float[,]>(sequenceLength);
+            }
+        }
+
+        public static TFNETLSTMModel Fit(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences, bool saveModel = false, int suggestedBatchSize = 4)
+        {
+            if (lstmModel._pcaActive)
+                for (int iSequence = 0; iSequence < dataListSequences.Count; iSequence++)
+                    dataListSequences[iSequence] = GeneralTools.rearrangeFeaturesInput(dataListSequences[iSequence], lstmModel.PCA);
+
+            if (dataListSequences.Count > 0)
+            {
+                // Get the session from the model
+                Session session = lstmModel.BaseModel.Session;
+                //________________________________________________________________________________________________________________________________________//
+                //________________________________________________________________________________________________________________________________________//
+
+                // Count the number of batches
+                int batchesCount = (dataListSequences.Count / suggestedBatchSize) + (dataListSequences.Count % suggestedBatchSize > 0 ? 1 : 0);
+                List<SequenceBatches> lstmSequenceBatchesList = new List<SequenceBatches>(batchesCount);
+
+                // Build sequences of batches
+                int featuresCount = dataListSequences[0][0].getFeatures().Length;
+                int outputsCount = dataListSequences[0][0].getOutputs().Length;
+                for (int iBatch1stSeq = 0; iBatch1stSeq < dataListSequences.Count; iBatch1stSeq += suggestedBatchSize)
+                {
+                    // Compute the right batch size
+                    int batchSize = iBatch1stSeq + suggestedBatchSize <= dataListSequences.Count ? suggestedBatchSize : dataListSequences.Count - iBatch1stSeq;
+
+                    // Get the longest sequence in the selected batch
+                    int batchLongestSequence = dataListSequences.Where((dataList, index) => iBatch1stSeq * suggestedBatchSize <= index && index < iBatch1stSeq * suggestedBatchSize + batchSize).Max(dataList => dataList.Count);
+
+                    for (int iBatchSequence = iBatch1stSeq; iBatchSequence - iBatch1stSeq < batchSize; iBatchSequence++)
+                    {
+                        // Create the sequence of batches
+                        SequenceBatches sequenceBatches = new SequenceBatches(batchLongestSequence);
+                        // Create the batches for the sequence
+                        for (int iTimeStep = 0; iTimeStep < sequenceBatches._SequenceLength; iTimeStep++)
+                        {
+                            // Create the new batches
+                            float[,] inputBatch = new float[batchSize, featuresCount];
+                            float[,] outputBatch = new float[batchSize, outputsCount];
+
+                            // Get iBatchSequence sample inouts and outputs
+                            if (dataListSequences[iBatchSequence].Count > iTimeStep)
+                            {
+                                double[] features = dataListSequences[iBatchSequence][iTimeStep].getFeatures();
+                                double[] outputs = dataListSequences[iBatchSequence][iTimeStep].getOutputs();
+                                // Copy the inputs to inputBatch
+                                for (int a = 0; a < featuresCount; a++)
+                                    inputBatch[iBatchSequence - iBatch1stSeq, a] = (float)features[a];
+                                // Copy the outputs to outputBatch
+                                for (int a = 0; a < outputsCount; a++)
+                                    outputBatch[iBatchSequence - iBatch1stSeq, a] = (float)outputs[a];
+                            }
+
+                            sequenceBatches.inputBatches.Add(inputBatch);
+                            sequenceBatches.outputBatches.Add(outputBatch);
+                        }
+                        // Insert the newly created sequences of batches to their lists
+                        lstmSequenceBatchesList.Add(sequenceBatches);
+                    }
+                }
+                //________________________________________________________________________________________________________________________________________//
+                //________________________________________________________________________________________________________________________________________//
+
+                // Start training
+                float improvementThreshold = 0.0001f;
+                // Get the necessary nodes for training from the model graph
+                Tensor sartingOutput = session.graph.OperationByName("cells_startingOutput");
+                Tensor startingState = session.graph.OperationByName("cells_startingState");
+                List<Tensor> sequenceCellsInputsPlaceHolders = new List<Tensor>(lstmModel._modelSequenceLength);
+                List<Tensor> sequenceCellsOutputsPlaceHolders = new List<Tensor>(lstmModel._modelSequenceLength);
+                for (int iTimeStep = 0; iTimeStep < lstmModel._modelSequenceLength; iTimeStep++)
+                {
+                    sequenceCellsInputsPlaceHolders.add(session.graph.OperationByName("input_place_holder_cell" + iTimeStep));
+                    sequenceCellsOutputsPlaceHolders.add(session.graph.OperationByName("output_place_holder_cell" + iTimeStep));
+                }
+
+                Tensor costFunc = session.graph.OperationByName("cost_function");
+                Tensor learningRate = session.graph.OperationByName("learning_rate");
+                float lRate = 10f;
+                Operation optimizer = session.graph.OperationByName("optimizer");
+
+                // Save the initiale values of the variables for restoring the graph if the learning isn't going well
+                // Save them as assignment operations to the
+                session.graph.as_default();
+                IVariableV1[] vars = tf.global_variables();
+                Operation[] initOperations = new Operation[vars.Length];
+                for (int i = 0; i < vars.Length; i++)
+                    initOperations[i] = tf.assign(vars[i], session.run(vars[i].AsTensor()));
+
+                // Create an error queue for storing the mean training error of each epoch
+                CircularQueue<float> costCirQueue = new CircularQueue<float>(15);
+                float meanCost = 0;
+
+                // Start training
+                // Max 1000 epochs
+                int longestSequence = dataListSequences.Max(dataList => dataList.Count);
+                FeedItem[] inOutFeedItems = new FeedItem[lstmModel._modelSequenceLength * 2 + 3]; // + 3 for the learning rate and the startin output and state
+                float[,] emptyInputBatch;
+                float[,] emptyOutputBatch;
+                for (int epoch = 0; epoch < 10000; epoch++)
+                {
+                    // Iterate through the sequences of batches
+                    for (int iSequence = 0; iSequence < lstmSequenceBatchesList.Count; iSequence++)
+                        // Iterate through the batches of the selected sequence
+                        for (int iBatch = 0; iBatch < lstmSequenceBatchesList[iSequence]._SequenceLength; iBatch++)
+                        {
+                            // Build the feed items for the current LSTM model sequence batch
+                            // Take the last lstmModel._modelSequenceLength batches that are before iBatch
+                            // The new batch always goes to the last cell of the LSTM model and not the Cell0
+                            // Any cell that has no input and output must be filled with the emptyBatch
+                            emptyInputBatch = new float[lstmSequenceBatchesList[iSequence].inputBatches[0].GetLength(0), lstmSequenceBatchesList[iSequence].inputBatches[0].GetLength(1)];
+                            emptyOutputBatch = new float[lstmSequenceBatchesList[iSequence].outputBatches[0].GetLength(0), lstmSequenceBatchesList[iSequence].outputBatches[0].GetLength(1)];
+
+                            for (int iCell = 0; iCell < lstmModel._modelSequenceLength; iCell++)
+                            {
+                                if (iBatch - iCell >= 0)
+                                {
+                                    inOutFeedItems[iCell * 2] = new FeedItem(sequenceCellsInputsPlaceHolders[(lstmModel._modelSequenceLength - 1) - iCell], lstmSequenceBatchesList[iSequence].inputBatches[iBatch - iCell]);
+                                    inOutFeedItems[iCell * 2 + 1] = new FeedItem(sequenceCellsOutputsPlaceHolders[(lstmModel._modelSequenceLength - 1) - iCell], lstmSequenceBatchesList[iSequence].outputBatches[iBatch - iCell]);
+                                }
+                                else
+                                {
+                                    inOutFeedItems[iCell * 2] = new FeedItem(sequenceCellsInputsPlaceHolders[(lstmModel._modelSequenceLength - 1) - iCell], emptyInputBatch);
+                                    inOutFeedItems[iCell * 2 + 1] = new FeedItem(sequenceCellsOutputsPlaceHolders[(lstmModel._modelSequenceLength - 1) - iCell], emptyOutputBatch);
+                                }
+                            }
+                            inOutFeedItems[lstmModel._modelSequenceLength * 2] = new FeedItem(learningRate, lRate);
+                            inOutFeedItems[lstmModel._modelSequenceLength * 2 + 1] = new FeedItem(sartingOutput, emptyOutputBatch);
+                            inOutFeedItems[lstmModel._modelSequenceLength * 2 + 2] = new FeedItem(startingState, emptyOutputBatch);
+
+                            // Train the model with the selected batch
+                            (_, float cost) = session.run((optimizer, costFunc),
+                                                           inOutFeedItems);
+
+                            // Check if the cost went to infinity
+                            if (float.IsNaN(cost) || float.IsInfinity(cost))
+                            {
+                                // If yes then decrease the learning rate
+                                lRate /= 10f;
+                                // Restore the initial values of the variables (weights, and biases)
+                                session.run(initOperations);
+                            }
+
+                            // Update the last and the mean cost value
+                            meanCost += cost / (longestSequence * lstmSequenceBatchesList.Count);
+                        }
+
+                    // Check if the learning is not improving according to improvementThreshold
+                    // in the last 15 epochs
+                    costCirQueue.Enqueue(meanCost);
+                    meanCost = 0;
+
+                    if (costCirQueue._count == 15)
+                    {
+                        (float mean, float min, float max) = GeneralTools.MeanMinMax(costCirQueue.ToArray());
+                        if ((max - min) < improvementThreshold)
+                            // If yes then there is no greate improvement. We can stop learning here
+                            break;
+                    }
+                }
+
+                // Save model
+                if (saveModel)
+                {
+                    // Get the output cells names
+                    string[] outputsNames = new string[lstmModel._modelSequenceLength];
+                    string lastLayerName = "layer" + (lstmModel._layers - 1); // Layers count starts from 0
+                    if (lstmModel._bidirectional)
+                        lastLayerName = "bi_layer" + (lstmModel._layers - 1); // Layers count starts from 0
+                    for (int i = 0; i < outputsNames.Length; i++)
+                        outputsNames[i] = lastLayerName + "_cell" + i + "_output";
+
+                    TF_NET_NN.SaveModelVariables(session, lstmModel.BaseModel.ModelPath, outputsNames);
+                }
+            }
+
+            return lstmModel;
+        }
+
+
+        private static List<double[]> PCARearrange(List<double[]> featuresSequence, TFNETLSTMModel model)
+        {
+            if (model._pcaActive)
+                for (int i = 0; i < featuresSequence.Count; i++)
+                    featuresSequence[i] = GeneralTools.rearrangeInput(featuresSequence[i], model.PCA);
+
+            return featuresSequence;
+        }
+
+        private static (List<Tensor> inputPlaceHolders, List<Tensor> outputs) GetInputOutputPlaceHolders(TFNETLSTMModel model, Session session)
+        {
+            string lastLayerName = "layer" + (model._layers - 1); // Layers count starts from 0
+            if (model._bidirectional)
+                lastLayerName = "bi_layer" + (model._layers - 1); // Layers count starts from 0
+            List<Tensor> sequenceCellsInputsPlaceHolders = new List<Tensor>(model._modelSequenceLength);
+            List<Tensor> sequenceCellsOutputs = new List<Tensor>(model._modelSequenceLength);
+            for (int iTimeStep = 0; iTimeStep < model._modelSequenceLength; iTimeStep++)
+            {
+                sequenceCellsInputsPlaceHolders.add(session.graph.OperationByName("input_place_holder_cell" + iTimeStep));
+                sequenceCellsOutputs.add(session.graph.OperationByName(lastLayerName + "_cell" + iTimeStep + "_output"));
+            }
+
+            return (sequenceCellsInputsPlaceHolders, sequenceCellsOutputs);
+        }
+
+        /// <summary>
+        /// Gives the same results as PredictSequenciallyFast and PredictSequencially but much faster
+        /// This prediction function takes the last input values according to the LSTM model sequence length
+        /// (Only the last input values are directly fed to the LSTM cells).
+        /// </summary>
+        /// <param name="featuresSequence"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static List<double[]> Predict(List<double[]> featuresSequence, TFNETLSTMModel model)
+        {
+            // Initialize input
+            featuresSequence = PCARearrange(featuresSequence, model);
+
+            // Get the session from the model
+            Session session = model.BaseModel.Session;
+
+            session.graph.as_default();
+
+            // Get the cells input and output tensors
+            Tensor sartingOutput = session.graph.OperationByName("cells_startingOutput");
+            Tensor startingState = session.graph.OperationByName("cells_startingState");
+            (List<Tensor> sequenceCellsInputsPlaceHolders, List<Tensor> sequenceCellsOutputs) = GetInputOutputPlaceHolders(model, session);
+
+            // Arrange the features in a float[,]
+            float[,] featuresFloat;
+            FeedItem[] inputFeedItems = new FeedItem[model._modelSequenceLength + 2];
+            Tensorflow.NumPy.NDArray[] predictedSequence = null;
+            int SequenceLatestIndex = featuresSequence.Count - 1;
+            int latestCellIndex = model._modelSequenceLength - 1;
+            for (int iCell = 0; iCell < model._modelSequenceLength; iCell++)
+            {
+                featuresFloat = new float[1, featuresSequence[0].Length];
+                if (SequenceLatestIndex - iCell >= 0)
+                    for (int iFeature = 0; iFeature < featuresSequence[SequenceLatestIndex - iCell].Length; iFeature++) featuresFloat[0, iFeature] = (float)featuresSequence[SequenceLatestIndex - iCell][iFeature];
+
+                if (model._modelSequenceLength - 1 - iCell >= 0)
+                    inputFeedItems[iCell] = new FeedItem(sequenceCellsInputsPlaceHolders[latestCellIndex - iCell], featuresFloat);
+                else
+                    break;
+            }
+            inputFeedItems[model._modelSequenceLength] = new FeedItem(sartingOutput, new float[1, (int)sartingOutput.shape[1]]);
+            inputFeedItems[model._modelSequenceLength + 1] = new FeedItem(startingState, new float[1, (int)startingState.shape[1]]);
+
+            // Predict the input
+            predictedSequence = session.run(sequenceCellsOutputs.ToArray(), inputFeedItems);
+
+            // Return result to main user interface
+            List<double[]> predictedSequenceList = new List<double[]>(predictedSequence.Length);
+            for (int i = 0; i < predictedSequence.Length; i++)
+                predictedSequenceList.Add(predictedSequence[i].ToMultiDimArray<float>().OfType<float>().Select(val => (double)val).ToArray());
+
+            return predictedSequenceList;
+        }
+
+        /// <summary>
+        /// Gives the same results as Predict and PredictSequencially but slower than Predict
+        /// This prediction function takes the input sequencially,
+        /// but always makes sure the LSTM cells are fed with input data.
+        /// (No empy inputs to the first cells at first).
+        /// </summary>
+        /// <param name="featuresSequence"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static List<double[]> PredictSequenciallyFast(List<double[]> featuresSequence, TFNETLSTMModel model)
+        {
+            // Initialize input
+            featuresSequence = PCARearrange(featuresSequence, model);
+
+            // Get the session from the model
+            Session session = model.BaseModel.Session;
+
+            session.graph.as_default();
+
+            // Get the cells input and output tensors
+            Tensor sartingOutput = session.graph.OperationByName("cells_startingOutput");
+            Tensor startingState = session.graph.OperationByName("cells_startingState");
+            (List<Tensor> sequenceCellsInputsPlaceHolders, List<Tensor> sequenceCellsOutputs) = GetInputOutputPlaceHolders(model, session);
+
+            // Arrange the features in a float[,]
+            float[,] featuresFloat;
+            FeedItem[] inputFeedItems = new FeedItem[model._modelSequenceLength + 2];
+            inputFeedItems[model._modelSequenceLength] = new FeedItem(sartingOutput, new float[1, (int)sartingOutput.shape[1]]);
+            inputFeedItems[model._modelSequenceLength + 1] = new FeedItem(startingState, new float[1, (int)startingState.shape[1]]);
+            Tensorflow.NumPy.NDArray[] predictedSequence = null;
+            int margedSequence = featuresSequence.Count - model._modelSequenceLength;
+            int firstSequenceLatestIndex = featuresSequence.Count - model._modelSequenceLength > 0 ? model._modelSequenceLength - 1 : featuresSequence.Count - 1;
+            int latestCellIndex = model._modelSequenceLength - 1;
+            for (int iSequence = 0; iSequence < margedSequence || iSequence < 1; iSequence++)
+            {
+                for (int iCell = 0; iCell < model._modelSequenceLength; iCell++)
+                {
+                    featuresFloat = new float[1, featuresSequence[0].Length];
+                    if (iCell < featuresSequence.Count)
+                        for (int iFeature = 0; iFeature < featuresSequence[0].Length; iFeature++) featuresFloat[0, iFeature] = (float)featuresSequence[firstSequenceLatestIndex + iSequence - iCell][iFeature];
+
+                    inputFeedItems[iCell] = new FeedItem(sequenceCellsInputsPlaceHolders[latestCellIndex - iCell], featuresFloat);
+                }
+
+                // Predict the input
+                predictedSequence = session.run(sequenceCellsOutputs.ToArray(), inputFeedItems);
+            }
+
+            // Return result to main user interface
+            List<double[]> predictedSequenceList = new List<double[]>(predictedSequence.Length);
+            for (int i = 0; i < predictedSequence.Length; i++)
+                predictedSequenceList.Add(predictedSequence[i].ToMultiDimArray<float>().OfType<float>().Select(val => (double)val).ToArray());
+
+            return predictedSequenceList;
+        }
+
+        /// <summary>
+        /// Gives the same results as Predict and PredictSequenciallyFast but much slower
+        /// This prediction function takes the input sequencally one by one
+        /// and feed it to the LSTM cells one by one from the last cell to the first.
+        /// At first, the first cells will receive empty values.
+        /// </summary>
+        /// <param name="featuresSequence"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static List<double[]> PredictSequencially(List<double[]> featuresSequence, TFNETLSTMModel model)
+        {
+            // Initialize input
+            featuresSequence = PCARearrange(featuresSequence, model);
+
+            // Get the session from the model
+            Session session = model.BaseModel.Session;
+
+            session.graph.as_default();
+
+            // Get the cells input and output tensors
+            Tensor sartingOutput = session.graph.OperationByName("cells_startingOutput");
+            Tensor startingState = session.graph.OperationByName("cells_startingState");
+            (List<Tensor> sequenceCellsInputsPlaceHolders, List<Tensor> sequenceCellsOutputs) = GetInputOutputPlaceHolders(model, session);
+
+            // Arrange the features in a float[,]
+            float[,] featuresFloat;
+            FeedItem[] inputFeedItems = new FeedItem[model._modelSequenceLength + 2];
+            inputFeedItems[model._modelSequenceLength] = new FeedItem(sartingOutput, new float[1, (int)sartingOutput.shape[1]]);
+            inputFeedItems[model._modelSequenceLength + 1] = new FeedItem(startingState, new float[1, (int)startingState.shape[1]]);
+            Tensorflow.NumPy.NDArray[] predictedSequence = null;
+            int latestCellIndex = model._modelSequenceLength - 1;
+            for (int iSequenceTimeStep = 0; iSequenceTimeStep < featuresSequence.Count; iSequenceTimeStep++)
+            {
+                for (int iCell = 0; iCell < model._modelSequenceLength; iCell++)
+                {
+                    featuresFloat = new float[1, featuresSequence[iSequenceTimeStep].Length];
+                    if (iSequenceTimeStep - iCell >= 0)
+                        for (int iFeature = 0; iFeature < featuresSequence[iSequenceTimeStep - iCell].Length; iFeature++) featuresFloat[0, iFeature] = (float)featuresSequence[iSequenceTimeStep - iCell][iFeature];
+                    inputFeedItems[iCell] = new FeedItem(sequenceCellsInputsPlaceHolders[latestCellIndex - iCell], featuresFloat);
+                }
+
+                // Predict the input
+                predictedSequence = session.run(sequenceCellsOutputs.ToArray(), inputFeedItems);
+            }
+
+            // Return result to main user interface
+            List<double[]> predictedSequenceList = new List<double[]>(predictedSequence.Length);
+            for (int i = 0; i < predictedSequence.Length; i++)
+                predictedSequenceList.Add(predictedSequence[i].ToMultiDimArray<float>().OfType<float>().Select(val => (double)val).ToArray());
+
+            return predictedSequenceList;
+        }
+
+        public static Session LSTMSession(int inputDim, int outputDim, int timeSteps = 1, bool bidirectional = false, int hiddenLayers = 1)
+        {
+            // Disable eager mode to enable storing new nodes to the default graph automatically
+            tf.compat.v1.disable_eager_execution();
+
+            // The model operations and variables are organized in a graph
+            // The graph is automatically built in the default graph
+            Graph graph = new Graph().as_default();
+            // Create the list of variables (wieghts, and biases) assignments
+            List<Operation> assignmentsList = new List<Operation>();
+
+            // Define the input and output placeholders
+            Tensor sartingOutput = tf.placeholder(tf.float32, (-1, outputDim), name: "cells_startingOutput");
+            Tensor startingState = tf.placeholder(tf.float32, (-1, outputDim), name: "cells_startingState");
+            List<Tensor> sequenceCellsInputs = new List<Tensor>(timeSteps);
+            List<Tensor> sequenceCellsOutputsPlaceHolders = new List<Tensor>(timeSteps);
+            for (int iTimeStep = 0; iTimeStep < timeSteps; iTimeStep++)
+            {
+                sequenceCellsInputs.add(tf.placeholder(tf.float32, (-1, inputDim), name: "input_place_holder_cell" + iTimeStep));
+                sequenceCellsOutputsPlaceHolders.add(tf.placeholder(tf.float32, (-1, outputDim), name: "output_place_holder_cell" + iTimeStep));
+            }
+
+            List<Tensor> sequenceCellsOutputs = null;
+
+            // Build the LSTM model
+            for (int iLayer = 0; iLayer < hiddenLayers; iLayer++)
+            {
+                // Reset the sequenceCellsInputs if the model has more than one layer
+                if (iLayer > 0)
+                    sequenceCellsInputs = sequenceCellsOutputs;
+
+                // Check if the layer is bidirectional
+                if (bidirectional)
+                    sequenceCellsOutputs = BiLSTMSequence(sequenceCellsInputs, sartingOutput, startingState, assignmentsList, name: "bi_layer" + iLayer);
+                else
+                    sequenceCellsOutputs = LSTMSequence(sequenceCellsInputs, sartingOutput, startingState, assignmentsList, name: "layer" + iLayer).sequenceCellsOutputs;
+            }
+            Session session = new Session(graph);
+            // Run the assignments of the variables
+            session.run(assignmentsList.ToArray());
+            // Insert the cost function operation to the graph of the model
+            Tensor costFunc = null;
+            if (timeSteps > 1)
+            {
+                costFunc = tf.reduce_mean(tf.square(tf.sub(sequenceCellsOutputs[0], sequenceCellsOutputsPlaceHolders[0])));
+                for (int iTimeStep = 1; iTimeStep < timeSteps; iTimeStep++)
+                    if (iTimeStep == timeSteps - 1)
+                        costFunc = tf.add(costFunc, tf.reduce_mean(tf.square(tf.sub(sequenceCellsOutputs[iTimeStep], sequenceCellsOutputsPlaceHolders[iTimeStep]))), name: "cost_function");
+                    else
+                        costFunc = tf.add(costFunc, tf.reduce_mean(tf.square(tf.sub(sequenceCellsOutputs[iTimeStep], sequenceCellsOutputsPlaceHolders[iTimeStep]))));
+            }
+            else
+                costFunc = tf.reduce_mean(tf.square(tf.sub(sequenceCellsOutputs[0], sequenceCellsOutputsPlaceHolders[0])), name: "cost_function");
+            // Insert the optimizer operation to the graph of the model with a default learning rate of 0.01
+            Tensor learning_rate = tf.placeholder(tf.float32, Shape.Scalar, name: "learning_rate");
+            Operation optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(costFunc, name: "optimizer");
+
+            return session;
+        }
+
+        private static (Tensor output, Tensor state) LSTMCell(Tensor input, Tensor prevOutput, Tensor prevState, List<Operation> assignmentsList = null, string name = "_cell0")
+        {
+            // Get the shape of the output
+            int outputDim = (int)prevOutput.shape[1];
+
+            // Join the previous output with the input
+            Tensor outputInputJoin = tf.concat(new Tensor[] { prevOutput, input }, axis: 1, name + "_prevOutput_input_concat");
+
+            // Build the gates of the LSTM cell
+            Tensor forgetGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_forget_gate"));
+            Tensor inputGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_input_gate"));
+            Tensor inputNode = tf.nn.tanh(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_input_node"));
+            Tensor outputGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_output_gate"));
+
+            // Perform the operations of the LSTM cell
+            Tensor forgetState = tf.multiply(prevState, forgetGate, name + "_forget_state");
+            Tensor newState = tf.add(forgetState, tf.multiply(inputGate, inputNode), name + "_new_state");
+            Tensor output = tf.multiply(tf.nn.tanh(newState), outputGate, name + "_output");
+
+            return (output, newState);
+        }
+
+        private static (List<Tensor> sequenceCellsOutputs, Tensor latestCellState) LSTMSequence(List<Tensor> sequenceCellsInputs, Tensor prevOutput, Tensor prevState, List<Operation> assignmentsList = null, string name = "layer0")
+        {
+            // Get the shape of the output
+            int outputDim = (int)prevOutput.shape[1];
+
+            List<Tensor> sequenceCellsOutputs = new List<Tensor>(sequenceCellsInputs.Count);
+
+            // Iterate through the time steps
+            for (int iTimeStep = 0; iTimeStep < sequenceCellsInputs.Count; iTimeStep++)
+            {
+                (prevOutput, prevState) = LSTMCell(sequenceCellsInputs[iTimeStep], prevOutput, prevState, assignmentsList, name + "_cell" + iTimeStep);
+
+                sequenceCellsOutputs.Add(prevOutput);
+            }
+
+            return (sequenceCellsOutputs, prevState);
+        }
+
+        private static List<Tensor> BiLSTMSequence(List<Tensor> directSequenceCellsInputs, Tensor prevOutput, Tensor prevState, List<Operation> assignmentsList = null, string name = "bi_layer0")
+        {
+            // Reverse the input sequence
+            List<Tensor> reverseSequenceCellsInputs = directSequenceCellsInputs.Select(tensor => tensor).ToList();
+            reverseSequenceCellsInputs.Reverse();
+
+            // Build the direct and reversed LSTM sequences
+            List<Tensor> directSequenceCellsOutputs = LSTMSequence(directSequenceCellsInputs, prevOutput, prevState, assignmentsList, name + "_direct").sequenceCellsOutputs;
+            List<Tensor> reverseSequenceCellsOutputs = LSTMSequence(reverseSequenceCellsInputs, prevOutput, prevState, assignmentsList, name + "_reverse").sequenceCellsOutputs;
+
+            // Merge the outputs of the two sequences as the merged output tensors
+            // By averaging each two cells outputs
+            List<Tensor> mergedSequenceCellsOutputs = new List<Tensor>(directSequenceCellsOutputs.Count);
+            for (int iCellOutput = 0; iCellOutput < directSequenceCellsOutputs.Count; iCellOutput++)
+                mergedSequenceCellsOutputs.Add(tf.multiply(tf.add(directSequenceCellsOutputs[iCellOutput], reverseSequenceCellsOutputs[iCellOutput]), 0.5f, name + "_cell" + iCellOutput + "_output"));
+
+            return mergedSequenceCellsOutputs;
+        }
+
+        public static Session LoadLSTMModelVariables(TFNETLSTMModel lstmModel)
+        {
+            // Load the learned graph variables values
+            Graph valsGraph = tf.train.load_graph(lstmModel.BaseModel.ModelPath + "/model_variables.pb");
+            // and create a temporal session for reading the variables tensors values
+            Session tempSess = tf.Session();
+
+            // Activate restore mode to enable both eager mode (run operations immediately without the need of a graph)
+            // and graph mode (stores the new nodes to the default graph)
+            tf.Context.restore_mode();
+
+            // Create a new session for the model
+            Session session = LSTMSession(lstmModel.BaseModel._inputDim, lstmModel.BaseModel._outputDim, lstmModel._modelSequenceLength, lstmModel._bidirectional, lstmModel._layers);
+
+            // Set the session graph as the default graph
+            session.graph.as_default();
+            // Get the global variables from the default graph
+            IVariableV1[] newVars = tf.global_variables();
+
+            // Initiate the new graph with learned graph variables values
+            for (int i = 0; i < newVars.Length; i++)
+            {
+                IVariableV1 var = newVars[i];
+                Tensor valsTensor = valsGraph.get_tensor_by_name(var.Name);
+                Tensorflow.NumPy.NDArray vals = tempSess.run(valsTensor);
+                Tensor operation = tf.assign(var, vals);
+                session.run(operation);
+            }
+
+            return session;
+        }
+    }
+}

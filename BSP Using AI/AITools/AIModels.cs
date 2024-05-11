@@ -264,12 +264,18 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         {
             [DataMember]
             public string ModelPath;
+            [DataMember]
+            public int _inputDim;
+            [DataMember]
+            public int _outputDim;
             [IgnoreDataMemberAttribute]
             public Session Session;
 
-            public TFNETBaseModel(string modelpath)
+            public TFNETBaseModel(string modelpath, int inputDim, int outputDim)
             {
                 ModelPath = modelpath;
+                _inputDim = inputDim;
+                _outputDim = outputDim;
             }
         }
         [Serializable]
@@ -288,7 +294,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public override CustomArchiBaseModel Clone()
             {
                 TFNETNeuralNetworkModel tfNETNeuralNetworkModel = (TFNETNeuralNetworkModel)base.Clone();
-                tfNETNeuralNetworkModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath);
+                tfNETNeuralNetworkModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
 
                 return tfNETNeuralNetworkModel;
             }
@@ -311,9 +317,41 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public override CustomArchiBaseModel Clone()
             {
                 TFNETReinforcementL tfNETReinforcementLModel = (TFNETReinforcementL)base.Clone();
-                tfNETReinforcementLModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath);
+                tfNETReinforcementLModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
 
                 return tfNETReinforcementLModel;
+            }
+        }
+        //_______________________________________________________//
+        //:::::::::::::::::Reinforcement learning:::::::::::::::://
+        [Serializable]
+        [DataContract(IsReference = true)]
+        public class TFNETLSTMModel : CustomArchiBaseModel
+        {
+            [DataMember]
+            public static string ModelName = "LSTM";
+            [DataMember]
+            public TFNETBaseModel BaseModel;
+            [DataMember]
+            public int _modelSequenceLength = 1;
+            [DataMember]
+            public bool _bidirectional = false;
+            [DataMember]
+            public int _layers = 1;
+
+            protected override CustomArchiBaseModel CreateCloneInstance()
+            {
+                return new TFNETReinforcementL();
+            }
+            public override CustomArchiBaseModel Clone()
+            {
+                TFNETLSTMModel tfNETLSTMModel = (TFNETLSTMModel)base.Clone();
+                tfNETLSTMModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
+                tfNETLSTMModel._modelSequenceLength = _modelSequenceLength;
+                tfNETLSTMModel._bidirectional = _bidirectional;
+                tfNETLSTMModel._layers = _layers;
+
+                return tfNETLSTMModel;
             }
         }
         //_______________________________________________________//

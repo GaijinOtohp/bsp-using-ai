@@ -81,13 +81,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
         public static TFNETReinforcementL createTFNETRLModel(string name, string path, int inputDim, int outputDim)
         {
-            TFNETReinforcementL model = new TFNETReinforcementL() { Name = name, BaseModel = new TFNETBaseModel(path) };
+            TFNETReinforcementL model = new TFNETReinforcementL() { Name = name, BaseModel = new TFNETBaseModel(path, inputDim, outputDim) };
 
             model.BaseModel.Session = createTFNETNeuralNetModelSession(inputDim, outputDim);
 
             // Save the model
             if (path.Length > 0)
-                TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path);
+                TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path, new string[] { "output" });
 
             // Set initial thresholds for output decisions
             model.OutputsThresholds = new float[outputDim];

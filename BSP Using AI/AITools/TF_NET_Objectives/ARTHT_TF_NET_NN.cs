@@ -119,13 +119,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
 
         public static TFNETNeuralNetworkModel createTFNETNeuralNetModel(string name, string path, int inputDim, int outputDim)
         {
-            TFNETNeuralNetworkModel model = new TFNETNeuralNetworkModel() { Name = name, BaseModel = new TFNETBaseModel(path) };
+            TFNETNeuralNetworkModel model = new TFNETNeuralNetworkModel() { Name = name, BaseModel = new TFNETBaseModel(path, inputDim, outputDim) };
 
             model.BaseModel.Session = createTFNETNeuralNetModelSession(inputDim, outputDim);
 
             // Save the model
             if (path.Length > 0)
-                TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path);
+                TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path, new string[] { "output" });
 
             // Set initial thresholds for output decisions
             model.OutputsThresholds = new float[outputDim];
