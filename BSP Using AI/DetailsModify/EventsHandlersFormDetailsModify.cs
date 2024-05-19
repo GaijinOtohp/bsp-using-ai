@@ -158,6 +158,9 @@ namespace BSP_Using_AI.DetailsModify
                 case "Corners scanner":
                     filter = new CornersScanner(_FilteringTools);
                     break;
+                case "Distribution display":
+                    filter = new DistributionDisplay(_FilteringTools);
+                    break;
                 default:
                     filter = new IIRFilter(_FilteringTools, (string)filtersComboBox.SelectedItem);
                     break;

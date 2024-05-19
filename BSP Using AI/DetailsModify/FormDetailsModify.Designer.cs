@@ -187,7 +187,8 @@
             "Absolute signal",
             "DWT",
             "Peaks analyzer",
-            "Corners scanner"});
+            "Corners scanner",
+            "Distribution display"});
             this.filtersComboBox.Location = new System.Drawing.Point(945, 48);
             this.filtersComboBox.Margin = new System.Windows.Forms.Padding(2);
             this.filtersComboBox.Name = "filtersComboBox";
@@ -475,7 +476,6 @@
         public System.Windows.Forms.CheckBox autoApplyCheckBox;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem sendSignalToolStripMenuItem;
-        private System.Windows.Forms.Label pathLabel;
         private System.Windows.Forms.ToolStripMenuItem analyseToolStripMenuItem;
         public System.Windows.Forms.Button setFeaturesLabelsButton;
         private System.Windows.Forms.Label separatorLabel;
@@ -496,5 +496,6 @@
         private System.Windows.Forms.Label samplingRateLabel;
         private System.Windows.Forms.Label quantizationStepLabel;
         public System.Windows.Forms.Button saveButton;
+        public System.Windows.Forms.Label pathLabel;
     }
 }

@@ -264,5 +264,32 @@ namespace BSP_Using_AI.DetailsModify
                 return clonedCornersScanner;
             }
         }
+        //______________________________________________________________________//
+        //::::::::::::::::::::::::Distribution display:::::::::::::::::::::::::://
+        public partial class DistributionDisplay : FilterBase
+        {
+            public override DistributionDisplay Clone(FilteringTools filteringTools)
+            {
+                // Clone filter properties
+                DistributionDisplay distributionDisplay = new DistributionDisplay(filteringTools);
+                distributionDisplay._segmentStarting = _segmentStarting;
+                distributionDisplay._segmentEnding = _segmentEnding;
+                distributionDisplay._resolution = _resolution;
+                distributionDisplay._autoApply = _autoApply;
+
+                distributionDisplay.CloneBase(this);
+                // CLone the control
+                if (_FilterControl != null)
+                {
+                    distributionDisplay._FilterControl = new SegmentDistributionUserControl(distributionDisplay);
+                    distributionDisplay.ActivateAutoApply(_autoApply);
+                    distributionDisplay.SetStartingIndex(_segmentStarting);
+                    distributionDisplay.SetEndingIndex(_segmentEnding);
+                    distributionDisplay.SetResolution(_resolution);
+                    distributionDisplay.ActivateGenerally(_activated);
+                }
+                return distributionDisplay;
+            }
+        }
     }
 }

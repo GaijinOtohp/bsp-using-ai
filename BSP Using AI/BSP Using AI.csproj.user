@@ -63,6 +63,9 @@
     <Compile Update="DetailsModify\EventsHandlersFormDetailsModify.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="DetailsModify\FiltersControls\SegmentDistributionUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="DetailsModify\FormDetailsModify.cs">
       <SubType>Form</SubType>
     </Compile>
