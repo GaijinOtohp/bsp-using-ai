@@ -21,6 +21,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             {
                 _Environment = environment;
                 _State = new int[environment._DimensionsList.Count];
+                // Set a random state to the agent
+                Random rd = new Random();
+                for (int dimIndex = 0; dimIndex < environment._DimensionsList.Count; dimIndex++)
+                    _State[dimIndex] = rd.Next(environment._DimensionsList[dimIndex]._size);
             }
 
             public int[] GetState()

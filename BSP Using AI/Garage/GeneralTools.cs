@@ -1047,8 +1047,36 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             return minDistance;
         }
 
+        //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
+        //:::::::::::::::::::::::::::::::::::Compute the derivative:::::::::::::::::::::::::::::::::://
+        /// <summary>
+        /// Computes the derivative of the signal according to "delta"
+        /// "delta" should be of the same unit as the one for the "samplingRate"
+        /// </summary>
+        /// <param name="signal"></param>
+        /// <param name="samplingRate"></param>
+        /// <param name="delta"></param>
+        /// <returns></returns>
+        public static double[] Derivative(double[] signal, int samplingRate, double delta)
+        {
+            // Convert delta to samples count
+            int digDelta = (int)(samplingRate * delta) + ((samplingRate * delta) % 1 > 0 ? 1 : 0);
+            // Devide delta to two parts prefDelta and suffDelta
+            // prefDelta should be greater if necessary
+            int prefDelta = digDelta / 2 + (digDelta % 2 > 0 ? 1 : 0);
+            int suffDelta = digDelta - prefDelta;
+
+            // Compute the derivative
+            double[] derivative = new double[signal.Length];
+            for (int i = 0; i < signal.Length; i++)
+                if (prefDelta <= i && i + suffDelta < signal.Length)
+                    derivative[i] = (signal[i + suffDelta] - signal[i - prefDelta]) / digDelta;
+
+            return derivative;
+        }
+
         //*******************************************************************************************************//
-        //****************************************SIGNAL UP/DOWN SAMPLING*****************************************//
+        //****************************************SIGNAL UP/DOWN SAMPLING****************************************//
         public static double[] UpDownSampling(double[] signal, int oldSamplingRate, int newSamplingRate)
         {
             // Create the NWaves signal
