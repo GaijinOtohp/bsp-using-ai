@@ -23,7 +23,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSe
 
         private void orderTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void orderTextBox_TextChanged(object sender, EventArgs e)

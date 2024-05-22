@@ -99,7 +99,14 @@ namespace BSP_Using_AI
 
         //*******************************************************************************************************//
         //*****************************************FROM DETAILS MODIFY*******************************************//
-        public static void textBoxNumberOnly(object sender, KeyPressEventArgs e)
+        public static void keypressNumbersOnly(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) || (e.KeyChar == '.'))
+            {
+                e.Handled = true;
+            }
+        }
+        public static void keypressNumbersAndDecimalOnly(object sender, KeyPressEventArgs e)
         {
             if ((!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.')) || ((e.KeyChar == '.') && ((sender as TextBox).Text.Replace(" ", "").Equals("") || (sender as TextBox).Text.Contains("."))))
             {

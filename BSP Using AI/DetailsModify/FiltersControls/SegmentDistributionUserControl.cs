@@ -92,7 +92,7 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
 
         private void startingIndexTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersOnly(sender, e);
         }
 
         private void startingIndexTextBox_TextChanged(object sender, EventArgs e)

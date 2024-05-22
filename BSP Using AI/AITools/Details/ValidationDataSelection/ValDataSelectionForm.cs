@@ -158,7 +158,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSe
 
         private void trainingSetRatioTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void trainingSetRatioTextBox_TextChanged(object sender, EventArgs e)

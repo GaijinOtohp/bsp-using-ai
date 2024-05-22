@@ -85,7 +85,7 @@ namespace BSP_Using_AI.DetailsModify
 
         private void samplingRateTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void autoApplyCheckBox_CheckedChanged(object sender, EventArgs e)

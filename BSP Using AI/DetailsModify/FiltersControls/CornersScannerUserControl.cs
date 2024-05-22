@@ -51,7 +51,7 @@ namespace BSP_Using_AI.DetailsModify.FiltersControls
         //********************************************EVENT HANDLERS*********************************************//
         private void artValueTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void artScrollBar_ValueChanged(object sender, EventArgs e)

@@ -39,7 +39,7 @@ namespace BSP_Using_AI.DetailsModify.Filters.IIRFilters
         private void orderTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             // Accept only numbers
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void orderTextBox_TextChanged(object sender, EventArgs e)
@@ -59,7 +59,7 @@ namespace BSP_Using_AI.DetailsModify.Filters.IIRFilters
         private void minFreqTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             // Accept only numbers
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void minFreqTextBox_TextChanged(object sender, EventArgs e)
@@ -83,7 +83,7 @@ namespace BSP_Using_AI.DetailsModify.Filters.IIRFilters
         private void maxFreqTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             // Accept only numbers
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void maxFreqTextBox_TextChanged(object sender, EventArgs e)

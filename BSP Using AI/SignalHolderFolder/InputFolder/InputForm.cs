@@ -19,7 +19,7 @@ namespace BSP_Using_AI.SignalHolderFolder.Input
 
         private void samplingRateTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void okButton_Click(object sender, EventArgs e)

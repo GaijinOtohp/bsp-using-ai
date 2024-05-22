@@ -26,7 +26,7 @@ namespace BSP_Using_AI.AITools.Details
         //********************************************EVENT HANDLERS*********************************************//
         private void thresholdTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.textBoxNumberOnly(sender, e);
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void thresholdTextBox_TextChanged(object sender, EventArgs e)
