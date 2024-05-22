@@ -68,7 +68,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             double reward = 0;
             bool badState = false;
             // Get selected window samples
-            double[] windowSamples = _Samples.Where((val, index) => _SignalSegmentsList[_selectedSegment].startingIndex <= index && index < _SignalSegmentsList[_selectedSegment].endingIndex).ToArray();
+            double[] windowSamples = _Samples.Where((val, index) => _SignalSegmentsList[_selectedSegment].startingIndex <= index && index <= _SignalSegmentsList[_selectedSegment].endingIndex).ToArray();
 
             // Scan corners of the selected window
             ReinforcementLearning.Environment.Dimension atDim = env._DimensionsList.Where(dim => dim._Name.Equals("at")).ToList()[0];
@@ -280,9 +280,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         {
             // Normalize samples
             double[] normSamples = GeneralTools.normalizeSignal(_Samples);
-            double[] normSegmentSamples = normSamples.Where((val, index) => _SignalSegmentsList[_selectedSegment].startingIndex <= index && index < _SignalSegmentsList[_selectedSegment].startingIndex + _samplingRate).ToArray();
+            double[] normSegmentSamples = normSamples.Where((val, index) => _SignalSegmentsList[_selectedSegment].startingIndex <= index && index <= _SignalSegmentsList[_selectedSegment].endingIndex).ToArray();
 
-            Sample sample = new Sample("chunk" + _selectedSegment, 8, 2, dataParent);
+            Sample sample = new Sample("segment" + _selectedSegment, 8, 2, dataParent);
 
             double globalMean = GeneralTools.MeanMinMax(normSamples).mean;
             double globalStdDev = GeneralTools.stdDevCalc(normSamples, globalMean);

@@ -178,14 +178,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             {
                 public static string RLCornersScanData = "Corners scan";
 
-                public static string GlobalMean = "major mean";
-                public static string GlobalStdDev = "major STD_DEV";
-                public static string GlobalIQR = "major IQR";
-                public static string SegmentMin = "chunk min";
-                public static string SegmentMax = "chunk max";
-                public static string SegmentMean = "chunk mean";
-                public static string SegmentStdDev = "chunk STD_DEV";
-                public static string SegmentIQR = "chunk IQR";
+                public static string GlobalMean = "global mean";
+                public static string GlobalStdDev = "global STD_DEV";
+                public static string GlobalIQR = "global IQR";
+                public static string SegmentMin = "segment min";
+                public static string SegmentMax = "segment max";
+                public static string SegmentMean = "segment mean";
+                public static string SegmentStdDev = "segment STD_DEV";
+                public static string SegmentIQR = "segment IQR";
 
                 public static string AT = "AT"; // Angle Threshold
                 public static string ART = "ART"; // Amplitude Ratio Threshold
