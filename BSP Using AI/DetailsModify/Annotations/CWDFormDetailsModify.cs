@@ -179,6 +179,10 @@ namespace BSP_Using_AI.DetailsModify
             cornersScanner.InsertFilter(filtersFlowLayoutPanel);
             ((CornersScannerUserControl)cornersScanner._FilterControl).showCornersCheckBox.Enabled = false;
             ((CornersScannerUserControl)cornersScanner._FilterControl).showDeviationCheckBox.Enabled = false;
+            ((HSpan)_Plots[SANamings.PointHorizSpan]).X1 = ((SignalPlot)_Plots[SANamings.Signal]).OffsetX;
+            ((HSpan)_Plots[SANamings.PointHorizSpan]).X2 = ((SignalPlot)_Plots[SANamings.Signal]).OffsetX;
+            ((HSpan)_Plots[SANamings.IntervalHorizSpan]).X1 = ((SignalPlot)_Plots[SANamings.Signal]).OffsetX;
+            ((HSpan)_Plots[SANamings.IntervalHorizSpan]).X2 = ((SignalPlot)_Plots[SANamings.Signal]).OffsetX;
             _FilteringTools.SetAutoApply(true);
 
             // Show the instructions of annotating the signal

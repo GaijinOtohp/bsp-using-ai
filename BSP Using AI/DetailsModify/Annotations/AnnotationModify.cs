@@ -61,24 +61,9 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
             this.ActiveControl = AnnotationTypeLabel;
         }
 
-        public void keypressNumbersOnly(object sender, KeyPressEventArgs e)
-        {
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) || (e.KeyChar == '.'))
-            {
-                e.Handled = true;
-            }
-        }
-        public static void keypressNumbersAndDecimalOnly(object sender, KeyPressEventArgs e)
-        {
-            if ((!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.')) || ((e.KeyChar == '.') && ((sender as TextBox).Text.Replace(" ", "").Equals("") || (sender as TextBox).Text.Contains("."))))
-            {
-                e.Handled = true;
-            }
-        }
-
         private void startingIndexTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            keypressNumbersOnly(sender, e);
+            EventHandlers.keypressNumbersOnly(sender, e);
         }
 
         private void removeButton_Click(object sender, EventArgs e)

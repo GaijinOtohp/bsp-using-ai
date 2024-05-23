@@ -144,9 +144,9 @@ namespace Biological_Signal_Processing_Using_AI.Garage
 
         public static (double nearestX, double nearestY, int index) GetPointNearestXYSignalPlot(SignalPlot signalPlot, double cursorX, double cursorY)
         {
-            int index = signalPlot.Ys.Select((y, i) => (Math.Abs(y - cursorY) + Math.Abs(i / signalPlot.SampleRate - cursorX), i)).Min().i;
+            int index = signalPlot.Ys.Select((y, i) => (Math.Abs(y - cursorY) + Math.Abs((i / signalPlot.SampleRate + signalPlot.OffsetX) - cursorX), i)).Min().i;
 
-            double nearestX = index / signalPlot.SampleRate;
+            double nearestX = index / signalPlot.SampleRate + signalPlot.OffsetX;
             double nearestY = signalPlot.Ys[index];
 
             return (nearestX, nearestY, index);

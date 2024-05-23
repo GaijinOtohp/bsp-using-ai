@@ -39,6 +39,9 @@ namespace BSP_Using_AI.DetailsModify
         //******************************************Annotation events********************************************//
         private void setFeaturesLabelsButton_Click_ArrhyCla(object sender, EventArgs e)
         {
+            ((HSpan)_Plots[SANamings.IntervalHorizSpan]).X1 = ((SignalPlot)_Plots[SANamings.Signal]).OffsetX;
+            ((HSpan)_Plots[SANamings.IntervalHorizSpan]).X2 = ((SignalPlot)_Plots[SANamings.Signal]).OffsetX;
+
             // Show the instructions of annotating the signal
             featuresSettingInstructionsLabel.Text = "Press \"S\" for labeling the highlighted time span from the signal.\n" +
                                                     "Left-click for annotating the selection, and right-click for deleting the selection from the list.\n" +
