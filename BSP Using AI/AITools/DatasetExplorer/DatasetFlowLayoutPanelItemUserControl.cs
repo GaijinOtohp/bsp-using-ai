@@ -36,6 +36,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             FormDetailsModify formDetailsModify = new FormDetailsModify(filteringTools, signalNameLabel.Text + "\\Features details");
             formDetailsModify.Text = "Features details";
             formDetailsModify._arthtFeatures = artHTFeatures;
+            formDetailsModify._id = _id;
 
             formDetailsModify.initializeAITools();
             formDetailsModify.finish();
@@ -57,11 +58,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             FormDetailsModify formDetailsModify = new FormDetailsModify(filteringTools, signalNameLabel.Text + "\\Annotation details");
             formDetailsModify.Text = "Annotation details";
             formDetailsModify._AnnotationData = annoData;
+            formDetailsModify._id = _id;
 
             formDetailsModify.aiGoalComboBox.Text = row.Field<string>("anno_objective");
             formDetailsModify.ShowAnnotationDetails();
 
-            showSignalDetails(formDetailsModify);
+            formDetailsModify.SetLabelingTools();
+
+            formDetailsModify.Show();
         }
 
         private void showSignalDetails(FormDetailsModify formDetailsModify)

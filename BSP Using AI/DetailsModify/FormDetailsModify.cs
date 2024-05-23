@@ -20,6 +20,9 @@ namespace BSP_Using_AI.DetailsModify
         public Dictionary<string, IPlottable> _Plots = new Dictionary<string, IPlottable>();
 
         public SignalHolder _signalHolder { get; set; }
+
+        public long _id;
+
         public FormDetailsModify(FilteringTools filteringTools, String path)
         {
             InitializeComponent();

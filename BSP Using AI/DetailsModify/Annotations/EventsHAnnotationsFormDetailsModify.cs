@@ -266,19 +266,24 @@ namespace BSP_Using_AI.DetailsModify
 
         private void setFeaturesLabelsButton_Click_Anno(object sender, EventArgs e)
         {
+            SetLabelingTools();
+        }
+
+        public void SetLabelingTools()
+        {
             // Disable everything except ai tools
             enableAITools(true);
 
             // Check which objective is selected
             if (aiGoalComboBox.SelectedItem.Equals(WPWSyndromeDetection.ObjectiveName))
                 // Send event to ART-HT AI tools
-                setFeaturesLabelsButton_Click_ARTHT(sender, e);
+                setFeaturesLabelsButton_Click_ARTHT(null, null);
             else if (aiGoalComboBox.SelectedItem.Equals(CharacteristicWavesDelineation.ObjectiveName))
                 // Send event to CWD AI tools
-                setFeaturesLabelsButton_Click_CWD(sender, e);
+                setFeaturesLabelsButton_Click_CWD(null, null);
             else if (aiGoalComboBox.SelectedItem.Equals(ArrhythmiaClassification.ObjectiveName))
                 // Send event to ArrhyCla AI tools
-                setFeaturesLabelsButton_Click_ArrhyCla(sender, e);
+                setFeaturesLabelsButton_Click_ArrhyCla(null, null);
 
             // Enable discard and next button, and disable setFeaturesLabelsButton button
             discardButton.Enabled = true;

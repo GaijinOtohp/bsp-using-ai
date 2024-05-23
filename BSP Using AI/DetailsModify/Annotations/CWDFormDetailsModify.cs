@@ -343,18 +343,32 @@ namespace BSP_Using_AI.DetailsModify
 
         private void saveButton_Click_CWD(object sender, EventArgs e)
         {
-            // Save the signal with its features in dataset
-            DbStimulator dbStimulator = new DbStimulator();
-            Thread dbStimulatorThread = new Thread(() => dbStimulator.Insert("anno_ds",
-                new string[] { "sginal_name", "starting_index", "signal_data", "sampling_rate", "quantisation_step", "anno_objective", "anno_data" },
-                new Object[] { pathLabel.Text, _FilteringTools._startingInSec, GeneralTools.ObjectToByteArray(_FilteringTools._OriginalRawSamples), _FilteringTools._samplingRate,
+            // Check if we should insert or update the annotations data
+            if (_id > 0)
+            {
+                DbStimulator dbStimulator = new DbStimulator();
+                Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("anno_ds",
+                    new string[] { "sampling_rate", "quantisation_step", "anno_data" },
+                    new object[] { _FilteringTools._samplingRate, _FilteringTools._quantizationStep, GeneralTools.ObjectToByteArray(_AnnotationData) },
+                    _id,
+                    "CWDFormDetailModify"));
+                dbStimulatorThread.Start();
+            }
+            else
+            {
+                // Save the signal with its features in dataset
+                DbStimulator dbStimulator = new DbStimulator();
+                Thread dbStimulatorThread = new Thread(() => dbStimulator.Insert("anno_ds",
+                    new string[] { "sginal_name", "starting_index", "signal_data", "sampling_rate", "quantisation_step", "anno_objective", "anno_data" },
+                    new Object[] { pathLabel.Text, _FilteringTools._startingInSec, GeneralTools.ObjectToByteArray(_FilteringTools._OriginalRawSamples), _FilteringTools._samplingRate,
                                _FilteringTools._quantizationStep, CharacteristicWavesDelineation.ObjectiveName, GeneralTools.ObjectToByteArray(_AnnotationData) }, "CWDFormDetailModify"));
-            dbStimulatorThread.Start();
+                dbStimulatorThread.Start();
 
-            // Update the notification badge for unfitted signals
-            Control badge = MainFormFolder.BadgeControl.GetBadge(_signalHolder.FindForm());
-            badge.Text = (int.Parse(badge.Text) + 1).ToString();
-            badge.Visible = true;
+                // Update the notification badge for unfitted signals
+                Control badge = MainFormFolder.BadgeControl.GetBadge(_signalHolder.FindForm());
+                badge.Text = (int.Parse(badge.Text) + 1).ToString();
+                badge.Visible = true;
+            }
 
             // Disable save button
             saveButton.Enabled = false;

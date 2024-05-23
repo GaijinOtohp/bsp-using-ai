@@ -34,8 +34,6 @@ namespace BSP_Using_AI.DetailsModify
         int _previousMouseX;
         int _previousMouseY;
 
-        public long _id;
-
         public class ARTHTFiltersNames
         {
             public static string DCRemoval = "DCRemoval";
