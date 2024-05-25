@@ -12,6 +12,7 @@ using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 using static Tensorflow.Binding;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
@@ -28,12 +29,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
-        public void fit(string modelsName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
+        public void fit(string modelName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
         {
             int fitProgress = 0;
             int tolatFitProgress = dataLists.Count;
             // Iterate through models from the selected ones in _targetsModelsHashtable
-            ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelsName];
+            ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelName];
 
             // Fit features
             if (!stepName.Equals(""))
@@ -53,7 +54,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     // Update fitProgressBar
                     fitProgress++;
                     if (_aiBackThreadReportHolderForAIToolsForm != null)
-                        _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "progress", modelsName, fitProgress, tolatFitProgress }, "AIToolsForm");
+                        _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
+                                                                            {
+                                                                                ReportType = AIReportType.FittingProgress,
+                                                                                ModelName = modelName,
+                                                                                fitProgress = fitProgress,
+                                                                                fitMaxProgress = tolatFitProgress
+                                                                            }, "AIToolsForm");
                 }
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -66,7 +73,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
-                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "fitting_complete", modelsName, datasetSize }, "AIToolsForm");
+                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingCompAIReport()
+                                                                    {
+                                                                        ReportType = AIReportType.FittingComplete,
+                                                                        ModelName = modelName,
+                                                                        datasetSize = datasetSize,
+                                                                    }, "AIToolsForm");
         }
 
         public static TFKerasNeuralNetworkModel fit(TFKerasNeuralNetworkModel model, List<Sample> dataList, bool saveModel = false, int suggestedBatchSize = 4)
@@ -189,7 +201,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)
-                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "createModel" }, "AIToolsForm");
+                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new AIReport() { ReportType = AIReportType.CreateModel }, "AIToolsForm");
         }
 
         public static TFKerasNeuralNetworkModel createTFKerasNeuralNetModel(string stepName, List<Sample> dataList, bool pcaActive, string modelPath)

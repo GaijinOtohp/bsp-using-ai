@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
 namespace BSP_Using_AI.AITools.DatasetExplorer
 {
@@ -65,7 +66,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 // Update fitProgressBar
                 fitProgress++;
                 if (_aIToolsForm != null)
-                    _aIToolsForm.holdAIReport(new object[] { "progress", modelName, fitProgress, tolatFitProgress }, "AIToolsForm");
+                    _aIToolsForm.holdAIReport(new FittingProgAIReport() { ReportType = AIReportType.FittingProgress,
+                                                                          ModelName = modelName,
+                                                                          fitProgress = fitProgress,
+                                                                          fitMaxProgress = tolatFitProgress }, "AIToolsForm");
                 // Check if current signal is already learned before
                 string signalDataKey = row.Field<string>("sginal_name") + row.Field<long>("starting_index");
                 if (previousDataDict.ContainsKey(signalDataKey))

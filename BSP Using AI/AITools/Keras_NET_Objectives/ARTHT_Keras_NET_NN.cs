@@ -15,6 +15,7 @@ using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
 namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
 {
@@ -94,13 +95,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
             }
         }
 
-        private void fit(string modelsName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
+        private void fit(string modelName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
         {
             int fitProgress = 0;
             int tolatFitProgress = dataLists.Count;
             // Iterate through models from the selected ones in _targetsModelsHashtable
 
-            Dictionary<string, CustomArchiBaseModel> arthtModelsDic = ((ARTHTModels)_objectivesModelsDic[modelsName]).ARTHTModelsDic;
+            Dictionary<string, CustomArchiBaseModel> arthtModelsDic = ((ARTHTModels)_objectivesModelsDic[modelName]).ARTHTModelsDic;
             // Fit features
             if (!stepName.Equals(""))
             {
@@ -119,20 +120,31 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                     // Update fitProgressBar
                     fitProgress++;
                     if (_tFBackThreadReportHolderForAIToolsForm != null)
-                        _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "progress", modelsName, fitProgress, tolatFitProgress }, "AIToolsForm");
+                        _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
+                                                                            {
+                                                                                ReportType = AIReportType.FittingProgress,
+                                                                                ModelName = modelName,
+                                                                                fitProgress = fitProgress,
+                                                                                fitMaxProgress = tolatFitProgress
+                                                                            }, "AIToolsForm");
                 }
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
-            if (_objectivesModelsDic[modelsName].DataIdsIntervalsList.Count > 0)
+            if (_objectivesModelsDic[modelName].DataIdsIntervalsList.Count > 0)
             {
                 Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models", new string[] { "the_model", "dataset_size" },
-                    new Object[] { GeneralTools.ObjectToByteArray(_objectivesModelsDic[modelsName].Clone()), datasetSize }, modelId, "TFBackThread"));
+                    new Object[] { GeneralTools.ObjectToByteArray(_objectivesModelsDic[modelName].Clone()), datasetSize }, modelId, "TFBackThread"));
                 dbStimulatorThread.Start();
             }
 
             // Send report about fitting is finished and models table should be updated
             if (_tFBackThreadReportHolderForAIToolsForm != null)
-                _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "fitting_complete", modelsName, datasetSize }, "AIToolsForm");
+                _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingCompAIReport()
+                                                                    {
+                                                                        ReportType = AIReportType.FittingComplete,
+                                                                        ModelName = modelName,
+                                                                        datasetSize = datasetSize,
+                                                                    }, "AIToolsForm");
         }
 
         private void createNeuralNetworkModelForWPW()
@@ -169,7 +181,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
 
             // Refresh modelsFlowLayoutPanel
             if (_tFBackThreadReportHolderForAIToolsForm != null)
-                _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "createModel" }, "AIToolsForm");
+                _tFBackThreadReportHolderForAIToolsForm.holdAIReport(new AIReport() { ReportType = AIReportType.CreateModel }, "AIToolsForm");
         }
 
         private KerasNETNeuralNetworkModel createTempNeuralNetworkModelForWPW(string stepName, List<Sample> dataList, bool pcaActive, string modelPath)

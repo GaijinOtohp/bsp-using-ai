@@ -16,6 +16,7 @@ using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
 namespace BSP_Using_AI
 {
@@ -198,46 +199,51 @@ namespace BSP_Using_AI
             }
         }
 
-        public void holdAIReport(object[] paramms, string callingClassName)
+        public void holdAIReport(AIReport report, string callingClassName)
         {
             if (!callingClassName.Equals("AIToolsForm"))
                 return;
 
-            if (paramms[0].Equals("createModel") && this.Controls.Find(modelsFlowLayoutPanel.Name, false).Length > 0)
+            if (report.ReportType == AIReportType.CreateModel && this.Controls.Find(modelsFlowLayoutPanel.Name, false).Length > 0)
                 // Refresh modelsFlowLayoutPanel
                 this.Invoke(new MethodInvoker(delegate () { queryForModels(); }));
             // Check if this is fitting progress report
-            else if (paramms[0].Equals("progress") && this.Controls.Find(modelsFlowLayoutPanel.Name, false).Length > 0)
+            else if (report.ReportType == AIReportType.FittingProgress && this.Controls.Find(modelsFlowLayoutPanel.Name, false).Length > 0)
             {
                 // If yes then refresh progress bar of the selected model
-                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).fitProgressBar.Maximum = (int)paramms[3]; }));
-                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).fitProgressBar.Value = (int)paramms[2]; }));
+                FittingProgAIReport progReport = (FittingProgAIReport)report;
+                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[progReport.ModelName]).fitProgressBar.Maximum = progReport.fitMaxProgress; }));
+                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[progReport.ModelName]).fitProgressBar.Value = progReport.fitProgress; }));
             }
-            else if (paramms[0].Equals("fitting_complete") && (long)paramms[2] == -1)
+            else if (report.ReportType == AIReportType.FittingComplete)
             {
-                // If yes then this is from PCA analysis, then just set the progress bar to its maximum
-                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).fitProgressBar.Maximum = 1; }));
-                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).fitProgressBar.Value = 1; }));
-            }
-            else if (paramms[0].Equals("fitting_complete") && this.Controls.Find(modelsFlowLayoutPanel.Name, false).Length > 0)
-            {
-                // Refresh model details in modelsFlowLayoutPanel
-                int unfittedDatasetSize = int.Parse(((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).unfittedDataLabel.Text);
-                int fittedDatasetSize = int.Parse(((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).datasetSizeLabel.Text);
-                int pudates = int.Parse(((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).updatesLabel.Text);
-                pudates++;
-
-                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).datasetSizeLabel.Text = ((long)paramms[2]).ToString(); }));
-                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).updatesLabel.Text = pudates.ToString(); }));
-                this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[(string)paramms[1]]).unfittedDataLabel.Text = (unfittedDatasetSize - ((long)paramms[2] - fittedDatasetSize)).ToString(); }));
-
-                // Check if current dataset is the largest
-                if ((long)paramms[2] > _mainForm._largestDatasetSize)
+                FittingCompAIReport compReport = (FittingCompAIReport)report;
+                if (compReport.datasetSize == -1)
                 {
-                    // If yes then set the new largest dataset number
-                    _mainForm._largestDatasetSize = (long)paramms[2];
-                    // Reset unfitted data number
-                    this.Invoke(new MethodInvoker(delegate () { _mainForm.resetBadge(); }));
+                    // If yes then this is from PCA analysis, then just set the progress bar to its maximum
+                    this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).fitProgressBar.Maximum = 1; }));
+                    this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).fitProgressBar.Value = 1; }));
+                }
+                else if (this.Controls.Find(modelsFlowLayoutPanel.Name, false).Length > 0)
+                {
+                    // Refresh model details in modelsFlowLayoutPanel
+                    int unfittedDatasetSize = int.Parse(((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).unfittedDataLabel.Text);
+                    int fittedDatasetSize = int.Parse(((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).datasetSizeLabel.Text);
+                    int pudates = int.Parse(((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).updatesLabel.Text);
+                    pudates++;
+
+                    this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).datasetSizeLabel.Text = (compReport.datasetSize).ToString(); }));
+                    this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).updatesLabel.Text = pudates.ToString(); }));
+                    this.Invoke(new MethodInvoker(delegate () { ((ModelsFlowLayoutPanelItemUserControl)modelsFlowLayoutPanel.Controls[compReport.ModelName]).unfittedDataLabel.Text = (unfittedDatasetSize - (compReport.datasetSize - fittedDatasetSize)).ToString(); }));
+
+                    // Check if current dataset is the largest
+                    if (compReport.datasetSize > _mainForm._largestDatasetSize)
+                    {
+                        // If yes then set the new largest dataset number
+                        _mainForm._largestDatasetSize = compReport.datasetSize;
+                        // Reset unfitted data number
+                        this.Invoke(new MethodInvoker(delegate () { _mainForm.resetBadge(); }));
+                    }
                 }
             }
         }

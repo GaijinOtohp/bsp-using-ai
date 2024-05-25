@@ -12,6 +12,7 @@ using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 using static Tensorflow.Binding;
 
 namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
@@ -36,7 +37,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             // Update fitProgressBar
             if (_aiBackThreadReportHolderForAIToolsForm != null)
-                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "progress", modelName, 1, 1 }, "AIToolsForm");
+                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
+                                                                    {
+                                                                        ReportType = AIReportType.FittingProgress,
+                                                                        ModelName = modelName,
+                                                                        fitProgress = 1,
+                                                                        fitMaxProgress = 1
+                                                                    }, "AIToolsForm");
 
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -49,7 +56,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             // Send report about fitting is finished and models table should be updated
             if (_aiBackThreadReportHolderForAIToolsForm != null)
-                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "fitting_complete", modelName, datasetSize }, "AIToolsForm");
+                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingCompAIReport()
+                                                                    {
+                                                                        ReportType = AIReportType.FittingComplete,
+                                                                        ModelName = modelName,
+                                                                        datasetSize = datasetSize,
+                                                                    }, "AIToolsForm");
         }
 
         public void createTFNETRLModelForCWD()
@@ -76,7 +88,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)
-                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new object[] { "createModel" }, "AIToolsForm");
+                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new AIReport() { ReportType = AIReportType.CreateModel }, "AIToolsForm");
         }
 
         public static TFNETReinforcementL createTFNETRLModel(string name, string path, int inputDim, int outputDim)
