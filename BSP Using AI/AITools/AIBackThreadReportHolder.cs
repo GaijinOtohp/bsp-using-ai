@@ -30,5 +30,7 @@ namespace BSP_Using_AI.AITools
         }
 
         void holdAIReport(AIReport report, string callingClassName);
+
+        public delegate void FittingProgAIReportDelegate(int currentProgress, int maxProgress);
     }
 }

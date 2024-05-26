@@ -23,16 +23,35 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
         private Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
         ARTHTModels _aRTHTModels = null;
 
+        string _SelectedModelName;
+        int _currentFitProgress;
+        int _maxFitProgress = 0;
+
         public ARTHT_KNN(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
             _objectivesModelsDic = objectivesModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
+        private void UpdateFittingProgress(int currentProgress, int maxProgress)
+        {
+            _currentFitProgress++;
+            if (_aiBackThreadReportHolderForAIToolsForm != null)
+                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
+                {
+                    ReportType = AIReportType.FittingProgress,
+                    ModelName = _SelectedModelName,
+                    fitProgress = _currentFitProgress,
+                    fitMaxProgress = _maxFitProgress
+                }, "AIToolsForm");
+        }
+
         public void fit(string modelName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
         {
-            int fitProgress = 0;
-            int tolatFitProgress = dataLists.Count;
+            _SelectedModelName = modelName;
+            _currentFitProgress = 0;
+            foreach (List<Sample> dataList in dataLists.Values)
+                _maxFitProgress += dataList.Count;
 
             // Iterate through models from the selected ones in _arthtModelsDic
             ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelName];
@@ -43,25 +62,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
                 arthtModels.ARTHTModelsDic[stepName] = createKNNModel(stepName, dataLists[stepName], arthtModels.ARTHTModelsDic[stepName]._pcaActive);
                 // Fit features in model
                 KNN.fit((KNNModel)arthtModels.ARTHTModelsDic[stepName],
-                                                      dataLists[stepName]);
+                                                      dataLists[stepName], null);
             }
             else
                 foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
-                {
-                    KNN.fit((KNNModel)arthtModels.ARTHTModelsDic[stepNa],
-                                                   dataLists[stepNa]);
-
-                    // Update fitProgressBar
-                    fitProgress++;
-                    if (_aiBackThreadReportHolderForAIToolsForm != null)
-                        _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
-                                                                            {
-                                                                                ReportType = AIReportType.FittingProgress,
-                                                                                ModelName = modelName,
-                                                                                fitProgress = fitProgress,
-                                                                                fitMaxProgress = tolatFitProgress
-                                                                            }, "AIToolsForm");
-                }
+                    KNN.fit((KNNModel)arthtModels.ARTHTModelsDic[stepNa], dataLists[stepNa], UpdateFittingProgress);
 
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();

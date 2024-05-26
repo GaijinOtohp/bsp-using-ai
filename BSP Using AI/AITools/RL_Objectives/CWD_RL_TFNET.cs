@@ -23,27 +23,37 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
         private Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
+        string _SelectedModelName;
+        int _currentFitStep;
+        int _maxFitSteps;
+
         public CWD_RL_TFNET(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
             _objectivesModelsDic = objectivesModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
-        public void Fit(string modelName, List<Sample> trainingSamplesList, long datasetSize, long modelId)
+        private void UpdateFittingProgress(int currentProgress, int maxProgress)
         {
-            CWDReinforcementL cwdReinforcementL = (CWDReinforcementL)_objectivesModelsDic[modelName];
-            // Fit features in model
-            TF_NET_NN.fit(cwdReinforcementL.CWDReinforcementLModel, cwdReinforcementL.CWDReinforcementLModel.BaseModel, trainingSamplesList, true);
-
-            // Update fitProgressBar
             if (_aiBackThreadReportHolderForAIToolsForm != null)
                 _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
-                                                                    {
-                                                                        ReportType = AIReportType.FittingProgress,
-                                                                        ModelName = modelName,
-                                                                        fitProgress = 1,
-                                                                        fitMaxProgress = 1
-                                                                    }, "AIToolsForm");
+                {
+                    ReportType = AIReportType.FittingProgress,
+                    ModelName = _SelectedModelName,
+                    fitProgress = _currentFitStep * maxProgress + currentProgress,
+                    fitMaxProgress = _maxFitSteps * maxProgress
+                }, "AIToolsForm");
+        }
+
+        public void Fit(string modelName, List<Sample> trainingSamplesList, long datasetSize, long modelId)
+        {
+            _SelectedModelName = modelName;
+            _currentFitStep = 0;
+            _maxFitSteps = 1;
+
+            CWDReinforcementL cwdReinforcementL = (CWDReinforcementL)_objectivesModelsDic[modelName];
+            // Fit features in model
+            TF_NET_NN.fit(cwdReinforcementL.CWDReinforcementLModel, cwdReinforcementL.CWDReinforcementLModel.BaseModel, trainingSamplesList, UpdateFittingProgress, true);
 
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();

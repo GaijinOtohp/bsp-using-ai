@@ -104,7 +104,7 @@ namespace BSP_Using_AI.AITools.Details
                         model = ARTHT_KNN.createKNNModel(stepName, trainingSamples, arthtModels.ARTHTModelsDic[stepName]._pcaActive);
 
                         // Fit features
-                        model = KNN.fit((KNNModel)model, trainingSamples);
+                        model = KNN.fit((KNNModel)model, trainingSamples, null);
                     }
                     else if (arthtModels.ModelName.Equals(NaiveBayesModel.ModelName))
                     {
@@ -120,7 +120,7 @@ namespace BSP_Using_AI.AITools.Details
                         model = ARTHT_TF_NET_NN.createTFNETNeuralNetModel(stepName, trainingSamples, arthtModels.ARTHTModelsDic[stepName]._pcaActive, "");
 
                         // Fit features
-                        model = TF_NET_NN.fit(model, ((TFNETNeuralNetworkModel)model).BaseModel, trainingSamples);
+                        model = TF_NET_NN.fit(model, ((TFNETNeuralNetworkModel)model).BaseModel, trainingSamples, null);
                     }
                     else if (arthtModels.ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
                     {

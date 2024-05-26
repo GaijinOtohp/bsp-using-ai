@@ -24,16 +24,34 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
 
         private Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
+        string _SelectedModelName;
+        int _currentFitStep;
+        int _maxFitSteps;
+
         public ARTHT_TF_NET_NN(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, AIBackThreadReportHolder aiBackThreadReportHolderForAIToolsForm)
         {
             _objectivesModelsDic = objectivesModelsDic;
             _aiBackThreadReportHolderForAIToolsForm = aiBackThreadReportHolderForAIToolsForm;
         }
 
+        private void UpdateFittingProgress(int currentProgress, int maxProgress)
+        {
+            if (_aiBackThreadReportHolderForAIToolsForm != null)
+                _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
+                {
+                    ReportType = AIReportType.FittingProgress,
+                    ModelName = _SelectedModelName,
+                    fitProgress = _currentFitStep * maxProgress + currentProgress,
+                    fitMaxProgress = _maxFitSteps * maxProgress
+                }, "AIToolsForm");
+        }
+
         public void fit(string modelName, Dictionary<string, List<Sample>> dataLists, long datasetSize, long modelId, string stepName)
         {
-            int fitProgress = 0;
-            int tolatFitProgress = dataLists.Count;
+            _SelectedModelName = modelName;
+            _currentFitStep = 0;
+            _maxFitSteps = dataLists.Count;
+
             // Iterate through models from the selected ones in _targetsModelsHashtable
             ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelName];
 
@@ -43,25 +61,15 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                 arthtModels.ARTHTModelsDic[stepName] = createTFNETNeuralNetModel(stepName, dataLists[stepName], arthtModels.ARTHTModelsDic[stepName]._pcaActive,
                                                         ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel.ModelPath);
                 // Fit features in model
-                TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepName], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel, dataLists[stepName], true);
+                TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepName], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel, dataLists[stepName], null, true);
             }
             else
                 foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
                 {
                     // Fit features in model
                     TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepNa], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepNa]).BaseModel,
-                                                                             dataLists[stepNa], true);
-
-                    // Update fitProgressBar
-                    fitProgress++;
-                    if (_aiBackThreadReportHolderForAIToolsForm != null)
-                        _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new FittingProgAIReport()
-                                                                            {
-                                                                                ReportType = AIReportType.FittingProgress,
-                                                                                ModelName = modelName,
-                                                                                fitProgress = fitProgress,
-                                                                                fitMaxProgress = tolatFitProgress
-                                                                            }, "AIToolsForm");
+                                                                             dataLists[stepNa], UpdateFittingProgress, true);
+                    _currentFitStep++;
                 }
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Tensorflow;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 using static Tensorflow.Binding;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
@@ -16,7 +17,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
     public class TF_NET_NN
     {
         public delegate Session ModelArchitectureDelegate(int inputDim, int outputDim);
-        public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList, bool saveModel = false, int suggestedBatchSize = 4)
+        public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList, FittingProgAIReportDelegate fittingProgAIReportDelegate, bool saveModel = false, int suggestedBatchSize = 4)
         {
             if (model._pcaActive)
                 dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
@@ -84,7 +85,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
                 // Start training
                 // Max 1000 epochs
-                for (int epoch = 0; epoch < 1000; epoch++)
+                int epochsMax = 1000;
+                for (int epoch = 0; epoch < epochsMax; epoch++)
                 {
                     // Iterate through the batches
                     for (int batch = 0; batch < inputBatches.Count; batch++)
@@ -107,6 +109,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                         // Update the last and the mean cost value
                         meanCost += cost / inputBatches.Count;
                     }
+
+                    // Update fitProgressBar
+                    if (fittingProgAIReportDelegate != null)
+                        fittingProgAIReportDelegate(epoch, epochsMax);
 
                     // Check if the learning is not improving according to improvementThreshold
                     // in the last 15 epochs

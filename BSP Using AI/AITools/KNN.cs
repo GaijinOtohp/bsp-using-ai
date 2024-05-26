@@ -6,12 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
 {
     public class KNN
     {
-        public static KNNModel fit(KNNModel model, List<Sample> dataList)
+        public static KNNModel fit(KNNModel model, List<Sample> dataList, FittingProgAIReportDelegate fittingProgAIReportDelegate)
         {
             if (model._pcaActive)
                 dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
@@ -24,8 +25,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             else
                 model.k = 3;
             // Set the new features in the model
-            foreach (Sample feature in dataList)
-                model.DataList.Add(feature);
+            for (int i = 0; i < dataList.Count; i++)
+            {
+                if (fittingProgAIReportDelegate != null)
+                    fittingProgAIReportDelegate(i, dataList.Count);
+                model.DataList.Add(dataList[i]);
+            }
 
             return model;
         }
