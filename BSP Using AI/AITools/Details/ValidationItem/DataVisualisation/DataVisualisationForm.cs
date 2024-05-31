@@ -20,6 +20,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         string _stepName;
 
         private List<Sample> DataList;
+        private long _datasetSize;
 
         bool _mouseDown = false;
         int _previousMouseX;
@@ -27,7 +28,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         int _firstMouseX;
         int _firstMouseY;
 
-        public DataVisualisationForm(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, string modelName, string problemName, long modelId, string stepName, List<Sample> dataList)
+        public DataVisualisationForm(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, string modelName, string problemName, long modelId, string stepName, List<Sample> dataList, long datasetSize)
         {
             InitializeComponent();
 
@@ -37,6 +38,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             _modelId = modelId;
             _stepName = stepName;
             DataList = dataList;
+            _datasetSize = datasetSize;
 
             setRawVisTab();
             setPCAVisTab();

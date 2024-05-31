@@ -80,6 +80,7 @@ namespace BSP_Using_AI.AITools.Details
 
             // Initialize list of features for selected step
             List<Sample> dataList = new List<Sample>();
+            long datasetSize = dataTable.Rows.Count;
 
             // Get features of only the selected step
             string stepName = Name;
@@ -97,7 +98,7 @@ namespace BSP_Using_AI.AITools.Details
             // Send data to DataVisualisationForm
             DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._objectivesModelsDic,
                                                                                     ((DetailsForm)this.FindForm())._objectiveModel.ModelName, ((DetailsForm)this.FindForm())._objectiveModel.ObjectiveName,
-                                                                                    ((DetailsForm)this.FindForm())._modelId, stepName, dataList);
+                                                                                    ((DetailsForm)this.FindForm())._modelId, stepName, dataList, datasetSize);
             dataVisualisationForm.stepLabel.Text = modelTargetLabel.Text;
             this.Invoke(new MethodInvoker(delegate () { dataVisualisationForm.Show(); }));
         }

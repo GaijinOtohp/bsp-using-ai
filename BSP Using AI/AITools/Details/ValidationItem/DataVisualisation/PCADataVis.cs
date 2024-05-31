@@ -175,7 +175,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                     CallingClass = "PCADataVis",
                     ModelsName = _ModelName + _ProblemName,
                     DataLists = dataLists,
-                    _datasetSize = -1,
+                    _datasetSize = _datasetSize,
                     _modelId = _modelId,
                     StepName = _stepName
                 });
@@ -185,28 +185,28 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             {
                 // This is for knn
                 ARTHT_KNN kNNBackThread = new ARTHT_KNN(_objectivesModelsDic, aIToolsForm);
-                Thread knnThread = new Thread(() => kNNBackThread.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
+                Thread knnThread = new Thread(() => kNNBackThread.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
                 knnThread.Start();
             }
             else if (_ModelName.Equals(NaiveBayesModel.ModelName))
             {
                 // This is for naive bayes TF_NET_KERAS_NN
                 ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_objectivesModelsDic, aIToolsForm);
-                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
+                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
                 nbThread.Start();
             }
             else if (_ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Net Neural Networks models
                 ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_objectivesModelsDic, aIToolsForm);
-                Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
+                Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
                 tfNetThread.Start();
             }
             else if (_ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Keras Neural Networks models
                 TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_objectivesModelsDic, aIToolsForm);
-                Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_ModelName + _ProblemName, dataLists, -1, _modelId, _stepName));
+                Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
                 tfKerasThread.Start();
             }
         }
