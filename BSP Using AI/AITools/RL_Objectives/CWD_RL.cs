@@ -169,7 +169,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             AnnotationECG[] trueCorners = GetCornersExceptDleta(annoData);
 
             // Create the intervals covering 20% from the corners in both sides
-            _ApproxIntervList = ApproximateIndexesToIntervals(trueCorners, 20, samples);
+            _ApproxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, samples, samplingRate);
 
             // Initialize the conditions of finishing the episodes
             _atCircularQueue = new CircularQueue<int>(8);

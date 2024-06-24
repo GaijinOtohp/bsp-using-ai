@@ -1079,7 +1079,7 @@ namespace BSP_Using_AI.DetailsModify
                 return cornersList;
             }
 
-            public static List<CornerInterval> ApproximateIndexesToIntervals(AnnotationECG[] cornersIndexes, double tolerance, double[] fullSignal)
+            public static List<CornerInterval> ApproximateIndexesToIntervals(AnnotationECG[] cornersIndexes, double tolerance, double[] fullSignal, int samplingRate)
             {
                 // There might be two corners on the same index
                 // They should have the same interval but with their unique label
@@ -1103,12 +1103,44 @@ namespace BSP_Using_AI.DetailsModify
                         int[] prevCorIndexArray = cornersIndexes.Where(ecgAnno => ecgAnno.GetIndexes().starting < indexInterval.cornerIndex).Select(ecgAnno => ecgAnno.GetIndexes().starting).ToArray();
                         int[] nextCorIndexArray = cornersIndexes.Where(ecgAnno => ecgAnno.GetIndexes().starting > indexInterval.cornerIndex).Select(ecgAnno => ecgAnno.GetIndexes().starting).ToArray();
                         if (prevCorIndexArray.Length > 0)
-                            indexInterval.starting = indexInterval.cornerIndex - (int)(tolerance * (indexInterval.cornerIndex - prevCorIndexArray.Max()) / 100f);
+                        {
+                            // Compute the distance of the tolerance and find its index
+                            double prevDistAmpTol = Math.Sqrt(Math.Pow((indexInterval.cornerIndex - prevCorIndexArray.Max()) / (double)samplingRate, 2) + Math.Pow(fullSignal[indexInterval.cornerIndex] - fullSignal[prevCorIndexArray.Max()], 2)) *
+                                                    tolerance / 100d;
+                            // Compute the starting index using prevDistAmpTol and the ending index "indexInterval.cornerIndex"
+                            // by computing distances from the latest corner in prevCorIndexArray
+                            double distDiff = double.PositiveInfinity;
+                            for (int iCornIndex = prevCorIndexArray.Max(); iCornIndex < indexInterval.cornerIndex; iCornIndex++)
+                            {
+                                double iDistAmp = Math.Sqrt(Math.Pow((indexInterval.cornerIndex - iCornIndex) / (double)samplingRate, 2) + Math.Pow(fullSignal[indexInterval.cornerIndex] - fullSignal[iCornIndex], 2));
+                                if (Math.Abs(iDistAmp - prevDistAmpTol) < distDiff)
+                                {
+                                    indexInterval.starting = iCornIndex;
+                                    distDiff = Math.Abs(iDistAmp - prevDistAmpTol);
+                                }
+                            }
+                        }
                         else
                             indexInterval.starting = indexInterval.cornerIndex - (int)(tolerance * (indexInterval.cornerIndex - 0) / 100f);
 
                         if (nextCorIndexArray.Length > 0)
-                            indexInterval.ending = indexInterval.cornerIndex + (int)(tolerance * (nextCorIndexArray.Min() - indexInterval.cornerIndex) / 100f);
+                        {
+                            // Compute the distance of the tolerance and find its index
+                            double nextDistAmpTol = Math.Sqrt(Math.Pow((nextCorIndexArray.Min() - indexInterval.cornerIndex) / (double)samplingRate, 2) + Math.Pow(fullSignal[nextCorIndexArray.Min()] - fullSignal[indexInterval.cornerIndex], 2)) *
+                                                    tolerance / 100d;
+                            // Compute the ending index using prevDistAmpTol and the staring index "indexInterval.cornerIndex"
+                            // by computing distances from the latest corner in nextCorIndexArray
+                            double distDiff = double.PositiveInfinity;
+                            for (int iCornIndex = indexInterval.cornerIndex + 1; iCornIndex <= nextCorIndexArray.Min(); iCornIndex++)
+                            {
+                                double iDistAmp = Math.Sqrt(Math.Pow((iCornIndex - indexInterval.cornerIndex) / (double)samplingRate, 2) + Math.Pow(fullSignal[iCornIndex] - fullSignal[indexInterval.cornerIndex], 2));
+                                if (Math.Abs(iDistAmp - nextDistAmpTol) < distDiff)
+                                {
+                                    indexInterval.ending = iCornIndex;
+                                    distDiff = Math.Abs(iDistAmp - nextDistAmpTol);
+                                }
+                            }
+                        }
                         else
                             indexInterval.ending = indexInterval.cornerIndex + (int)(tolerance * ((fullSignal.Length - 1) - indexInterval.cornerIndex) / 100f);
 

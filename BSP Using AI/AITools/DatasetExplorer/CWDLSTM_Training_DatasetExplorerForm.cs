@@ -251,10 +251,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
                 // Scan the corners of each segment using the corners scanner in FormDetailsModifyFilters
                 // The parameters of the scanner are extracted using the RL model in cwdLSTM
-                Dictionary<int, CornerSample> scannedCornersDict = new Dictionary<int, CornerSample>(annoData.GetAnnotations().Count);
+                Dictionary<int, (CornerSample corner, Sample dataSample)> scannedCornersDict = new Dictionary<int, (CornerSample, Sample)>(annoData.GetAnnotations().Count);
                 AnnotationECG[] trueCorners = CWD_RL.GetCornersExceptDleta(annoData);
-                // Create the intervals covering 20% from the corners in both sides
-                List<CornerInterval> approxIntervList = ApproximateIndexesToIntervals(trueCorners, 20, RescaledSamples);
+                // Create the intervals covering 40% from the corners in both sides
+                List<CornerInterval> approxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, RescaledSamples, samplingRate);
 
                 // Create the data list sequence for the current signal
                 LSTMDataBuilderMemory dataBuilderMemory = new LSTMDataBuilderMemory();
@@ -301,22 +301,25 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                             // then check if this scanned corner is closer to the true one
                             if (scannedCornersDict.ContainsKey(cornInterval.cornerIndex))
                             {
-                                if (Math.Abs(cornInterval.cornerIndex - scannedCorner._index) < Math.Abs(cornInterval.cornerIndex - scannedCornersDict[cornInterval.cornerIndex]._index))
+                                // Compute the amplitude between the real corner and the new scanned one vs the real corner and the previous selected one
+                                double newDistAamp = Math.Sqrt(Math.Pow((cornInterval.cornerIndex - scannedCorner._index) / (double)samplingRate, 2) + Math.Pow(RescaledSamples[cornInterval.cornerIndex] - scannedCorner._value, 2));
+                                double prevDistAamp = Math.Sqrt(Math.Pow((cornInterval.cornerIndex - scannedCornersDict[cornInterval.cornerIndex].corner._index) / (double)samplingRate, 2) + Math.Pow(RescaledSamples[cornInterval.cornerIndex] - scannedCornersDict[cornInterval.cornerIndex].corner._value, 2));
+                                if (newDistAamp < prevDistAamp)
                                 {
                                     // If yes then set the previous corner as "Other"
                                     for (int iOutput = 0; iOutput < 9; iOutput++) // 3 for P, 3 for QRS, and 3 for T
-                                        sample.UpdateOutput(iOutput, 0);
-                                    sample.UpdateOutput(9, 1); // The 9th index is for "Other" peaks
-                                    // Swap the previous corner in the dictionary with the new one
-                                    scannedCornersDict[cornInterval.cornerIndex] = scannedCorner;
+                                        scannedCornersDict[cornInterval.cornerIndex].dataSample.UpdateOutput(iOutput, 0);
+                                    scannedCornersDict[cornInterval.cornerIndex].dataSample.UpdateOutput(9, 1); // The 9th index is for "Other" peaks
                                     // Create a dataset sequence sample for the current scanned corner
                                     UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
+                                    // Swap the previous corner in the dictionary with the new one
+                                    scannedCornersDict[cornInterval.cornerIndex] = (scannedCorner, sample);
                                 }
                                 else
                                 {
                                     // Add the new scanned corner as "Other"
                                     // Create a dataset sequence sample for the current scanned corner
-                                    matchedIntervalsList = matchedIntervalsList.Where(interval => interval.Name = CWDNamigs.Normal || interval.Name = CWDNamigs.Abnormal).ToList();
+                                    matchedIntervalsList = matchedIntervalsList.Where(interval => interval.Name == CWDNamigs.Normal || interval.Name == CWDNamigs.Abnormal).ToList();
                                     matchedIntervalsList.Add(new CornerInterval() { Name = CWDNamigs.Other });
                                     UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
                                 }
@@ -325,7 +328,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                             {
                                 // Update the latest classified peak
                                 if (dataBuilderMemory.latestPeakToClassifyIndx >= 0)
-                                    dataBuilderMemory.LatestClassifiedPeak = scannedCornersDict[dataBuilderMemory.latestPeakToClassifyIndx].Clone();
+                                    dataBuilderMemory.LatestClassifiedPeak = scannedCornersDict[dataBuilderMemory.latestPeakToClassifyIndx].corner.Clone();
                                 dataBuilderMemory.latestPeakToClassifyIndx = cornInterval.cornerIndex;
                                 // Update LatestPPeak and LatestRPeak with their averaged interval
                                 if (dataBuilderMemory.currentPeakIsP)
@@ -354,18 +357,18 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                                     dataBuilderMemory.LatestRPeak = dataBuilderMemory.LatestClassifiedPeak.Clone();
                                     dataBuilderMemory.currentPeakIsR = false;
                                 }
-                                // Add the new true corner
-                                scannedCornersDict.Add(cornInterval.cornerIndex, scannedCorner);
                                 // Create a dataset sequence sample for the current scanned corner
                                 UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
+                                // Add the new true corner
+                                scannedCornersDict.Add(cornInterval.cornerIndex, (scannedCorner, sample));
                             }
                         }
                         else
                         {
-                            // Otherwise just add the corner as a regular one
-                            scannedCornersDict.Add(scannedCorner._index, scannedCorner);
                             // Create a dataset sequence sample for the current scanned corner
                             UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
+                            // Otherwise just add the corner as a regular one
+                            scannedCornersDict.Add(scannedCorner._index, (scannedCorner, sample));
                         }
 
                         dataBuilderMemory.LatestPeak = scannedCorner.Clone();
