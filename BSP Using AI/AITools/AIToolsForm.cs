@@ -3,6 +3,7 @@ using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.RL_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.DatasetExplorer;
@@ -126,6 +127,13 @@ namespace BSP_Using_AI
                     Thread cwdRLTFNETThread = new Thread(() => cwdRLTFNET.createTFNETRLModelForCWD());
                     cwdRLTFNETThread.Start();
                 }
+                if (modelTypeComboBox.SelectedItem.Equals(TFNETLSTMModel.ModelName))
+                {
+                    // If yes then this is for LSTM models
+                    CWD_TF_NET_LSTM cwdLSTMTFNET = new CWD_TF_NET_LSTM(_objectivesModelsDic, this);
+                    Thread cwdLSTMTFNETThread = new Thread(() => cwdLSTMTFNET.createTFNETLSTMModelForCWD());
+                    cwdLSTMTFNETThread.Start();
+                }
             }
         }
 
@@ -178,9 +186,9 @@ namespace BSP_Using_AI
             foreach (DataRow row in rowsList)
             {
                 // Create an item of the model
-                ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl();
-
                 ObjectiveBaseModel objectiveBaseModel = GeneralTools.ByteArrayToObject<ObjectiveBaseModel>(row.Field<byte[]>("the_model"));
+
+                ModelsFlowLayoutPanelItemUserControl modelsFlowLayoutPanelItemUserControl = new ModelsFlowLayoutPanelItemUserControl(objectiveBaseModel, _objectivesModelsDic, this);
 
                 modelsFlowLayoutPanelItemUserControl.Name = objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName;
                 modelsFlowLayoutPanelItemUserControl.modelNameLabel.Text = objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName;
@@ -188,12 +196,6 @@ namespace BSP_Using_AI
                 modelsFlowLayoutPanelItemUserControl.updatesLabel.Text = objectiveBaseModel.DataIdsIntervalsList.Count().ToString();
                 modelsFlowLayoutPanelItemUserControl.unfittedDataLabel.Text = "0";
                 modelsFlowLayoutPanelItemUserControl._id = row.Field<long>("_id");
-                for (int i = 0; i < 240; i++)
-                    if (!_objectivesModelsDic.ContainsKey(objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName))
-                        Thread.Sleep(500);
-                    else
-                        break;
-                modelsFlowLayoutPanelItemUserControl._objectiveModel = _objectivesModelsDic[objectiveBaseModel.ModelName + objectiveBaseModel.ObjectiveName];
 
                 if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { modelsFlowLayoutPanel.Controls.Add(modelsFlowLayoutPanelItemUserControl); }));
             }

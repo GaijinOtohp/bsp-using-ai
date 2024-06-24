@@ -116,7 +116,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             // Save models in models table
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Insert("models", new string[] { "type_name", "model_target", "the_model", "dataset_size" },
-                new object[] { "K-Nearest neighbor", "WPW syndrome detection", GeneralTools.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
+                new object[] { KNNModel.ModelName, WPWSyndromeDetection.ObjectiveName, GeneralTools.ObjectToByteArray(arthtModels.Clone()), 0 }, "KNNBackThread");
 
             // Refresh modelsFlowLayoutPanel
             if (_aiBackThreadReportHolderForAIToolsForm != null)

@@ -88,7 +88,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             return horizSpan;
         }
 
-        public static void loadSignalInChart(FormsPlot chart, double[] samples, double samplingRate, double startingInSec, string reference)
+        public static SignalPlot loadSignalInChart(FormsPlot chart, double[] samples, double samplingRate, double startingInSec, string reference)
         {
             // Get all non signal plottables and clear the plot
             List<IPlottable> nonSignalPlotables = new List<IPlottable>();
@@ -113,6 +113,8 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             chart.Plot.AxisAuto();
 
             chart.Refresh();
+
+            return signalPlot;
         }
         public static void loadSignalInChart(FormsPlot chart, double[] xValues, double[] yValues, double startingInSec, string reference)
         {
@@ -194,6 +196,22 @@ namespace Biological_Signal_Processing_Using_AI.Garage
 
             for (int i = 0; i < samples.Length; i++)
                 filteredSamples[i] = (samples[i] - meanMinMax.min) / ampInterval;
+
+            return filteredSamples;
+        }
+
+        //*******************************************************************************************************//
+        //*****************************************min max normalization*****************************************//
+        public static double[] rescaleSignal(double[] samples, double newAmpInterval)
+        {
+            (double mean, double min, double max) meanMinMax = MeanMinMax(samples);
+            double ampInterval = meanMinMax.max - meanMinMax.min;
+            double scalingRatio = newAmpInterval / ampInterval;
+            // Normalize the samples
+            double[] filteredSamples = new double[samples.Length];
+
+            for (int i = 0; i < samples.Length; i++)
+                filteredSamples[i] = (samples[i] - meanMinMax.min) * scalingRatio;
 
             return filteredSamples;
         }

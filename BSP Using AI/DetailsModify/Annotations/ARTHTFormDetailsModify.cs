@@ -211,7 +211,7 @@ namespace BSP_Using_AI.DetailsModify
             else if (modelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Net Neural Networks
-                return TF_NET_NN.predict(features, (TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]);
+                return TF_NET_NN.predict(features, arthtModels.ARTHTModelsDic[stepName], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel.Session);
             }
             else if (modelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
@@ -265,14 +265,7 @@ namespace BSP_Using_AI.DetailsModify
                     // If yes then lunch finish function and return
                     finish();
 
-                    // Check if prediction is on
-                    if (_predictionOn)
-                    {
-                        // If yes then return prediction stuff to normal state
-                        _predictionOn = false;
-                        predictButton.Enabled = true;
-                        modelTypeComboBox.Enabled = true;
-                    }
+                    predictionEnd();
 
                     return;
                 }

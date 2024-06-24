@@ -3,10 +3,12 @@ using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.Filters.IIRFilters;
 using BSP_Using_AI.DetailsModify.FiltersControls;
+using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify
@@ -869,10 +871,14 @@ namespace BSP_Using_AI.DetailsModify
                 }
             }
 
-            public class Interval
+            public class CornerInterval
             {
+                public string Name;
+
                 public int starting;
                 public int ending;
+
+                public int cornerIndex;
             }
 
             private double[] SpanSamples;
@@ -1073,26 +1079,45 @@ namespace BSP_Using_AI.DetailsModify
                 return cornersList;
             }
 
-            public static List<Interval> ApproximateIndexesToIntervals(int[] indexes, double tolerance, double[] fullSignal)
+            public static List<CornerInterval> ApproximateIndexesToIntervals(AnnotationECG[] cornersIndexes, double tolerance, double[] fullSignal)
             {
-                List<Interval> intervals = new List<Interval>();
+                // There might be two corners on the same index
+                // They should have the same interval but with their unique label
+                Dictionary<int, CornerInterval> intervalsDict = new Dictionary<int, CornerInterval>();
+                List<CornerInterval> intervals = new List<CornerInterval>();
 
-                for (int i = 0; i < indexes.Length; i++)
+                for (int i = 0; i < cornersIndexes.Length; i++)
                 {
-                    Interval indexInterval = new Interval();
-                    if (i - 1 >= 0)
-                        indexInterval.starting = indexes[i] - (int)(tolerance * (indexes[i] - indexes[i - 1]) / 100f);
+                    CornerInterval indexInterval = new CornerInterval() { cornerIndex = cornersIndexes[i].GetIndexes().starting, Name = cornersIndexes[i].Name };
+                    // Check if the interval of the current corner already exists
+                    if (intervalsDict.ContainsKey(indexInterval.cornerIndex))
+                    {
+                        // If yes then just clounn the corner interval but with the different naming
+                        indexInterval.starting = intervalsDict[indexInterval.cornerIndex].starting;
+                        indexInterval.ending = intervalsDict[indexInterval.cornerIndex].ending;
+                    }
                     else
-                        indexInterval.starting = indexes[i] - (int)(tolerance * (indexes[i] - 0) / 100f);
+                    {
+                        // Create a new interval for the corner
+                        // Get the index of the next and previous corners if exists
+                        int[] prevCorIndexArray = cornersIndexes.Where(ecgAnno => ecgAnno.GetIndexes().starting < indexInterval.cornerIndex).Select(ecgAnno => ecgAnno.GetIndexes().starting).ToArray();
+                        int[] nextCorIndexArray = cornersIndexes.Where(ecgAnno => ecgAnno.GetIndexes().starting > indexInterval.cornerIndex).Select(ecgAnno => ecgAnno.GetIndexes().starting).ToArray();
+                        if (prevCorIndexArray.Length > 0)
+                            indexInterval.starting = indexInterval.cornerIndex - (int)(tolerance * (indexInterval.cornerIndex - prevCorIndexArray.Max()) / 100f);
+                        else
+                            indexInterval.starting = indexInterval.cornerIndex - (int)(tolerance * (indexInterval.cornerIndex - 0) / 100f);
 
-                    if (i + 1 < indexes.Length)
-                        indexInterval.ending = indexes[i] + (int)(tolerance * (indexes[i + 1] - indexes[i]) / 100f);
-                    else
-                        indexInterval.ending = indexes[i] + (int)(tolerance * ((fullSignal.Length - 1) - indexes[i]) / 100f);
+                        if (nextCorIndexArray.Length > 0)
+                            indexInterval.ending = indexInterval.cornerIndex + (int)(tolerance * (nextCorIndexArray.Min() - indexInterval.cornerIndex) / 100f);
+                        else
+                            indexInterval.ending = indexInterval.cornerIndex + (int)(tolerance * ((fullSignal.Length - 1) - indexInterval.cornerIndex) / 100f);
 
+                        // Add the new interval in the dictionary
+                        intervalsDict.Add(indexInterval.cornerIndex, indexInterval);
+                    }
+                    // Add the corner's interval to the list
                     intervals.Add(indexInterval);
                 }
-
 
                 return intervals;
             }
@@ -1141,7 +1166,7 @@ namespace BSP_Using_AI.DetailsModify
                 _segmentStarting = startingIndex;
                 // Update the control
                 UpdateControl();
-                _ParentFilteringTools?.ApplyFilters(false);
+                ApplyFilter(((SignalPlot)_ParentFilteringTools._FormDetailModify._Plots[SANamings.Signal]).Ys, false, true);
             }
             public void SetEndingIndex(int endingIndex)
             {
@@ -1150,7 +1175,7 @@ namespace BSP_Using_AI.DetailsModify
                 _segmentEnding = endingIndex;
                 // Update the control
                 UpdateControl();
-                _ParentFilteringTools?.ApplyFilters(false);
+                ApplyFilter(((SignalPlot)_ParentFilteringTools._FormDetailModify._Plots[SANamings.Signal]).Ys, false, true);
             }
             public void SetResolution(int resolution)
             {

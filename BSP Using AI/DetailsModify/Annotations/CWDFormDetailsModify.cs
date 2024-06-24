@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -310,6 +311,19 @@ namespace BSP_Using_AI.DetailsModify
                 // Clear _SelectedPointsList
                 _SelectedPointsList.Clear();
             }
+        }
+
+        //*******************************************************************************************************//
+        //*******************************************************************************************************//
+        //************************************************AI TOOLS***********************************************//
+        private void predictButton_Click_CWD(string modelName, string modelNameProblem)
+        {
+            // Check if this is for peaks scan using the deep Q-learning model
+            // or for the delineation of the peaks using LSTM
+            if (modelName.Equals(TFNETReinforcementL.ModelName))
+                predictButton_Click_CWDRL(modelNameProblem);
+            else if (modelName.Equals(TFNETLSTMModel.ModelName))
+                predictButton_Click_CWDLSTM(modelNameProblem);
         }
 
         private void nextButton_Click_CWD(object sender, EventArgs e)

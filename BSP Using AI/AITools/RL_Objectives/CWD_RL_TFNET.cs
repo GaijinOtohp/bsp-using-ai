@@ -80,7 +80,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             int modelIndx = 0;
             while (_objectivesModelsDic.ContainsKey(TFNETReinforcementL.ModelName + " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx))
                 modelIndx++;
-            string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/TFNETReinforcementLModel" + modelIndx;
+            string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + modelIndx;
 
             // Create the model object
             CWDReinforcementL cwdReinforcementL = new CWDReinforcementL();

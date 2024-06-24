@@ -2,6 +2,7 @@
 using BSP_Using_AI.AITools.Details;
 using BSP_Using_AI.Database;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Threading;
@@ -18,21 +19,58 @@ namespace BSP_Using_AI.AITools
         public long _id;
         public ObjectiveBaseModel _objectiveModel;
 
-        public ModelsFlowLayoutPanelItemUserControl()
+        Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic;
+
+        public ModelsFlowLayoutPanelItemUserControl(ObjectiveBaseModel objectiveBaseModel, Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, Form invokerForm)
         {
             InitializeComponent();
 
+            _objectiveModel = objectiveBaseModel;
+            _objectivesModelsDic = objectivesModelsDic;
+
             /// Look for available ufitted signals
-            // Query for all signals in dataset table
-            // and remove datasetSizeLabel from it
+            string tableName = "dataset";
+            string selection = null;
+            object[] selectionArgs = null;
+            if (objectiveBaseModel is CWDReinforcementL || objectiveBaseModel is CWDLSTM)
+            {
+                tableName = "anno_ds";
+                selection = "anno_objective=?";
+                selectionArgs = new object[] { CharacteristicWavesDelineation.ObjectiveName };
+            }
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query(tableName,
                                         new String[] { "_id" },
-                                        null,
-                                        null,
+                                        selection,
+                                        selectionArgs,
                                         "", "ModelsFlowLayoutPanelItemUserControl"));
             dbStimulatorThread.Start();
+
+            Thread waitForModelToLeadThread = new Thread(() => WaitForModelToLoad(invokerForm));
+            waitForModelToLeadThread.Start();
+        }
+
+        private void WaitForModelToLoad(Form invokerForm)
+        {
+            invokerForm.Invoke(new MethodInvoker(delegate () {
+                fitButton.Enabled = false;
+                detailsButton.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+            }));
+
+            for (int i = 0; i < 240; i++)
+                if (!_objectivesModelsDic.ContainsKey(_objectiveModel.ModelName + _objectiveModel.ObjectiveName) || !IsHandleCreated)
+                    Thread.Sleep(500);
+                else
+                    break;
+            _objectiveModel = _objectivesModelsDic[_objectiveModel.ModelName + _objectiveModel.ObjectiveName];
+
+            invokerForm.Invoke(new MethodInvoker(delegate () {
+                fitButton.Enabled = true;
+                detailsButton.Enabled = true;
+                Cursor = Cursors.Default;
+            }));
         }
 
         //*******************************************************************************************************//
@@ -63,7 +101,7 @@ namespace BSP_Using_AI.AITools
 
             if (_objectiveModel is ARTHTModels)
                 datasetExplorerForm.queryForSignals_ARTHT();
-            else if (_objectiveModel is CWDReinforcementL)
+            else if (_objectiveModel is CWDReinforcementL || _objectiveModel is CWDLSTM)
                 datasetExplorerForm.queryForSignals_CWD();
         }
 

@@ -53,7 +53,7 @@ namespace BSP_Using_AI.DetailsModify
             spectrumChart.Refresh();
 
             // Insert signal, up, down, stable, selection, and labels plots in signalChart
-            _Plots.Add(SANamings.Signal, signalChart.Plot.GetPlottables()[0]);
+            _Plots[SANamings.Signal] = signalChart.Plot.GetPlottables()[0];
             _Plots.Add(SANamings.ScatterPlotsNames.UpPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.ScatterPlotsNames.UpPeaks));
             _Plots.Add(SANamings.ScatterPlotsNames.DownPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Red, label: SANamings.ScatterPlotsNames.DownPeaks));
             _Plots.Add(SANamings.ScatterPlotsNames.StableStates, GeneralTools.AddScatterPlot(signalChart, Color.Black, label: SANamings.ScatterPlotsNames.StableStates));
@@ -112,7 +112,8 @@ namespace BSP_Using_AI.DetailsModify
                 double[] fftMag = applyFFT(samples);
 
                 // Load signals inside charts
-                GeneralTools.loadSignalInChart(signalChart, samples, samplingRate, startingInSec, "FormDetailsModifySignal");
+                SignalPlot signalPlot = GeneralTools.loadSignalInChart(signalChart, samples, samplingRate, startingInSec, "FormDetailsModifySignal");
+                _Plots[SANamings.Signal] = signalPlot;
 
                 // Set the real frequency rate
                 // ftMag has only half of the spectrum (the real frequencies)

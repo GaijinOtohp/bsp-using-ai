@@ -140,11 +140,11 @@ namespace Biological_Signal_Processing_Using_AI
             [DataMember]
             public string Name { get; set; }
             [DataMember]
-            public double[] Features { get; set; }
+            private double[] Features { get; set; }
             [DataMember]
-            public double[] Outputs { get; set; }
+            private double[] Outputs { get; set; }
 
-            public Sample(string name, int numberOfFeatures, int numberOfOutputs, Data dataParent)
+            public Sample(string name, int numberOfFeatures, int numberOfOutputs, Data dataParent = null)
             {
                 Name = name;
                 Features = new double[numberOfFeatures];
@@ -179,6 +179,16 @@ namespace Biological_Signal_Processing_Using_AI
             }
 
             public void insertFeaturesArray(double[] values) { Features = values; }
+
+            public void UpdateFeature(int index, double value)
+            {
+                Features[index] = value;
+            }
+
+            public void UpdateOutput(int index, double value)
+            {
+                Outputs[index] = value;
+            }
 
             public double[] getFeatures() { return Features; }
 

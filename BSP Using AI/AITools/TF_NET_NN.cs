@@ -128,6 +128,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     }
                 }
 
+                // Update fitProgressBar
+                if (fittingProgAIReportDelegate != null)
+                    fittingProgAIReportDelegate(epochsMax, epochsMax);
+
                 // Save model
                 if (saveModel)
                     SaveModelVariables(session, baseModel.ModelPath, new string[] { "output" });
@@ -136,14 +140,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             return model;
         }
 
-        public static double[] predict(double[] features, TFNETNeuralNetworkModel model)
+        public static double[] predict(double[] features, CustomArchiBaseModel model, Session session)
         {
             // Initialize input
             if (model._pcaActive)
                 features = GeneralTools.rearrangeInput(features, model.PCA);
 
-            // Get the session from the model
-            Session session = model.BaseModel.Session;
+            session.graph.as_default();
 
             // Get the input and output variables from the graph
             Tensor input = session.graph.OperationByName("input_place_holder");

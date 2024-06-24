@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Tensorflow;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 using static Tensorflow.Binding;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
@@ -29,7 +30,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             }
         }
 
-        public static TFNETLSTMModel Fit(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences, bool saveModel = false, int suggestedBatchSize = 4)
+        public static TFNETLSTMModel Fit(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences, FittingProgAIReportDelegate fittingProgAIReportDelegate, bool saveModel = false, int suggestedBatchSize = 4)
         {
             if (lstmModel._pcaActive)
                 for (int iSequence = 0; iSequence < dataListSequences.Count; iSequence++)
@@ -55,7 +56,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     int batchSize = iBatch1stSeq + suggestedBatchSize <= dataListSequences.Count ? suggestedBatchSize : dataListSequences.Count - iBatch1stSeq;
 
                     // Get the longest sequence in the selected batch
-                    int batchLongestSequence = dataListSequences.Where((dataList, index) => iBatch1stSeq * suggestedBatchSize <= index && index < iBatch1stSeq * suggestedBatchSize + batchSize).Max(dataList => dataList.Count);
+                    int batchLongestSequence = dataListSequences.Where((dataList, index) => iBatch1stSeq <= index && index < iBatch1stSeq + batchSize).Max(dataList => dataList.Count);
 
                     for (int iBatchSequence = iBatch1stSeq; iBatchSequence - iBatch1stSeq < batchSize; iBatchSequence++)
                     {
@@ -127,7 +128,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 FeedItem[] inOutFeedItems = new FeedItem[lstmModel._modelSequenceLength * 2 + 3]; // + 3 for the learning rate and the startin output and state
                 float[,] emptyInputBatch;
                 float[,] emptyOutputBatch;
-                for (int epoch = 0; epoch < 10000; epoch++)
+                int epochsMax = 1000;
+                for (int epoch = 0; epoch < epochsMax; epoch++)
                 {
                     // Iterate through the sequences of batches
                     for (int iSequence = 0; iSequence < lstmSequenceBatchesList.Count; iSequence++)
@@ -175,6 +177,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                             meanCost += cost / (longestSequence * lstmSequenceBatchesList.Count);
                         }
 
+                    // Update fitProgressBar
+                    if (fittingProgAIReportDelegate != null)
+                        fittingProgAIReportDelegate(epoch, epochsMax);
+
                     // Check if the learning is not improving according to improvementThreshold
                     // in the last 15 epochs
                     costCirQueue.Enqueue(meanCost);
@@ -183,25 +189,19 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     if (costCirQueue._count == 15)
                     {
                         (float mean, float min, float max) = GeneralTools.MeanMinMax(costCirQueue.ToArray());
-                        if ((max - min) < improvementThreshold)
+                        if ((max - min) < improvementThreshold * lstmModel._modelSequenceLength)
                             // If yes then there is no greate improvement. We can stop learning here
                             break;
                     }
                 }
 
+                // Update fitProgressBar
+                if (fittingProgAIReportDelegate != null)
+                    fittingProgAIReportDelegate(epochsMax, epochsMax);
+
                 // Save model
                 if (saveModel)
-                {
-                    // Get the output cells names
-                    string[] outputsNames = new string[lstmModel._modelSequenceLength];
-                    string lastLayerName = "layer" + (lstmModel._layers - 1); // Layers count starts from 0
-                    if (lstmModel._bidirectional)
-                        lastLayerName = "bi_layer" + (lstmModel._layers - 1); // Layers count starts from 0
-                    for (int i = 0; i < outputsNames.Length; i++)
-                        outputsNames[i] = lastLayerName + "_cell" + i + "_output";
-
-                    TF_NET_NN.SaveModelVariables(session, lstmModel.BaseModel.ModelPath, outputsNames);
-                }
+                    TF_NET_NN.SaveModelVariables(session, lstmModel.BaseModel.ModelPath, GetOutputCellsNames(lstmModel));
             }
 
             return lstmModel;
@@ -231,6 +231,18 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             }
 
             return (sequenceCellsInputsPlaceHolders, sequenceCellsOutputs);
+        }
+
+        public static string[] GetOutputCellsNames(TFNETLSTMModel lstmModel)
+        {
+            string[] outputsNames = new string[lstmModel._modelSequenceLength];
+            string lastLayerName = "layer" + (lstmModel._layers - 1); // Layers count starts from 0
+            if (lstmModel._bidirectional)
+                lastLayerName = "bi_layer" + (lstmModel._layers - 1); // Layers count starts from 0
+            for (int i = 0; i < outputsNames.Length; i++)
+                outputsNames[i] = lastLayerName + "_cell" + i + "_output";
+
+            return outputsNames;
         }
 
         /// <summary>

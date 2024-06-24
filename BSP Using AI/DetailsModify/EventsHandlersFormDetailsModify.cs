@@ -176,7 +176,7 @@ namespace BSP_Using_AI.DetailsModify
             // Check which signal is selected
             if (signalsPickerComboBox.SelectedIndex == 0)
                 // Original signal is selected
-                loadSignal(_FilteringTools._RawSamples, _FilteringTools._samplingRate, _FilteringTools._startingInSec);
+                loadSignal(_FilteringTools._RawSamples, _FilteringTools._originalSamplingRate, _FilteringTools._startingInSec);
             else if (signalsPickerComboBox.SelectedIndex == 1)
                 // Filtered signal is selected
                 loadSignal(_FilteringTools._FilteredSamples, _FilteringTools._samplingRate, _FilteringTools._startingInSec);

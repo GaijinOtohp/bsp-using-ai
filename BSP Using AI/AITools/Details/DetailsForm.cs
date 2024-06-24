@@ -201,7 +201,7 @@ namespace BSP_Using_AI.AITools.Details
             else if (modelName.Equals(TFNETNeuralNetworkModel.ModelName))
             {
                 // This is for Tensorflow.Net Neural Networks
-                return TF_NET_NN.predict(features, (TFNETNeuralNetworkModel)model);
+                return TF_NET_NN.predict(features, model, ((TFNETNeuralNetworkModel)model).BaseModel.Session);
             }
             else if (modelName.Equals(TFKerasNeuralNetworkModel.ModelName))
             {
@@ -280,19 +280,19 @@ namespace BSP_Using_AI.AITools.Details
             // Qurey for signals features in all selected intervals from dataset
             string selection = "_id>=? and _id<=?";
             int intervalsNum = 1;
-            foreach (List<long[]> training in _objectiveModel.DataIdsIntervalsList)
+            foreach (List<IdInterval> training in _objectiveModel.DataIdsIntervalsList)
                 intervalsNum += training.Count;
             object[] selectionArgs = new object[intervalsNum * 2];
             intervalsNum = 0;
             selectionArgs[intervalsNum] = 0;
             selectionArgs[intervalsNum + 1] = 0;
-            foreach (List<long[]> training in _objectiveModel.DataIdsIntervalsList)
-                foreach (long[] datasetInterval in training)
+            foreach (List<IdInterval> training in _objectiveModel.DataIdsIntervalsList)
+                foreach (IdInterval datasetInterval in training)
                 {
                     intervalsNum += 2;
                     selection += " or _id>=? and _id<=?";
-                    selectionArgs[intervalsNum] = datasetInterval[0];
-                    selectionArgs[intervalsNum + 1] = datasetInterval[1];
+                    selectionArgs[intervalsNum] = datasetInterval.starting;
+                    selectionArgs[intervalsNum + 1] = datasetInterval.ending;
                 }
 
             DbStimulator dbStimulator = new DbStimulator();
@@ -360,10 +360,10 @@ namespace BSP_Using_AI.AITools.Details
                         // Check which update does this signal belong to
                         for (int i = 0; i < _objectiveModel.DataIdsIntervalsList.Count; i++)
                         {
-                            List<long[]> training = _objectiveModel.DataIdsIntervalsList[i];
-                            foreach (long[] datasetInterval in training)
+                            List<IdInterval> training = _objectiveModel.DataIdsIntervalsList[i];
+                            foreach (IdInterval datasetInterval in training)
                             {
-                                if (row.Field<long>("_id") >= datasetInterval[0] && row.Field<long>("_id") <= datasetInterval[1])
+                                if (row.Field<long>("_id") >= datasetInterval.starting && row.Field<long>("_id") <= datasetInterval.ending)
                                 {
                                     // If yes then create an item of the model
                                     DatasetFlowLayoutPanelItemUserControl datasetFlowLayoutPanelItemUserControl = new DatasetFlowLayoutPanelItemUserControl();

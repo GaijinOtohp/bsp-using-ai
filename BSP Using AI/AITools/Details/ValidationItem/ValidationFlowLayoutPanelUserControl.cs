@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.Garage;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using BSP_Using_AI.Database;
 using System;
@@ -41,24 +42,24 @@ namespace BSP_Using_AI.AITools.Details
             queryForSelectedDataset(((DetailsForm)this.FindForm())._objectiveModel.DataIdsIntervalsList, this);
         }
 
-        public static void queryForSelectedDataset(List<List<long[]>> dataIdsIntervalsList, DbStimulatorReportHolder dbStimulatorReportHolder)
+        public static void queryForSelectedDataset(List<List<IdInterval>> dataIdsIntervalsList, DbStimulatorReportHolder dbStimulatorReportHolder)
         {
             // Qurey for signals features in all selected intervals from dataset
             string selection = "_id>=? and _id<=?";
             int intervalsNum = 1;
-            foreach (List<long[]> training in dataIdsIntervalsList)
+            foreach (List<IdInterval> training in dataIdsIntervalsList)
                 intervalsNum += training.Count;
             object[] selectionArgs = new object[intervalsNum * 2];
             intervalsNum = 0;
             selectionArgs[intervalsNum] = 0;
             selectionArgs[intervalsNum + 1] = 0;
-            foreach (List<long[]> training in dataIdsIntervalsList)
-                foreach (long[] datasetInterval in training)
+            foreach (List<IdInterval> training in dataIdsIntervalsList)
+                foreach (IdInterval datasetInterval in training)
                 {
                     intervalsNum += 2;
                     selection += " or _id>=? and _id<=?";
-                    selectionArgs[intervalsNum] = datasetInterval[0];
-                    selectionArgs[intervalsNum + 1] = datasetInterval[1];
+                    selectionArgs[intervalsNum] = datasetInterval.starting;
+                    selectionArgs[intervalsNum + 1] = datasetInterval.ending;
                 }
 
             DbStimulator dbStimulator = new DbStimulator();

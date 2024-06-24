@@ -37,7 +37,7 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
 
             _BarsPlot = distributionSignalChart.Plot.AddBarSeries();
 
-            FormsPlot signalChart = _FormDetailsModify.signalChart;
+            FormsPlot signalChart = _FormDetailsModify?.signalChart;
             distributionHSpan = GeneralTools.AddHorizontalSpan(signalChart, Color.Red, label: "Distribution horizontal span", HorizSpan_Dragged);
             distributionHSpan.X2 = 0.1d;
             distributionHSpan.IsVisible = true;

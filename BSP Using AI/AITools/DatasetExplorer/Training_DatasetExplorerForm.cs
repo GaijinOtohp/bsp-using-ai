@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biological_Signal_Processing_Using_AI.AITools;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -22,22 +23,24 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         {
             if (appendSelArgs == null)
                 appendSelArgs = new object[0];
-            List<long[]> dataIdsIntervalsList = _objectiveModel.DataIdsIntervalsList[_objectiveModel.DataIdsIntervalsList.Count - 1];
-
-            string selection = "(_id>=? and _id<=?";
-            int intervalsNum = 1;
+            List<IdInterval> dataIdsIntervalsList = _objectiveModel.DataIdsIntervalsList[_objectiveModel.DataIdsIntervalsList.Count - 1];
+            
+            int totalIntervals = 1;
             if (dataIdsIntervalsList.Count > 0)
-                intervalsNum += dataIdsIntervalsList.Count;
-            object[] selectionArgs = new object[intervalsNum * 2 + appendSelArgs.Length];
-            intervalsNum = 0;
+                totalIntervals += dataIdsIntervalsList.Count;
+
+            int intervalsNum = 0;
+            object[] selectionArgs = new object[totalIntervals * 2 + appendSelArgs.Length];
+            string selection = "(_id>=? and _id<=?";
             selectionArgs[intervalsNum] = 0;
             selectionArgs[intervalsNum + 1] = 0;
-            foreach (long[] datasetInterval in dataIdsIntervalsList)
+            intervalsNum += 1;
+            foreach (IdInterval datasetInterval in dataIdsIntervalsList)
             {
-                intervalsNum += 2;
                 selection += " or _id>=? and _id<=?";
-                selectionArgs[intervalsNum] = datasetInterval[0];
-                selectionArgs[intervalsNum + 1] = datasetInterval[1];
+                selectionArgs[intervalsNum * 2] = datasetInterval.starting;
+                selectionArgs[intervalsNum * 2 + 1] = datasetInterval.ending;
+                intervalsNum += 1;
             }
             selection += ") ";
 
@@ -63,9 +66,9 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 holdRecordReport_Training_ARTHT(row, trainingItem);*/
 
             // Check if its _id is included in _trainingDetails
-            foreach (List<long[]> training in _objectiveModel.DataIdsIntervalsList)
-                foreach (long[] datasetInterval in training)
-                    if (row.Field<long>("_id") >= datasetInterval[0] && row.Field<long>("_id") <= datasetInterval[1])
+            foreach (List<IdInterval> training in _objectiveModel.DataIdsIntervalsList)
+                foreach (IdInterval datasetInterval in training)
+                    if (row.Field<long>("_id") >= datasetInterval.starting && row.Field<long>("_id") <= datasetInterval.ending)
                     {
                         // If yes then disable the UserControl 
                         trainingItem.Enabled = false;
@@ -80,6 +83,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 holdRecordReport_ARTHT(dataTable, callingClassName);
             else if (callingClassName.Contains("CWDReinforcementL"))
                 holdRecordReport_CWDReinforcementL(dataTable, callingClassName);
+            else if (callingClassName.Contains("CWDLSTM"))
+                holdRecordReport_CWDLSTM(dataTable, callingClassName);
         }
 
         private void fitSelectionButton_Click_Training(object sender, EventArgs e)
@@ -92,8 +97,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             signalsList.Sort((e1, e2) => { return e1.id.CompareTo(e2.id); });
 
             // Set selected signals in _trainingDetails
-            List<long[]> datasetIntervalsList = new List<long[]>();
-            datasetIntervalsList.Add(new long[] { -1, -1 });
+            List<IdInterval> datasetIntervalsList = new List<IdInterval>();
+            datasetIntervalsList.Add(new IdInterval() { starting = -1, ending = -1 });
             // Iterate through all signals in signalsFlowLayoutPanel
             foreach ((bool enabled, bool selected, long id) item in signalsList)
                 // Check if current item is enabled
@@ -103,34 +108,34 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     if (item.selected)
                     {
                         // If yes then check if this should be in the start of the interval or end
-                        if (datasetIntervalsList[datasetIntervalsList.Count - 1][0] == -1)
+                        if (datasetIntervalsList[datasetIntervalsList.Count - 1].starting == -1)
                         {
                             // Then start and end of the interval
-                            datasetIntervalsList[datasetIntervalsList.Count - 1][0] = item.id;
-                            datasetIntervalsList[datasetIntervalsList.Count - 1][1] = item.id;
+                            datasetIntervalsList[datasetIntervalsList.Count - 1].starting = item.id;
+                            datasetIntervalsList[datasetIntervalsList.Count - 1].ending = item.id;
                         }
                         else
                             // Update the end of the interval
-                            datasetIntervalsList[datasetIntervalsList.Count - 1][1] = item.id;
+                            datasetIntervalsList[datasetIntervalsList.Count - 1].ending = item.id;
                     }
                     else
                     {
                         // If yes then check if last interval is set
-                        if (datasetIntervalsList[datasetIntervalsList.Count - 1][1] != -1)
+                        if (datasetIntervalsList[datasetIntervalsList.Count - 1].ending != -1)
                             // If yes then start new interval
-                            datasetIntervalsList.Add(new long[] { -1, -1 });
+                            datasetIntervalsList.Add(new IdInterval() { starting = -1, ending = -1 });
                     }
                 }
                 else
                 {
                     // If yes then check if last interval is set
-                    if (datasetIntervalsList[datasetIntervalsList.Count - 1][1] != -1)
+                    if (datasetIntervalsList[datasetIntervalsList.Count - 1].ending != -1)
                         // If yes then start new interval
-                        datasetIntervalsList.Add(new long[] { -1, -1 });
+                        datasetIntervalsList.Add(new IdInterval() { starting = -1, ending = -1 });
                 }
 
             // Remove last interval if it's not defined
-            if (datasetIntervalsList[datasetIntervalsList.Count - 1][1] == -1)
+            if (datasetIntervalsList[datasetIntervalsList.Count - 1].ending == -1)
                 datasetIntervalsList.RemoveAt(datasetIntervalsList.Count - 1);
 
             // Insert new intervals in _trainingDetails if there exist any interval
@@ -141,7 +146,9 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             if (_objectiveModel is ARTHTModels)
                 fitSelectionButton_Click_ARTHT(sender, e);
             else if (_objectiveModel is CWDReinforcementL)
-                fitSelectionButton_Click_CWDReinforcementL(sender, e);
+                fitSelectionButton_Click_CWD("CWDReinforcementL");
+            else if (_objectiveModel is CWDLSTM)
+                fitSelectionButton_Click_CWD("CWDLSTM");
 
             // Close form
             this.Close();

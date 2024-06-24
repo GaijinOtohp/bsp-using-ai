@@ -349,7 +349,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public int _layers = 1;
 
-            public TFNETLSTMModel(string modelpath, int inputDim, int outputDim, int modelSequenceLength, bool bidirectional, int layers)
+            public TFNETLSTMModel(string modelpath, int inputDim, int outputDim, int modelSequenceLength, bool bidirectional = false, int layers = 1)
             {
                 BaseModel = new TFNETBaseModel(modelpath, inputDim, outputDim);
                 _modelSequenceLength = modelSequenceLength;

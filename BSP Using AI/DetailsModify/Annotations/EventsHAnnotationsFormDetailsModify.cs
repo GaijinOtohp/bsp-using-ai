@@ -254,8 +254,32 @@ namespace BSP_Using_AI.DetailsModify
                 // Set prediction to true
                 _predictionOn = true;
 
-                // Send event to ART-HT AI tools
-                predictButton_Click_ARTHT(sender, e);
+                // Get the selected model's details
+                string modelName = (modelTypeComboBox.SelectedItem as dynamic).modelName;
+                string modelNameProblem = (modelTypeComboBox.SelectedItem as dynamic).modelNameProblem;
+
+                // Check which objective is the selected model for
+                if (modelNameProblem.Contains(WPWSyndromeDetection.ObjectiveName))
+                    // Send event to ART-HT AI tools
+                    predictButton_Click_ARTHT(sender, e);
+                else if (modelNameProblem.Contains(CharacteristicWavesDelineation.ObjectiveName))
+                    predictButton_Click_CWD(modelName, modelNameProblem);
+                else if (modelNameProblem.Contains(ArrhythmiaClassification.ObjectiveName))
+                {
+
+                }
+            }
+        }
+
+        private void predictionEnd()
+        {
+            // Check if prediction is on
+            if (_predictionOn)
+            {
+                // If yes then return prediction stuff to normal state
+                _predictionOn = false;
+                predictButton.Enabled = true;
+                modelTypeComboBox.Enabled = true;
             }
         }
 

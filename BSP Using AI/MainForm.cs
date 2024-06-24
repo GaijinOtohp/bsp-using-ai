@@ -4,6 +4,7 @@ using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.RL_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.Database;
 using BSP_Using_AI.SignalHolderFolder;
@@ -167,54 +168,71 @@ namespace BSP_Using_AI
                     // Set models ready and get last_signal_id of the highest model size
                     foreach (DataRow row in rowsList)
                     {
-                        // Check which model for which terget is this record "type_name", "model_target", "the_model", "selected_variables", "outputs_thresholds", "model_path", "dataset_size"
                         if (row.Field<long>("dataset_size") > _largestDatasetSize)
                             _largestDatasetSize = row.Field<long>("dataset_size");
-                        // Add modelsList in _targetsModelsHashtable
-                        if (row.Field<string>("type_name").Equals("Neural network") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
+                        // Check which objective is selected
+                        if (row.Field<string>("model_target").Equals(WPWSyndromeDetection.ObjectiveName))
                         {
-                            _tFBackThread._queue.Enqueue(new QueueSignalInfo()
+                            // If yes then this is for WPW syndrome detection
+                            ARTHTModels arthtModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"));
+                            // Check which model is selected
+                            if (row.Field<string>("type_name").Equals(KerasNETNeuralNetworkModel.ModelName))
                             {
-                                TargetFunc = "initializeNeuralNetworkModelsForWPW",
-                                CallingClass = "MainForm",
-                                aRTHTModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))
-                            });
-                            _tFBackThread._signal.Set();
+                                _tFBackThread._queue.Enqueue(new QueueSignalInfo()
+                                {
+                                    TargetFunc = "initializeNeuralNetworkModelsForWPW",
+                                    CallingClass = "MainForm",
+                                    aRTHTModels = GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))
+                                });
+                                _tFBackThread._signal.Set();
+                            }
+                            else if (row.Field<string>("type_name").Equals(KNNModel.ModelName))
+                            {
+                                // Create models for KNN
+                                ARTHT_KNN kNNBackThread = new ARTHT_KNN(_objectivesModelsDic, null);
+                                Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW(arthtModels));
+                                knnThread.Start();
+                            }
+                            else if (row.Field<string>("type_name").Equals(NaiveBayesModel.ModelName))
+                            {
+                                // Create models for naive bayes
+                                ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_objectivesModelsDic, null);
+                                Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW(arthtModels));
+                                nbThread.Start();
+                            }
+                            else if (row.Field<string>("type_name").Equals(TFNETNeuralNetworkModel.ModelName))
+                            {
+                                // Create models for Tensorflow.Net Neural Networks models
+                                ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_objectivesModelsDic, null);
+                                Thread tfNetThread = new Thread(() => tf_NET_NN.initializeTFNETNeuralNetworkModelsForWPW(arthtModels));
+                                tfNetThread.Start();
+                            }
+                            else if (row.Field<string>("type_name").Equals(TFKerasNeuralNetworkModel.ModelName))
+                            {
+                                // Create models for Tensorflow.Keras Neural Networks models
+                                TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_objectivesModelsDic, null);
+                                Thread tfKerasThread = new Thread(() => tf_Keras_NN.initializeTFKerasNeuralNetworkModelsForWPW(arthtModels));
+                                tfKerasThread.Start();
+                            }
                         }
-                        else if (row.Field<string>("type_name").Equals("K-Nearest neighbor") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
+                        else if (row.Field<string>("model_target").Equals(CharacteristicWavesDelineation.ObjectiveName))
                         {
-                            // Create models for KNN
-                            ARTHT_KNN kNNBackThread = new ARTHT_KNN(_objectivesModelsDic, null);
-                            Thread knnThread = new Thread(() => kNNBackThread.initializeNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
-                            knnThread.Start();
-                        }
-                        else if (row.Field<string>("type_name").Equals("Naive bayes") && row.Field<string>("model_target").Equals("WPW syndrome detection"))
-                        {
-                            // Create models for naive bayes
-                            ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_objectivesModelsDic, null);
-                            Thread nbThread = new Thread(() => naiveBayesBackThread.initializeNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
-                            nbThread.Start();
-                        }
-                        else if (row.Field<string>("type_name").Equals(TFNETNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
-                        {
-                            // Create models for Tensorflow.Net Neural Networks models
-                            ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_objectivesModelsDic, null);
-                            Thread tfNetThread = new Thread(() => tf_NET_NN.initializeTFNETNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
-                            tfNetThread.Start();
-                        }
-                        else if (row.Field<string>("type_name").Equals(TFKerasNeuralNetworkModel.ModelName) && row.Field<string>("model_target").Equals("WPW syndrome detection"))
-                        {
-                            // Create models for Tensorflow.Keras Neural Networks models
-                            TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_objectivesModelsDic, null);
-                            Thread tfKerasThread = new Thread(() => tf_Keras_NN.initializeTFKerasNeuralNetworkModelsForWPW(GeneralTools.ByteArrayToObject<ARTHTModels>(row.Field<byte[]>("the_model"))));
-                            tfKerasThread.Start();
-                        }
-                        else if (row.Field<string>("type_name").Equals(TFNETReinforcementL.ModelName) && row.Field<string>("model_target").Equals(CharacteristicWavesDelineation.ObjectiveName))
-                        {
-                            // Create models for Tensorflow.Keras Neural Networks models
-                            CWD_RL_TFNET cwd_RLTFNET = new CWD_RL_TFNET(_objectivesModelsDic, null);
-                            Thread cwd_RLTFNETThread = new Thread(() => cwd_RLTFNET.initializeRLModelForCWD(GeneralTools.ByteArrayToObject<CWDReinforcementL>(row.Field<byte[]>("the_model"))));
-                            cwd_RLTFNETThread.Start();
+                            // This is for characteristic waves dlineation
+                            // Check which model is selected
+                            if (row.Field<string>("type_name").Equals(TFNETReinforcementL.ModelName))
+                            {
+                                // Create models for Tensorflow.Keras Neural Networks models
+                                CWD_RL_TFNET cwd_RLTFNET = new CWD_RL_TFNET(_objectivesModelsDic, null);
+                                Thread cwd_RLTFNETThread = new Thread(() => cwd_RLTFNET.initializeRLModelForCWD(GeneralTools.ByteArrayToObject<CWDReinforcementL>(row.Field<byte[]>("the_model"))));
+                                cwd_RLTFNETThread.Start();
+                            }
+                            else if (row.Field<string>("type_name").Equals(TFNETLSTMModel.ModelName))
+                            {
+                                // Create models for Tensorflow.Keras Neural Networks models
+                                CWD_TF_NET_LSTM cwdLSTMTFNET = new CWD_TF_NET_LSTM(_objectivesModelsDic, null);
+                                Thread cwdLSTMTFNETThread = new Thread(() => cwdLSTMTFNET.initializeRLModelForCWD(GeneralTools.ByteArrayToObject<CWDLSTM>(row.Field<byte[]>("the_model"))));
+                                cwdLSTMTFNETThread.Start();
+                            }
                         }
                     }
                     // If yes then query for last signal id from the most trained model
