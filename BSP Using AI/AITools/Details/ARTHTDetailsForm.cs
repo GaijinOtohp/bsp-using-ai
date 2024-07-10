@@ -250,9 +250,9 @@ namespace BSP_Using_AI.AITools.Details
                                 for (int i = 0; i < predictedOutput.Length; i++)
                                 {
                                     // Get curretn step threshold
-                                    float threshold = arthtModels.ARTHTModelsDic[stepName].OutputsThresholds[i];
+                                    OutputThresholdItem threshold = arthtModels.ARTHTModelsDic[stepName].OutputsThresholds[i];
                                     // Regulate output value
-                                    predictedOutput[i] = predictedOutput[i] >= threshold ? 1 : 0;
+                                    predictedOutput[i] = predictedOutput[i] >= threshold._threshold ? 1 : 0;
 
                                     // Calculate accuracy
                                     if (predictedOutput[i] == actualOutput[i])

@@ -128,7 +128,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 FeedItem[] inOutFeedItems = new FeedItem[lstmModel._modelSequenceLength * 2 + 3]; // + 3 for the learning rate and the startin output and state
                 float[,] emptyInputBatch;
                 float[,] emptyOutputBatch;
-                int epochsMax = 1000;
+                int epochsMax = 200;
                 for (int epoch = 0; epoch < epochsMax; epoch++)
                 {
                     // Iterate through the sequences of batches

@@ -36,9 +36,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         double[] _RescaledSamples;
         double _samplingRate;
 
-        double _penalty_movement = 0.5f; // steps
+        double _penalty_movement = 1; // steps
 
-        double _penalty_false_negative = 10; // not detecting the thing
+        double _penalty_false_negative = 5; // not detecting the thing
         double _penalty_false_positive = 1; // detecting other thing
 
         double _reward_true_positive = 1;
@@ -50,6 +50,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         List<SignalSegment> _SignalSegmentsList;
 
         int _selectedSegment;
+
+        bool _done = false;
 
         public CWD_RL()
         {
@@ -86,7 +88,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             CornerInterval[] windowapproxIntervals = _ApproxIntervList.Where(interval => _SignalSegmentsList[_selectedSegment].startingIndex < interval.starting && interval.ending < _SignalSegmentsList[_selectedSegment].endingIndex).ToArray();
 
             // Compute reward value of the current step
-            //reward -= penalty_movement;
+            reward -= _penalty_movement;
             foreach (int cornerIndex in tempCornersIndex)
             {
                 // Check if the scanned corner is included in true corner interval
@@ -117,7 +119,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 }
 
             if (!badState)
+            {
                 reward += _reward_detecting_all_corners;
+                _done = true;
+            }
 
             return (reward, badState);
         }
@@ -129,12 +134,19 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             _atCircularQueue.Enqueue(state[0]);
             _artCircularQueue.Enqueue(state[1]);
 
-            if (GeneralTools.amplitudeInterval(_atCircularQueue.ToArray().Select(at => (double)at).ToArray()) < 2 && _atCircularQueue._count > 7 &&
-                GeneralTools.amplitudeInterval(_artCircularQueue.ToArray().Select(art => (double)art).ToArray()) < 2 && _artCircularQueue._count > 7)
+            if (GeneralTools.amplitudeInterval(_atCircularQueue.ToArray().Select(at => (double)at).ToArray()) < 2 && _atCircularQueue._count > 4 &&
+                GeneralTools.amplitudeInterval(_artCircularQueue.ToArray().Select(art => (double)art).ToArray()) < 2 && _artCircularQueue._count > 4 &&
+                !_done)
             {
-                _atCircularQueue = new CircularQueue<int>(8);
-                _artCircularQueue = new CircularQueue<int>(8);
+                _Env.Reset();
+                _atCircularQueue = new CircularQueue<int>(5);
+                _artCircularQueue = new CircularQueue<int>(5);
+            }
+
+            if (_done)
+            {
                 done = true;
+                _done = false;
             }
 
             return done;
@@ -172,15 +184,15 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             _ApproxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, samples, samplingRate);
 
             // Initialize the conditions of finishing the episodes
-            _atCircularQueue = new CircularQueue<int>(8);
-            _artCircularQueue = new CircularQueue<int>(8);
+            _atCircularQueue = new CircularQueue<int>(5);
+            _artCircularQueue = new CircularQueue<int>(5);
 
             // Create the features and outputs data object
             Data CornersScanData = new Data(CWDNamigs.RLCornersScanData);
 
             // Segment the samples of signal according to the chunks' distribution
             _SignalSegmentsList = SegmentTheMainSamples(samples, (int)_samplingRate, 0.002d, 0.5d);
-            int maxEpisodes = 15;
+            int maxEpisodes = 100;
             for (_selectedSegment = 0; _selectedSegment < _SignalSegmentsList.Count; _selectedSegment++)
             {
                 // Get the Q tables of the current chunk

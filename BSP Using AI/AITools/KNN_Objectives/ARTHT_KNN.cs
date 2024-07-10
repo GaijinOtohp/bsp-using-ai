@@ -149,9 +149,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             // Create a KNN model structure with the initial optimum K
             KNNModel model = new KNNModel { Name = name, k = k };
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new float[outputNumber];
+            model.OutputsThresholds = new OutputThresholdItem[outputNumber];
             for (int i = 0; i < outputNumber; i++)
-                model.OutputsThresholds[i] = 0.5f;
+                model.OutputsThresholds[i] = new OutputThresholdItem();
 
             return model;
         }

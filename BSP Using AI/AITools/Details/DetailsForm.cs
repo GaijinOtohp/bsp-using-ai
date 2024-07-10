@@ -15,6 +15,7 @@ using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValDataSelectionForm;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -43,6 +44,32 @@ namespace BSP_Using_AI.AITools.Details
 
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
+        public void queryForSignals_ARTHT()
+        {
+            // Query for all signals in dataset table
+            DbStimulator dbStimulator = new DbStimulator();
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
+                                new String[] { "_id", "sginal_name", "starting_index", "sampling_rate", "quantisation_step" },
+                                null,
+                                null,
+                                " ORDER BY sginal_name ASC", "DetailsFormForDataset"));
+            dbStimulatorThread.Start();
+        }
+
+        public void queryForSignals_Anno(string annoObjective)
+        {
+            // Query for all signals in dataset table
+            DbStimulator dbStimulator = new DbStimulator();
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("anno_ds",
+                                new String[] { "_id", "sginal_name", "starting_index", "sampling_rate", "quantisation_step" },
+                                "anno_objective=?",
+                                new object[] { annoObjective },
+                                " ORDER BY sginal_name ASC", "DetailsFormForDataset"));
+            dbStimulatorThread.Start();
+        }
+
         public void initializeForm()
         {
             // Set previous validation data and copy thresholds
@@ -59,14 +86,10 @@ namespace BSP_Using_AI.AITools.Details
             timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(_objectiveModel._validationTimeCompelxity) + ", " + _objectiveModel._ValidationInfo;
 
             // Query for all signals in dataset table
-            DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
-                                new String[] { "_id", "sginal_name", "starting_index", "sampling_rate", "quantisation_step" },
-                                null,
-                                null,
-                                " ORDER BY sginal_name ASC", "DetailsFormForDataset"));
-            dbStimulatorThread.Start();
+            if (_objectiveModel is ARTHTModels)
+                queryForSignals_ARTHT();
+            else if (_objectiveModel is CWDReinforcementL || _objectiveModel is CWDLSTM)
+                queryForSignals_Anno(CharacteristicWavesDelineation.ObjectiveName);
         }
 
         private void refreshValidationData(string stepName, bool replace)
@@ -90,7 +113,7 @@ namespace BSP_Using_AI.AITools.Details
                 else
                 {
                     accuracy = Math.Round(validationData._accuracy * 100, 2).ToString() + "%";
-                    threshold = arthtModels.ARTHTModelsDic[stepName].OutputsThresholds[0].ToString();
+                    threshold = arthtModels.ARTHTModelsDic[stepName].OutputsThresholds[0]._threshold.ToString();
                 }
 
                 foreach (CustomArchiBaseModel model in arthtModels.ARTHTModelsDic.Values)
@@ -310,7 +333,8 @@ namespace BSP_Using_AI.AITools.Details
             // Get new thresholds from OutputsThresholdsDic
             if (_objectiveModel is ARTHTModels arthtModels)
                 foreach (string stepName in OutputsThresholdsDic.Keys)
-                    arthtModels.ARTHTModelsDic[stepName].OutputsThresholds = (float[])OutputsThresholdsDic[stepName].Clone();
+                    for (int i = 0; i < OutputsThresholdsDic[stepName].Length; i++)
+                        arthtModels.ARTHTModelsDic[stepName].OutputsThresholds[i]._threshold = (double)OutputsThresholdsDic[stepName][i];
 
             // Now save _outputThresholds in database
             DbStimulator dbStimulator = new DbStimulator();

@@ -17,7 +17,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
     public class TF_NET_NN
     {
         public delegate Session ModelArchitectureDelegate(int inputDim, int outputDim);
-        public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList, FittingProgAIReportDelegate fittingProgAIReportDelegate, bool saveModel = false, int suggestedBatchSize = 4)
+        public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList, FittingProgAIReportDelegate fittingProgAIReportDelegate, float earlyStopThreshold = 0.0001f, float learningRate = 0.1f, bool saveModel = false, int suggestedBatchSize = 4)
         {
             if (model._pcaActive)
                 dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
@@ -67,8 +67,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 Tensor outputPlaceholder = session.graph.OperationByName("output_place_holder");
 
                 Tensor costFunc = session.graph.OperationByName("cost_function");
-                Tensor learningRate = session.graph.OperationByName("learning_rate");
-                float lRate = 0.1f;
+                Tensor learningRateTensor = session.graph.OperationByName("learning_rate");
                 Operation optimizer = session.graph.OperationByName("optimizer");
 
                 // Save the initiale values of the variables for restoring the graph if the learning isn't going well
@@ -93,7 +92,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     {
                         // Train the model with the selected batch
                         (_, float cost) = session.run((optimizer, costFunc),
-                                                    (learningRate, lRate),
+                                                    (learningRateTensor, learningRate),
                                                     (input, new Tensorflow.NumPy.NDArray(inputBatches[batch])),
                                                     (outputPlaceholder, new Tensorflow.NumPy.NDArray(outputBatches[batch])));
 
@@ -101,7 +100,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                         if (float.IsNaN(cost) || float.IsInfinity(cost))
                         {
                             // If yes then decrease the learning rate
-                            lRate /= 10f;
+                            learningRate /= 10f;
                             // Restore the initial values of the variables (weights, and biases)
                             session.run(initOperations);
                         }

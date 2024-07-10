@@ -226,9 +226,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 model.Model.save(path);
 
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new float[outputDim];
+            model.OutputsThresholds = new OutputThresholdItem[outputDim];
             for (int i = 0; i < outputDim; i++)
-                model.OutputsThresholds[i] = 0.5f;
+                model.OutputsThresholds[i] = new OutputThresholdItem();
 
             // Get the parameters
             return model;

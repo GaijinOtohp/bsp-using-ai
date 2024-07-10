@@ -54,7 +54,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
             // Fit features in model
             if (rlTrainingSamplesList.Count > 0)
-                TF_NET_NN.fit(cwdLSTM.CWDReinforcementLModel, cwdLSTM.CWDReinforcementLModel.BaseModel, rlTrainingSamplesList, UpdateFittingProgress, true);
+                TF_NET_NN.fit(cwdLSTM.CWDReinforcementLModel, cwdLSTM.CWDReinforcementLModel.BaseModel, rlTrainingSamplesList, UpdateFittingProgress, saveModel: true, earlyStopThreshold: 0.00001f);
         }
 
         public void FitOnLSTMModel(string modelName, List<List<Sample>> dataListSequences, long datasetSize, long modelId)
@@ -67,6 +67,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
             // Fit features in model
             TF_NET_LSTM.Fit(cwdLSTM.CWDLSTMModel, dataListSequences, UpdateFittingProgress, true);
+            UpdateThresholds(cwdLSTM.CWDLSTMModel, dataListSequences);
 
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -90,21 +91,24 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
         public void createTFNETLSTMModelForCWD()
         {
             // Set models in name and path
-            int modelIndx = 0;
-            while (_objectivesModelsDic.ContainsKey(TFNETLSTMModel.ModelName + " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx))
-                modelIndx++;
-            string rlModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + modelIndx;
-            string lstmModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/LSTM" + modelIndx;
+            int rlModelIndx = 0;
+            int lstmModelIndx = 0;
+            while (_objectivesModelsDic.ContainsKey(TFNETReinforcementL.ModelName + " for " + CharacteristicWavesDelineation.ObjectiveName + rlModelIndx))
+                rlModelIndx++;
+            while (_objectivesModelsDic.ContainsKey(TFNETLSTMModel.ModelName + " for " + CharacteristicWavesDelineation.ObjectiveName + lstmModelIndx))
+                lstmModelIndx++;
+            string rlModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + rlModelIndx;
+            string lstmModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/LSTM" + lstmModelIndx;
 
             // Create the model object
             CWDLSTM cwdLSTM = new CWDLSTM();
             // One for tuning the peaks analyzer using deep Q learning
             cwdLSTM.CWDReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, rlModelPath, inputDim: 8, outputDim: 2);
             // One for classifying the peaks
-            cwdLSTM.CWDLSTMModel = createTFNETLSTMModel(CWDNamigs.LSTMPeaksClassificationData, lstmModelPath, inputDim: 7, outputDim: 12);
+            cwdLSTM.CWDLSTMModel = createTFNETLSTMModel(CWDNamigs.LSTMPeaksClassificationData, lstmModelPath, inputDim: 21, outputDim: 12);
 
             cwdLSTM.ModelName = TFNETLSTMModel.ModelName;
-            cwdLSTM.ObjectiveName = " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx;
+            cwdLSTM.ObjectiveName = " for " + CharacteristicWavesDelineation.ObjectiveName + lstmModelIndx;
 
             _objectivesModelsDic.Add(cwdLSTM.ModelName + cwdLSTM.ObjectiveName, cwdLSTM);
 
@@ -120,7 +124,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
         public static TFNETLSTMModel createTFNETLSTMModel(string name, string path, int inputDim, int outputDim)
         {
-            int modelSequenceLength = 5;
+            int modelSequenceLength = 10;
             int layers = 1;
             TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, modelSequenceLength, layers: layers) { Name = name };
 
@@ -131,9 +135,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
                 TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path, TF_NET_LSTM.GetOutputCellsNames(model));
 
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new float[outputDim];
+            model.OutputsThresholds = new OutputThresholdItem[outputDim];
             for (int i = 0; i < outputDim; i++)
-                model.OutputsThresholds[i] = 0.5f;
+                model.OutputsThresholds[i] = new OutputThresholdItem();
 
             // Get the parameters
             return model;
@@ -150,6 +154,65 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             cwdLSTM.CWDLSTMModel = lstmModel;
 
             _objectivesModelsDic.Add(cwdLSTM.ModelName + cwdLSTM.ObjectiveName, cwdLSTM);
+        }
+
+        private void UpdateThresholds(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences)
+        {
+            // Set the high and low outputs averaged to zeros
+            for (int iOutput = 0; iOutput < lstmModel.BaseModel._outputDim; iOutput++)
+            {
+                lstmModel.OutputsThresholds[iOutput]._highOutputAv = 0;
+                lstmModel.OutputsThresholds[iOutput]._lowOutputAv = 0;
+            }
+
+            int[] highOutputsCount = new int[lstmModel.BaseModel._outputDim];
+            int[] lowOutputsCount = new int[lstmModel.BaseModel._outputDim];
+
+            Queue<double[]> InputSeqQueue;
+
+            foreach (List<Sample> samplesSeq in dataListSequences)
+            {
+                InputSeqQueue = new Queue<double[]>(lstmModel._modelSequenceLength + 1);
+                foreach (Sample sample in samplesSeq)
+                {
+                    // Enqueue the new features in InputSeqQueue
+                    InputSeqQueue.Enqueue(sample.getFeatures());
+                    // Check if the queue has exceeded the sequence length of the model
+                    if (InputSeqQueue.Count > lstmModel._modelSequenceLength)
+                        InputSeqQueue.Dequeue();
+
+                    // Feed the queue sequence into the LSTM model for prediction
+                    List<double[]> output = TF_NET_LSTM.Predict(InputSeqQueue.ToList(), lstmModel);
+
+                    if (output.Count == 0)
+                        continue;
+
+                    // Update the threshold _highOutputAv and _lowOutputAv
+                    for (int iOutput = 0; iOutput < sample.getOutputs().Length; iOutput++)
+                    {
+                        double outputaVal = sample.getOutputs()[iOutput];
+
+                        if (outputaVal > 0)
+                        {
+                            lstmModel.OutputsThresholds[iOutput]._highOutputAv = (lstmModel.OutputsThresholds[iOutput]._highOutputAv * highOutputsCount[iOutput] +
+                                                                                 output[output.Count - 1][iOutput]) / (highOutputsCount[iOutput] + 1);
+                            highOutputsCount[iOutput] += 1;
+                        }
+                        else
+                        {
+                            lstmModel.OutputsThresholds[iOutput]._lowOutputAv = (lstmModel.OutputsThresholds[iOutput]._lowOutputAv * lowOutputsCount[iOutput] +
+                                                                                 output[output.Count - 1][iOutput]) / (lowOutputsCount[iOutput] + 1);
+                            lowOutputsCount[iOutput] += 1;
+                        }
+                    }
+                }
+            }
+
+            // Update the outputs thresholds according to the new _highOutputAv and _lowOutputAv
+            for (int iOutput = 0; iOutput < lstmModel.BaseModel._outputDim; iOutput++)
+            {
+                lstmModel.OutputsThresholds[iOutput]._threshold = (lstmModel.OutputsThresholds[iOutput]._highOutputAv + lstmModel.OutputsThresholds[iOutput]._lowOutputAv) / 2;
+            }
         }
     }
 }

@@ -50,6 +50,24 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         }
         //_______________________________________________________//
         //::::::::::::::::::::::Base model::::::::::::::::::::::://
+
+        public class OutputThresholdItem
+        {
+            public double _highOutputAv = 1;
+            public double _lowOutputAv = 0;
+            public double _threshold = 0.5d;
+
+            public OutputThresholdItem Clone()
+            {
+                OutputThresholdItem outputThresholdItem = new OutputThresholdItem();
+                outputThresholdItem._highOutputAv = _highOutputAv;
+                outputThresholdItem._lowOutputAv = _lowOutputAv;
+                outputThresholdItem._threshold = _threshold;
+
+                return outputThresholdItem;
+            }
+        }
+
         [Serializable]
         [DataContract(IsReference = true)]
         public class CustomArchiBaseModel
@@ -61,7 +79,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public List<PCAitem> PCA { get; set; } = new List<PCAitem>();
             [DataMember]
-            public float[] OutputsThresholds { get; set; }
+            public OutputThresholdItem[] OutputsThresholds { get; set; }
             [DataMember]
             public ValidationData ValidationData = new ValidationData();
 
@@ -80,7 +98,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     baseArchiModelClone.PCA.Add((PCAitem)pcLoadingScores.Clone());
 
                 if (OutputsThresholds != null)
-                    baseArchiModelClone.OutputsThresholds = (float[])OutputsThresholds.Clone();
+                {
+                    baseArchiModelClone.OutputsThresholds = new OutputThresholdItem[OutputsThresholds.Length];
+                    for (int i = 0; i < OutputsThresholds.Length; i++)
+                        baseArchiModelClone.OutputsThresholds[i] = OutputsThresholds[i].Clone();
+                }
                 baseArchiModelClone.ValidationData = ValidationData.Clone();
 
                 return baseArchiModelClone;

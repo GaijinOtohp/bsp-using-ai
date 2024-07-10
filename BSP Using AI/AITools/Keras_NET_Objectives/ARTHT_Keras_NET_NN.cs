@@ -213,9 +213,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                 model.Model.Save(path);
 
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new float[output];
+            model.OutputsThresholds = new OutputThresholdItem[output];
             for (int i = 0; i < output; i++)
-                model.OutputsThresholds[i] = 0.5f;
+                model.OutputsThresholds[i] = new OutputThresholdItem();
 
             return model;
         }

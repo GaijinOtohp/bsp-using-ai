@@ -146,9 +146,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives
             // Create a KNN model structure with the initial optimum K
             NaiveBayesModel model = new NaiveBayesModel { Name = name, _regression = regression };
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new float[outputNumber];
+            model.OutputsThresholds = new OutputThresholdItem[outputNumber];
             for (int i = 0; i < outputNumber; i++)
-                model.OutputsThresholds[i] = 0.5f;
+                model.OutputsThresholds[i] = new OutputThresholdItem();
 
             return model;
         }

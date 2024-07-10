@@ -281,7 +281,7 @@ namespace BSP_Using_AI.DetailsModify
                 ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[modelTypeComboBox.Text];
 
                 // Get curretn step threshold
-                float threshold = 0.5f;
+                double threshold = 0.5d;
 
                 // Check which step of features selectoin is this
                 switch (_arthtFeatures._processedStep)
@@ -440,7 +440,7 @@ namespace BSP_Using_AI.DetailsModify
                                 rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RemoveR },
                                     askForPrediction_ARTHT(rPeaksSelectionSamp.getFeatures(), ARTHTNamings.Step2RPeaksSelectionData));
 
-                                threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData].OutputsThresholds[0];
+                                threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData].OutputsThresholds[0]._threshold;
                                 // Check if this R state is selected not to be removed
                                 if (rPeaksSelectionSamp.getOutputByLabel(ARTHTNamings.RemoveR) < threshold)
                                     // If yes then add current state as R
@@ -832,7 +832,7 @@ namespace BSP_Using_AI.DetailsModify
                             _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
                             // Get short PR declaration step threshold from the model if prediction is activated
                             if (_predictionOn)
-                                threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                                threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0]._threshold;
                             // Get number of declared short PR
                             for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
                                 if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
@@ -881,7 +881,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Get short PR declaration step threshold from the model if prediction is activated
                         if (_predictionOn)
-                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0]._threshold;
                         // Get current short PR beat and next short PR beat
                         shortPRNmbr = 0;
                         shortPRBeatIndx = -1;
@@ -995,7 +995,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Get short PR declaration step threshold from the model if prediction is activated
                         if (_predictionOn)
-                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0]._threshold;
                         // Get current short PR beat and next short PR beat
                         shortPRNmbr = 0;
                         shortPRBeatIndx = -1;
@@ -1045,7 +1045,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Get WPW declaration step threshold from the model if prediction is activated
                         if (_predictionOn)
-                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData].OutputsThresholds[0];
+                            threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData].OutputsThresholds[0]._threshold;
                         // Set WPW syndrome index if existed
                         if (deltaExamSamp.getOutputByLabel(ARTHTNamings.WPWPattern) > threshold)
                             _arthtFeatures.SignalBeats[shortPRBeatIndx]._wpwDetected = true;
@@ -1203,9 +1203,9 @@ namespace BSP_Using_AI.DetailsModify
                 _arthtFeatures._processedStep--;
 
             // Get short PR declaration step threshold from the model if prediction is activated
-            float threshold = 0.5f;
+            double threshold = 0.5f;
             if (_predictionOn)
-                threshold = ((ARTHTModels)_objectivesModelsDic[modelTypeComboBox.Text]).ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0];
+                threshold = ((ARTHTModels)_objectivesModelsDic[modelTypeComboBox.Text]).ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0]._threshold;
             // Check which step of features selectoin is this
             switch (_arthtFeatures._processedStep)
             {

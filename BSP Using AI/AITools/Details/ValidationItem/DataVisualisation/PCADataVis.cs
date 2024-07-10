@@ -243,12 +243,12 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             pcaChart.Refresh();
 
             // Check the previously selected PCs
-            for (int i = 0; i < ((ARTHTModels)_objectivesModelsDic[_ModelName + _ProblemName]).ARTHTModelsDic[_stepName].PCA.Count; i++)
+            /*for (int i = 0; i < ((ARTHTModels)_objectivesModelsDic[_ModelName + _ProblemName]).ARTHTModelsDic[_stepName].PCA.Count; i++)
             {
                 PCAitem pcaItem = ((ARTHTModels)_objectivesModelsDic[_ModelName + _ProblemName]).ARTHTModelsDic[_stepName].PCA[i];
                 if (pcaItem._selected)
                     ((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked = true;
-            }
+            }*/
         }
 
         private void pcaCheckBox_CheckedChanged(object sender, EventArgs e)

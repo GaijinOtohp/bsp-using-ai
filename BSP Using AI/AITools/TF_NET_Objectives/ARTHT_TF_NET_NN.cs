@@ -61,14 +61,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                 arthtModels.ARTHTModelsDic[stepName] = createTFNETNeuralNetModel(stepName, dataLists[stepName], arthtModels.ARTHTModelsDic[stepName]._pcaActive,
                                                         ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel.ModelPath);
                 // Fit features in model
-                TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepName], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel, dataLists[stepName], null, true);
+                TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepName], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel, dataLists[stepName], null, saveModel: true);
             }
             else
                 foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
                 {
                     // Fit features in model
                     TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepNa], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepNa]).BaseModel,
-                                                                             dataLists[stepNa], UpdateFittingProgress, true);
+                                                                             dataLists[stepNa], UpdateFittingProgress, saveModel: true);
                     _currentFitStep++;
                 }
             // Update model in models table
@@ -148,9 +148,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                 TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path, new string[] { "output" });
 
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new float[outputDim];
+            model.OutputsThresholds = new OutputThresholdItem[outputDim];
             for (int i = 0; i < outputDim; i++)
-                model.OutputsThresholds[i] = 0.5f;
+                model.OutputsThresholds[i] = new OutputThresholdItem();
 
             // Get the parameters
             return model;

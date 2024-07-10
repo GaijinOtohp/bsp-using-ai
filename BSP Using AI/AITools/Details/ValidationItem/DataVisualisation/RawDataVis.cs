@@ -30,8 +30,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 xInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
 
                 // If the selected model is for classification
-                if (_stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData) || _stepName.Equals(ARTHTNamings.Step4PTSelectionData) ||
-                    _stepName.Equals(ARTHTNamings.Step5ShortPRScanData) || _stepName.Equals(ARTHTNamings.Step7DeltaExaminationData))
+                if (1 == 1)
                     for (int j = 0; j < 2; j++)
                     {
                         RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName + " (" + j + ")");
@@ -85,6 +84,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
             // Remove all series from the chart
             rawChart.Plot.Title("Raw data scatterplot");
+            ScottPlot.AxisLimits axisLimits = rawChart.Plot.GetAxisLimits();
             rawChart.Plot.Clear();
             // Enable outputsFlowLayoutPanel
             outputFlowLayoutPanel.Enabled = true;
@@ -157,8 +157,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             else
             {
                 // Check if the selected model is for classification
-                if (_stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData) || _stepName.Equals(ARTHTNamings.Step4PTSelectionData) ||
-                    _stepName.Equals(ARTHTNamings.Step5ShortPRScanData) || _stepName.Equals(ARTHTNamings.Step7DeltaExaminationData))
+                if (1 == 1)
                 {
                     // If yes then create yAxisVals and xAxisVals of each selected output
                     foreach (RawVisItemUserControl rawVisItemUserControl in outputFlowLayoutPanel.Controls)
@@ -216,6 +215,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                         }
                 }
             }
+            rawChart.Plot.SetAxisLimits(axisLimits);
             rawChart.Refresh();
         }
     }

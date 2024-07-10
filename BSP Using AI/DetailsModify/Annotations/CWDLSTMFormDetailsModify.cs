@@ -44,46 +44,46 @@ namespace BSP_Using_AI.DetailsModify
             return annoName;
         }
 
-        private (string cornerName, string regularity, List<int> selectedLabelsIndecies) GetLabelsOfPrediction(double[] predictionOutput, LSTMDataBuilderMemory DataBuilderMemory)
+        private (string cornerName, string regularity, List<int> selectedLabelsIndecies) GetLabelsOfPrediction(double[] predictionOutput, LSTMDataBuilderMemory DataBuilderMemory, OutputThresholdItem[] outputThresholds)
         {
             // Get the annotation of the prediction (the prediction should be at least higher than 0.5 for a valid annotaion)
             string cornerName = "";
             string regularity = "";
             List<int> selectedLabelsIndecies = predictionOutput.Select((proba, index) => (proba, index))
-                                                               .Where(tuple => tuple.proba >= 0.5d && tuple.index < 9)
+                                                               .Where(tuple => tuple.proba >= outputThresholds[tuple.index]._threshold && tuple.index < 9)
                                                                .Select(tuple => tuple.index).ToList();
 
-            if (predictionOutput[0] >= 0.5d)
+            if (predictionOutput[0] >= outputThresholds[0]._threshold)
                 cornerName += CWDNamigs.POnset + ", ";
-            if (predictionOutput[1] >= 0.5d)
+            if (predictionOutput[1] >= outputThresholds[1]._threshold)
             {
-                cornerName = CWDNamigs.PPeak + ", ";
+                cornerName += CWDNamigs.PPeak + ", ";
                 DataBuilderMemory.currentPeakIsP = true;
             }
-            if (predictionOutput[2] >= 0.5d)
-                cornerName = CWDNamigs.PEnd + ", ";
-            if (predictionOutput[3] >= 0.5d)
-                cornerName = CWDNamigs.QPeak + ", ";
-            if (predictionOutput[4] >= 0.5d)
+            if (predictionOutput[2] >= outputThresholds[2]._threshold)
+                cornerName += CWDNamigs.PEnd + ", ";
+            if (predictionOutput[3] >= outputThresholds[3]._threshold)
+                cornerName += CWDNamigs.QPeak + ", ";
+            if (predictionOutput[4] >= outputThresholds[4]._threshold)
             {
-                cornerName = CWDNamigs.RPeak + ", ";
+                cornerName += CWDNamigs.RPeak + ", ";
                 DataBuilderMemory.currentPeakIsR = true;
             }
-            if (predictionOutput[5] >= 0.5d)
-                cornerName = CWDNamigs.SPeak + ", ";
-            if (predictionOutput[6] >= 0.5d)
-                cornerName = CWDNamigs.TOnset + ", ";
-            if (predictionOutput[7] >= 0.5d)
-                cornerName = CWDNamigs.TPeak + ", ";
-            if (predictionOutput[8] >= 0.5d)
-                cornerName = CWDNamigs.TEnd + ", ";
-            if (predictionOutput[9] >= 0.5d)
-                cornerName = CWDNamigs.Other + ", ";
+            if (predictionOutput[5] >= outputThresholds[5]._threshold)
+                cornerName += CWDNamigs.SPeak + ", ";
+            if (predictionOutput[6] >= outputThresholds[6]._threshold)
+                cornerName += CWDNamigs.TOnset + ", ";
+            if (predictionOutput[7] >= outputThresholds[7]._threshold)
+                cornerName += CWDNamigs.TPeak + ", ";
+            if (predictionOutput[8] >= outputThresholds[8]._threshold)
+                cornerName += CWDNamigs.TEnd + ", ";
+            if (predictionOutput[9] >= outputThresholds[9]._threshold)
+                cornerName += CWDNamigs.Other + ", ";
 
-            if (predictionOutput[10] >= 0.5d)
+            if (predictionOutput[10] >= outputThresholds[10]._threshold)
                 regularity = CWDNamigs.Normal + ", ";
-            if (predictionOutput[11] >= 0.5d)
-                regularity = CWDNamigs.Abnormal + ", ";
+            if (predictionOutput[11] >= outputThresholds[11]._threshold)
+                regularity += CWDNamigs.Abnormal + ", ";
 
             return (cornerName, regularity, selectedLabelsIndecies);
         }
@@ -108,6 +108,7 @@ namespace BSP_Using_AI.DetailsModify
             DataBuilderMemory.globalMin = GeneralTools.MeanMinMax(RescaledSamples).min;
             DataBuilderMemory.globalAmpInterval = globalAmpInterval;
             DataBuilderMemory.samplingRate = _FilteringTools._samplingRate;
+            DataBuilderMemory.latestPeakToClassifyProba = new double[CWDLSTMModel.BaseModel._outputDim];
 
             // Create the queue for building the input sequence of the LSTM model
             Queue<double[]> InputSeqQueue = new Queue<double[]>(CWDLSTMModel._modelSequenceLength + 1);
@@ -120,16 +121,31 @@ namespace BSP_Using_AI.DetailsModify
             {
                 List<CornerSample> segScannedCornsList = scannedCorners.Where(corn => segment.startingIndex <= corn._index && corn._index <= segment.endingIndex).ToList();
 
+                // Update dataBuilderMemory with the segment samples
+                (_, double rescSegmentMin, double rescSegmentMax) = GeneralTools.MeanMinMax(segment.SegmentSamples);
+                DataBuilderMemory.segmentMin = rescSegmentMin;
+                DataBuilderMemory.segmentAmpInterval = rescSegmentMax - rescSegmentMin;
+
                 // Feed each corner features into the LSTM model
-                foreach (CornerSample corner in segScannedCornsList)
+                foreach (CornerSample scannedCorner in segScannedCornsList)
                 {
-                    // Update dataBuilderMemory with the segment samples
-                    (_, double rescSegmentMin, double rescSegmentMax) = GeneralTools.MeanMinMax(segment.SegmentSamples);
-                    DataBuilderMemory.segmentMin = rescSegmentMin;
-                    DataBuilderMemory.segmentAmpInterval = rescSegmentMax - rescSegmentMin;
+                    // The new corner should be after the latest peak
+                    if (DataBuilderMemory.LatestPeak != null)
+                        if (scannedCorner._index <= DataBuilderMemory.LatestPeak._index)
+                            continue;
+
+                    // Get the next and previous corners that are in the range of 0.2 sec froward and backward
+                    double nearbyCornersTempIntervalRange = 0.3d;
+                    DataBuilderMemory.nextCorners = segScannedCornsList.Where(corner => Math.Abs(corner._index - scannedCorner._index) / (double)DataBuilderMemory.samplingRate <= nearbyCornersTempIntervalRange && corner._index > scannedCorner._index).ToList();
+                    DataBuilderMemory.prevCorners = segScannedCornsList.Where(corner => Math.Abs(corner._index - scannedCorner._index) / (double)DataBuilderMemory.samplingRate <= nearbyCornersTempIntervalRange && corner._index < scannedCorner._index).ToList();
+
+                    double nearbySamplesTempIntervalRange = 0.3d;
+                    DataBuilderMemory.nextRescSamples = RescaledSamples.Where((value, index) => scannedCorner._index <= index && index <= scannedCorner._index + (nearbySamplesTempIntervalRange * DataBuilderMemory.samplingRate)).ToArray();
+                    DataBuilderMemory.prevRescSamplesReversed = RescaledSamples.Where((value, index) => scannedCorner._index - (nearbySamplesTempIntervalRange * DataBuilderMemory.samplingRate) <= index && index <= scannedCorner._index).ToArray();
+                    DataBuilderMemory.prevRescSamplesReversed = DataBuilderMemory.prevRescSamplesReversed.Reverse().ToArray();
 
                     // Get the features of the selected corner
-                    double[] features = DatasetExplorerForm.GetFeaturesOfTheSample(null, DataBuilderMemory, corner);
+                    double[] features = DatasetExplorerForm.GetFeaturesOfTheSample(null, DataBuilderMemory, scannedCorner);
                     // Enqueue the new features in InputSeqQueue
                     InputSeqQueue.Enqueue(features);
                     // Check if the queue has exceeded the sequence length of the model
@@ -142,128 +158,110 @@ namespace BSP_Using_AI.DetailsModify
                     if (output.Count == 0)
                         continue;
 
-                    (string cornerName, string regularity, List<int> selectedLabelsIndecies) = GetLabelsOfPrediction(output[output.Count - 1], DataBuilderMemory);
+                    (string cornerName, string regularity, List<int> selectedLabelsIndecies) = GetLabelsOfPrediction(output[output.Count - 1], DataBuilderMemory, CWDLSTMModel.OutputsThresholds);
 
-                    // Check if the corner is not classified as Other
-                    if (!cornerName.Contains(CWDNamigs.Other))
+                    // Set the probabilities of the non selected labels at DataBuilderMemory.latestPeakToClassifyProba to 0
+                    for (int iLabelIndex = 0; iLabelIndex < 9; iLabelIndex++)
+                        if (!selectedLabelsIndecies.Contains(iLabelIndex))
+                            DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] = 0;
+
+                    // Iterate through each selected label in selectedLabelsIndecies
+                    // and set the name of the new corner
+                    string cornerNewName = "";
+                    foreach (int iLabelIndex in selectedLabelsIndecies)
                     {
-                        // Check if current predicted corner is different than the latestPeakToClassify
-                        if (!cornerName.Equals(DataBuilderMemory.latestPeakToClassifyName))
+                        // Check if the selected label was already selected previously
+                        if (DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] > 0)
                         {
-                            // Update the latest classified peak
-                            if (AnnotatedCornsList.Count > 0)
-                                DataBuilderMemory.LatestClassifiedPeak = AnnotatedCornsList[AnnotatedCornsList.Count - 1].Clone();
+                            // If yes then check if the new selection is more certain than the previous one
+                            if (output[output.Count - 1][iLabelIndex] >= DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex])
+                            {
+                                // If yes then swap the previous selection with the new one
+                                // I mean like remove the label from the previous peak and add it to the new one
+                                List<AnnotationECG> annosList = _AnnotationData.GetAnnotations();
+                                string prevAnnoName = annosList[annosList.Count - 1].Name;
+                                (int prevAnnoIndex, _) = annosList[annosList.Count - 1].GetIndexes();
+                                string prevNewAnnoName = prevAnnoName.Replace(GetAnnoNameByIndex(iLabelIndex) + ", ", "");
+
+                                if (prevNewAnnoName.Length > 0)
+                                    annosList[annosList.Count - 1].SetNewVals(prevNewAnnoName, prevAnnoIndex, 0);
+                                else
+                                    annosList[annosList.Count - 1].Remove();
+
+                                // Set its label into cornerNewName
+                                cornerNewName += GetAnnoNameByIndex(iLabelIndex) + ", ";
+
+                                // Update LatestPPeak and LatestRPeak with their averaged interval
+                                if (DataBuilderMemory.currentPeakIsP)
+                                {
+                                    /*if (DataBuilderMemory.PsCount > 0)
+                                        DataBuilderMemory.ppIntervalAv = ((DataBuilderMemory.ppIntervalAv * DataBuilderMemory.PsCount) + (corner._index - DataBuilderMemory.LatestPPeak._index))
+                                                                         / (double)(DataBuilderMemory.PsCount + 1);
+                                    DataBuilderMemory.PsCount++;*/
+
+                                    //DataBuilderMemory.ppIntervalAv = 
+
+                                    DataBuilderMemory.LatestPPeak = scannedCorner.Clone();
+                                    DataBuilderMemory.currentPeakIsP = false;
+                                }
+                                if (DataBuilderMemory.currentPeakIsR)
+                                {
+                                    /*if (DataBuilderMemory.RsCount > 0)
+                                        DataBuilderMemory.rrIntervalAv = ((DataBuilderMemory.rrIntervalAv * DataBuilderMemory.RsCount) + (corner._index - DataBuilderMemory.LatestRPeak._index))
+                                                                         / (double)(DataBuilderMemory.RsCount + 1);
+                                    DataBuilderMemory.RsCount++;*/
+
+                                    DataBuilderMemory.LatestRPeak = scannedCorner.Clone();
+                                    DataBuilderMemory.currentPeakIsR = false;
+                                }
+
+                                // Update its probability in DataBuilderMemory.latestPeakToClassifyProba
+                                DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] = output[output.Count - 1][iLabelIndex];
+                            }
+                            //------------------> Maybe otherwise, just set its probability to 0 at DataBuilderMemory.latestPeakToClassifyProba
+                        }
+                        else
+                        {
+                            // Add the new label to the new peak
                             // Update LatestPPeak and LatestRPeak with their averaged interval
                             if (DataBuilderMemory.currentPeakIsP)
                             {
                                 if (DataBuilderMemory.PsCount > 0)
-                                    DataBuilderMemory.ppIntervalAv = ((DataBuilderMemory.ppIntervalAv * DataBuilderMemory.PsCount) + (corner._index - DataBuilderMemory.LatestPPeak._index))
+                                    DataBuilderMemory.ppIntervalAv = ((DataBuilderMemory.ppIntervalAv * DataBuilderMemory.PsCount) + (scannedCorner._index - DataBuilderMemory.LatestPPeak._index))
                                                                      / (double)(DataBuilderMemory.PsCount + 1);
                                 DataBuilderMemory.PsCount++;
 
-                                DataBuilderMemory.LatestPPeak = corner.Clone();
+                                DataBuilderMemory.LatestPPeak = scannedCorner.Clone();
                                 DataBuilderMemory.currentPeakIsP = false;
                             }
                             if (DataBuilderMemory.currentPeakIsR)
                             {
                                 if (DataBuilderMemory.RsCount > 0)
-                                    DataBuilderMemory.rrIntervalAv = ((DataBuilderMemory.rrIntervalAv * DataBuilderMemory.RsCount) + (corner._index - DataBuilderMemory.LatestRPeak._index))
+                                    DataBuilderMemory.rrIntervalAv = ((DataBuilderMemory.rrIntervalAv * DataBuilderMemory.RsCount) + (scannedCorner._index - DataBuilderMemory.LatestRPeak._index))
                                                                      / (double)(DataBuilderMemory.RsCount + 1);
                                 DataBuilderMemory.RsCount++;
 
-                                DataBuilderMemory.LatestRPeak = corner.Clone();
+                                DataBuilderMemory.LatestRPeak = scannedCorner.Clone();
                                 DataBuilderMemory.currentPeakIsR = false;
                             }
-                            // Update the memory data
-                            AnnotatedCornsList.Add(corner);
-                            DataBuilderMemory.latestPeakToClassifyName = cornerName;
-                            DataBuilderMemory.latestPeakToClassifyProba = output[output.Count - 1];
 
-                            // Add the new annotation
-                            _AnnotationData.InsertAnnotation(cornerName, AnnotationType.Point, corner._index, 0);
-                        }
-                        // Check if the classification probability of the current corner is higher than the previous one
-                        else
-                        {
-                            // Also check if we should split the annotation or not
-                            bool keepAnno = false;
-                            bool updateAnno = false;
-                            string updatePrevAnnoName = "";
-                            string newAnnoName = "";
-                            // Iterat through the selected labels indecies
-                            foreach (int labelIndex in selectedLabelsIndecies)
-                            {
-                                // Check if currrent prediction probability is higher than the previous one
-                                if (output[output.Count - 1][labelIndex] >= DataBuilderMemory.latestPeakToClassifyProba[labelIndex])
-                                {
-                                    updateAnno = true;
-                                    newAnnoName += GetAnnoNameByIndex(labelIndex) + ", ";
+                            // Set its label into cornerNewName
+                            cornerNewName += GetAnnoNameByIndex(iLabelIndex) + ", ";
 
-                                    // Update LatestPPeak and LatestRPeak with their averaged interval
-                                    if (DataBuilderMemory.currentPeakIsP)
-                                    {
-                                        /*if (DataBuilderMemory.PsCount > 0)
-                                            DataBuilderMemory.ppIntervalAv = ((DataBuilderMemory.ppIntervalAv * DataBuilderMemory.PsCount) + (corner._index - DataBuilderMemory.LatestPPeak._index))
-                                                                             / (double)(DataBuilderMemory.PsCount + 1);
-                                        DataBuilderMemory.PsCount++;*/
-
-                                        DataBuilderMemory.LatestPPeak = corner.Clone();
-                                        DataBuilderMemory.currentPeakIsP = false;
-                                    }
-                                    if (DataBuilderMemory.currentPeakIsR)
-                                    {
-                                        /*if (DataBuilderMemory.RsCount > 0)
-                                            DataBuilderMemory.rrIntervalAv = ((DataBuilderMemory.rrIntervalAv * DataBuilderMemory.RsCount) + (corner._index - DataBuilderMemory.LatestRPeak._index))
-                                                                             / (double)(DataBuilderMemory.RsCount + 1);
-                                        DataBuilderMemory.RsCount++;*/
-
-                                        DataBuilderMemory.LatestRPeak = corner.Clone();
-                                        DataBuilderMemory.currentPeakIsR = false;
-                                    }
-
-                                    // Update the probability of the label
-                                    DataBuilderMemory.latestPeakToClassifyProba[labelIndex] = output[output.Count - 1][labelIndex];
-                                }
-                                else
-                                {
-                                    keepAnno = true;
-                                    updatePrevAnnoName += GetAnnoNameByIndex(labelIndex) + ", ";
-                                }
-                            }
-
-                            // If we should keep some annotaions and update others then we should split the annotaions
-                            List<AnnotationECG> annosList = _AnnotationData.GetAnnotations();
-                            if (keepAnno && updateAnno)
-                            {
-                                // Update the annotation that should be kept
-                                annosList[annosList.Count - 1].SetNewVals(updatePrevAnnoName, AnnotatedCornsList[AnnotatedCornsList.Count - 1]._index, 0);
-
-                                // Add the new annotation
-                                AnnotatedCornsList.Add(corner);
-                                _AnnotationData.InsertAnnotation(newAnnoName, AnnotationType.Point, corner._index, 0);
-                            }
-                            else if (updateAnno)
-                            {
-                                // Update the latest peak to classify
-                                AnnotatedCornsList[AnnotatedCornsList.Count - 1] = corner;
-                                // Update the position of the annotation as well
-                                annosList[annosList.Count - 1].SetNewVals(cornerName, corner._index, 0);
-                            }
+                            // Add its probability in DataBuilderMemory.latestPeakToClassifyProba
+                            DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] = output[output.Count - 1][iLabelIndex];
                         }
                     }
-                    else
+
+                    // Update the latest classified peak and add its annotation if exists
+                    if (selectedLabelsIndecies.Count > 0 && cornerNewName.Length > 0)
                     {
-                        // This is an other peak (no annotation) then set the latest peak to classify as a classified one
-                        if (AnnotatedCornsList.Count > 0)
-                            DataBuilderMemory.LatestClassifiedPeak = AnnotatedCornsList[AnnotatedCornsList.Count - 1].Clone();
+                        DataBuilderMemory.LatestClassifiedPeak = scannedCorner.Clone();
 
-                        // Update the memory data
-                        DataBuilderMemory.latestPeakToClassifyName = cornerName;
-                        DataBuilderMemory.latestPeakToClassifyProba = output[output.Count - 1];
-                    }
-                        
+                        _AnnotationData.InsertAnnotation(cornerNewName, AnnotationType.Point, scannedCorner._index, 0);
+                    }                        
 
-                    DataBuilderMemory.LatestPeak = corner.Clone();
+                    DataBuilderMemory.LatestPeak = scannedCorner.Clone();
                 }
             }
 
