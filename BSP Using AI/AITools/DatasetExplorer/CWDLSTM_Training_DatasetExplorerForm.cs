@@ -60,7 +60,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             public double segmentAmpInterval;
         }
 
-        public double[] GetLabelsOfTheSample(LSTMDataBuilderMemory dataBuilderMemory, List<CornerInterval> matchedIntervalsList)
+        public static double[] GetLabelsOfTheSample(LSTMDataBuilderMemory dataBuilderMemory, List<CornerInterval> matchedIntervalsList)
         {
             // There are 12 classes as output from the LSTM model
             double[] labels = new double[12];
@@ -311,7 +311,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             return features;
         }
 
-        private void UpdateDatasetSample(ref Sample sample, Data CornersScanData, LSTMDataBuilderMemory dataBuilderMemory, CornerSample scannedCorner, List<CornerInterval> matchedIntervalsList, bool updateTheSample)
+        private static void UpdateDatasetSample(ref Sample sample, Data CornersScanData, LSTMDataBuilderMemory dataBuilderMemory, CornerSample scannedCorner, List<CornerInterval> matchedIntervalsList, bool updateTheSample)
         {
             if (!updateTheSample)
             {
@@ -327,78 +327,9 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             sample.insertOutputArray(labelsNamings, labels);
         }
 
-        public void holdRecordReport_CWDLSTM(DataTable dataTable, string callingClassName)
+        public static List<List<Sample>> BuildLSTMTrainingSequences(DataTable dataTable, TFNETReinforcementL rlModel)
         {
-            string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
-
-            CWD_TF_NET_LSTM cwdLSTM = new CWD_TF_NET_LSTM(_aIToolsForm._objectivesModelsDic, _aIToolsForm);
-
-            // Check if there is any other deep Q-learning "CWDReinforcementLModel" model with the same training data as the current one
-            bool rlModelCopied = false;
-            foreach(ObjectiveBaseModel objectiveBaseModel in _aIToolsForm._objectivesModelsDic.Values)
-                // The model exists only in CWDReinforcementL or CWDLSTM objects and should not be the model being trained
-                if ((objectiveBaseModel is CWDReinforcementL || objectiveBaseModel is CWDLSTM) && objectiveBaseModel != _objectiveModel)
-                    // The training data could be checked using the samples ids in DataIdsIntervalsList
-                    if (objectiveBaseModel.DataIdsIntervalsList.Count == _objectiveModel.DataIdsIntervalsList.Count)
-                    {
-                        bool copyModel = true;
-                        for (int iList = 0; iList < objectiveBaseModel.DataIdsIntervalsList.Count; iList++)
-                        {
-                            // Sort the samples ids intervals
-                            List<IdInterval> intervalsList = objectiveBaseModel.DataIdsIntervalsList[iList];
-                            List<IdInterval> trainingIntervalsList = _objectiveModel.DataIdsIntervalsList[iList];
-
-                            // Check if there is any non similarities between the training datasets
-                            if (intervalsList.Count == trainingIntervalsList.Count)
-                            {
-                                intervalsList.Sort((interval1, interval2) => { return interval1.starting.CompareTo(interval2.starting); });
-                                trainingIntervalsList.Sort((interval1, interval2) => { return interval1.starting.CompareTo(interval2.starting); });
-                                for (int iInterval = 0; iInterval < intervalsList.Count; iInterval++)
-                                    if (intervalsList[iInterval] != trainingIntervalsList[iInterval])
-                                    {
-                                        copyModel = false;
-                                        break;
-                                    }
-                            }
-                            else
-                            {
-                                copyModel = false;
-                                break;
-                            }
-                            if (!copyModel)
-                                break;
-                        }
-
-                        if (copyModel)
-                        {
-                            // Copy the model to the current model being trained
-                            TFNETReinforcementL CWDReinforcementLModel = null;
-                            TFNETReinforcementL TariningCWDReinforcementLModel = ((CWDLSTM)_objectiveModel).CWDReinforcementLModel;
-                            if (objectiveBaseModel is CWDReinforcementL rlBaseModel)
-                                CWDReinforcementLModel = rlBaseModel.CWDReinforcementLModel;
-                            else if (objectiveBaseModel is CWDLSTM lstmBaseModel)
-                                CWDReinforcementLModel = lstmBaseModel.CWDReinforcementLModel;
-
-                            TariningCWDReinforcementLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(CWDReinforcementLModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", CWD_RL_TFNET.createTFNETNeuralNetModelSession);
-                            TF_NET_NN.SaveModelVariables(TariningCWDReinforcementLModel.BaseModel.Session, TariningCWDReinforcementLModel.BaseModel.ModelPath, new string[] { "output" });
-
-                            rlModelCopied = true;
-                            break;
-                        }
-                    }
-
-            // Get deep Q-learning model's training dataset if available
-            List<Sample> rlTrainingSamplesList = new List<Sample>();
-            if (!rlModelCopied)
-                rlTrainingSamplesList = GetTrainingSamples(dataTable);
-
-            // Train the deep Q-learning model
-            cwdLSTM.FitOnRLModel(modelName, rlTrainingSamplesList);
-            //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
-            //**************************************************************************************************************//
-
-            // Build LSTM training sequences
-            List <List<Sample>> dataListSequences = new List<List<Sample>>(dataTable.Rows.Count);
+            List<List<Sample>> dataListSequences = new List<List<Sample>>(dataTable.Rows.Count);
 
             foreach (DataRow row in dataTable.AsEnumerable())
             {
@@ -438,7 +369,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                      double segmentMin, double segmentMax, double segmentStdDev, double segmentIQR) = GetFeaturesValues(RescaledSamples, segment);
                     double[] features = new double[] { globalMean, globalStdDev, globalIQR, segmentMean, segmentMin, segmentMax, segmentStdDev, segmentIQR };
 
-                    double[] atARTOutput = TF_NET_NN.predict(features, ((CWDLSTM)_objectiveModel).CWDReinforcementLModel, ((CWDLSTM)_objectiveModel).CWDReinforcementLModel.BaseModel.Session);
+                    double[] atARTOutput = TF_NET_NN.predict(features, rlModel, rlModel.BaseModel.Session);
 
                     List<CornerSample> tempCornersList = ScanCorners(segment.SegmentSamples, segment.startingIndex, samplingRate, atARTOutput[1], atARTOutput[0] * 360d);
 
@@ -554,15 +485,83 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 //_______________________________________________________________________________________________________//
                 // Append the data list sequence for the current signal into dataListSequences
                 dataListSequences.Add(CornersScanData.Samples);
-
-                /*_aIToolsForm.Invoke(new MethodInvoker(delegate () {
-                    DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(null,
-                                                                                        modelName, _objectiveModel.ObjectiveName,
-                                                                                        -1, "", CornersScanData.Samples, 0);
-                    dataVisualisationForm.Show();
-                }));*/
-                
             }
+
+            return dataListSequences;
+        }
+
+        public void holdRecordReport_CWDLSTM(DataTable dataTable, string callingClassName)
+        {
+            string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
+
+            CWD_TF_NET_LSTM cwdLSTM = new CWD_TF_NET_LSTM(_aIToolsForm._objectivesModelsDic, _aIToolsForm);
+
+            // Check if there is any other deep Q-learning "CWDReinforcementLModel" model with the same training data as the current one
+            bool rlModelCopied = false;
+            foreach(ObjectiveBaseModel objectiveBaseModel in _aIToolsForm._objectivesModelsDic.Values)
+                // The model exists only in CWDReinforcementL or CWDLSTM objects and should not be the model being trained
+                if ((objectiveBaseModel is CWDReinforcementL || objectiveBaseModel is CWDLSTM) && objectiveBaseModel != _objectiveModel)
+                    // The training data could be checked using the samples ids in DataIdsIntervalsList
+                    if (objectiveBaseModel.DataIdsIntervalsList.Count == _objectiveModel.DataIdsIntervalsList.Count)
+                    {
+                        bool copyModel = true;
+                        for (int iList = 0; iList < objectiveBaseModel.DataIdsIntervalsList.Count; iList++)
+                        {
+                            // Sort the samples ids intervals
+                            List<IdInterval> intervalsList = objectiveBaseModel.DataIdsIntervalsList[iList];
+                            List<IdInterval> trainingIntervalsList = _objectiveModel.DataIdsIntervalsList[iList];
+
+                            // Check if there is any non similarities between the training datasets
+                            if (intervalsList.Count == trainingIntervalsList.Count)
+                            {
+                                intervalsList.Sort((interval1, interval2) => { return interval1.starting.CompareTo(interval2.starting); });
+                                trainingIntervalsList.Sort((interval1, interval2) => { return interval1.starting.CompareTo(interval2.starting); });
+                                for (int iInterval = 0; iInterval < intervalsList.Count; iInterval++)
+                                    if (intervalsList[iInterval] != trainingIntervalsList[iInterval])
+                                    {
+                                        copyModel = false;
+                                        break;
+                                    }
+                            }
+                            else
+                            {
+                                copyModel = false;
+                                break;
+                            }
+                            if (!copyModel)
+                                break;
+                        }
+
+                        if (copyModel)
+                        {
+                            // Copy the model to the current model being trained
+                            TFNETReinforcementL CWDReinforcementLModel = null;
+                            TFNETReinforcementL TariningCWDReinforcementLModel = ((CWDLSTM)_objectiveModel).CWDReinforcementLModel;
+                            if (objectiveBaseModel is CWDReinforcementL rlBaseModel)
+                                CWDReinforcementLModel = rlBaseModel.CWDReinforcementLModel;
+                            else if (objectiveBaseModel is CWDLSTM lstmBaseModel)
+                                CWDReinforcementLModel = lstmBaseModel.CWDReinforcementLModel;
+
+                            TariningCWDReinforcementLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(CWDReinforcementLModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", CWD_RL_TFNET.createTFNETNeuralNetModelSession);
+                            TF_NET_NN.SaveModelVariables(TariningCWDReinforcementLModel.BaseModel.Session, TariningCWDReinforcementLModel.BaseModel.ModelPath, new string[] { "output" });
+
+                            rlModelCopied = true;
+                            break;
+                        }
+                    }
+
+            // Get deep Q-learning model's training dataset if available
+            List<Sample> rlTrainingSamplesList = new List<Sample>();
+            if (!rlModelCopied)
+                rlTrainingSamplesList = GetTrainingSamples(dataTable);
+
+            // Train the deep Q-learning model
+            cwdLSTM.FitOnRLModel(modelName, rlTrainingSamplesList);
+            //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
+            //**************************************************************************************************************//
+
+            // Build LSTM training sequences
+            List<List<Sample>> dataListSequences = BuildLSTMTrainingSequences(dataTable, ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
 
             // Train the LSTM model
             long datasetSize = _datasetSize + dataTable.Rows.Count;

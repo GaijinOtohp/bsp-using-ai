@@ -37,18 +37,18 @@ namespace BSP_Using_AI.AITools.Details
             this.algorithmTypeLabel = new System.Windows.Forms.Label();
             this.sensitivityLabel = new System.Windows.Forms.Label();
             this.specificityLabel = new System.Windows.Forms.Label();
-            this.thresholdTextBox = new System.Windows.Forms.TextBox();
+            this.updatetProgressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // modelTargetLabel
             // 
             this.modelTargetLabel.AutoSize = true;
             this.modelTargetLabel.Location = new System.Drawing.Point(4, 4);
-            this.modelTargetLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.modelTargetLabel.MaximumSize = new System.Drawing.Size(217, 0);
-            this.modelTargetLabel.MinimumSize = new System.Drawing.Size(217, 28);
+            this.modelTargetLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.modelTargetLabel.MaximumSize = new System.Drawing.Size(190, 0);
+            this.modelTargetLabel.MinimumSize = new System.Drawing.Size(190, 26);
             this.modelTargetLabel.Name = "modelTargetLabel";
-            this.modelTargetLabel.Size = new System.Drawing.Size(217, 28);
+            this.modelTargetLabel.Size = new System.Drawing.Size(190, 26);
             this.modelTargetLabel.TabIndex = 3;
             this.modelTargetLabel.Text = "Model target";
             this.modelTargetLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -57,12 +57,12 @@ namespace BSP_Using_AI.AITools.Details
             // datasetSizeLabel
             // 
             this.datasetSizeLabel.AutoSize = true;
-            this.datasetSizeLabel.Location = new System.Drawing.Point(512, 4);
-            this.datasetSizeLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.datasetSizeLabel.MaximumSize = new System.Drawing.Size(133, 0);
-            this.datasetSizeLabel.MinimumSize = new System.Drawing.Size(133, 28);
+            this.datasetSizeLabel.Location = new System.Drawing.Point(448, 4);
+            this.datasetSizeLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.datasetSizeLabel.MaximumSize = new System.Drawing.Size(116, 0);
+            this.datasetSizeLabel.MinimumSize = new System.Drawing.Size(116, 26);
             this.datasetSizeLabel.Name = "datasetSizeLabel";
-            this.datasetSizeLabel.Size = new System.Drawing.Size(133, 28);
+            this.datasetSizeLabel.Size = new System.Drawing.Size(116, 26);
             this.datasetSizeLabel.TabIndex = 5;
             this.datasetSizeLabel.Text = "Dataset size";
             this.datasetSizeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -71,12 +71,12 @@ namespace BSP_Using_AI.AITools.Details
             // trainingDatasetLabel
             // 
             this.trainingDatasetLabel.AutoSize = true;
-            this.trainingDatasetLabel.Location = new System.Drawing.Point(653, 4);
-            this.trainingDatasetLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.trainingDatasetLabel.MaximumSize = new System.Drawing.Size(133, 0);
-            this.trainingDatasetLabel.MinimumSize = new System.Drawing.Size(133, 28);
+            this.trainingDatasetLabel.Location = new System.Drawing.Point(571, 4);
+            this.trainingDatasetLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.trainingDatasetLabel.MaximumSize = new System.Drawing.Size(116, 0);
+            this.trainingDatasetLabel.MinimumSize = new System.Drawing.Size(116, 26);
             this.trainingDatasetLabel.Name = "trainingDatasetLabel";
-            this.trainingDatasetLabel.Size = new System.Drawing.Size(133, 28);
+            this.trainingDatasetLabel.Size = new System.Drawing.Size(116, 26);
             this.trainingDatasetLabel.TabIndex = 6;
             this.trainingDatasetLabel.Text = "Training dataset";
             this.trainingDatasetLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -85,12 +85,12 @@ namespace BSP_Using_AI.AITools.Details
             // validationDatasetLabel
             // 
             this.validationDatasetLabel.AutoSize = true;
-            this.validationDatasetLabel.Location = new System.Drawing.Point(795, 4);
-            this.validationDatasetLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.validationDatasetLabel.MaximumSize = new System.Drawing.Size(133, 0);
-            this.validationDatasetLabel.MinimumSize = new System.Drawing.Size(133, 28);
+            this.validationDatasetLabel.Location = new System.Drawing.Point(696, 4);
+            this.validationDatasetLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.validationDatasetLabel.MaximumSize = new System.Drawing.Size(116, 0);
+            this.validationDatasetLabel.MinimumSize = new System.Drawing.Size(116, 26);
             this.validationDatasetLabel.Name = "validationDatasetLabel";
-            this.validationDatasetLabel.Size = new System.Drawing.Size(133, 28);
+            this.validationDatasetLabel.Size = new System.Drawing.Size(116, 26);
             this.validationDatasetLabel.TabIndex = 7;
             this.validationDatasetLabel.Text = "Validation dataset";
             this.validationDatasetLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -99,12 +99,12 @@ namespace BSP_Using_AI.AITools.Details
             // accuracyLabel
             // 
             this.accuracyLabel.AutoSize = true;
-            this.accuracyLabel.Location = new System.Drawing.Point(936, 4);
-            this.accuracyLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.accuracyLabel.MaximumSize = new System.Drawing.Size(133, 0);
-            this.accuracyLabel.MinimumSize = new System.Drawing.Size(133, 28);
+            this.accuracyLabel.Location = new System.Drawing.Point(819, 4);
+            this.accuracyLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.accuracyLabel.MaximumSize = new System.Drawing.Size(116, 0);
+            this.accuracyLabel.MinimumSize = new System.Drawing.Size(116, 26);
             this.accuracyLabel.Name = "accuracyLabel";
-            this.accuracyLabel.Size = new System.Drawing.Size(133, 28);
+            this.accuracyLabel.Size = new System.Drawing.Size(116, 26);
             this.accuracyLabel.TabIndex = 8;
             this.accuracyLabel.Text = "Accuracy";
             this.accuracyLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -113,12 +113,12 @@ namespace BSP_Using_AI.AITools.Details
             // algorithmTypeLabel
             // 
             this.algorithmTypeLabel.AutoSize = true;
-            this.algorithmTypeLabel.Location = new System.Drawing.Point(229, 4);
-            this.algorithmTypeLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.algorithmTypeLabel.MaximumSize = new System.Drawing.Size(133, 0);
-            this.algorithmTypeLabel.MinimumSize = new System.Drawing.Size(133, 28);
+            this.algorithmTypeLabel.Location = new System.Drawing.Point(200, 4);
+            this.algorithmTypeLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.algorithmTypeLabel.MaximumSize = new System.Drawing.Size(116, 0);
+            this.algorithmTypeLabel.MinimumSize = new System.Drawing.Size(116, 26);
             this.algorithmTypeLabel.Name = "algorithmTypeLabel";
-            this.algorithmTypeLabel.Size = new System.Drawing.Size(133, 28);
+            this.algorithmTypeLabel.Size = new System.Drawing.Size(116, 26);
             this.algorithmTypeLabel.TabIndex = 4;
             this.algorithmTypeLabel.Text = "Algorithm type";
             this.algorithmTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -127,12 +127,12 @@ namespace BSP_Using_AI.AITools.Details
             // sensitivityLabel
             // 
             this.sensitivityLabel.AutoSize = true;
-            this.sensitivityLabel.Location = new System.Drawing.Point(1077, 4);
-            this.sensitivityLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.sensitivityLabel.MaximumSize = new System.Drawing.Size(133, 0);
-            this.sensitivityLabel.MinimumSize = new System.Drawing.Size(133, 28);
+            this.sensitivityLabel.Location = new System.Drawing.Point(942, 4);
+            this.sensitivityLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.sensitivityLabel.MaximumSize = new System.Drawing.Size(116, 0);
+            this.sensitivityLabel.MinimumSize = new System.Drawing.Size(116, 26);
             this.sensitivityLabel.Name = "sensitivityLabel";
-            this.sensitivityLabel.Size = new System.Drawing.Size(133, 28);
+            this.sensitivityLabel.Size = new System.Drawing.Size(116, 26);
             this.sensitivityLabel.TabIndex = 9;
             this.sensitivityLabel.Text = "Sensitivity";
             this.sensitivityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -141,33 +141,29 @@ namespace BSP_Using_AI.AITools.Details
             // specificityLabel
             // 
             this.specificityLabel.AutoSize = true;
-            this.specificityLabel.Location = new System.Drawing.Point(1219, 4);
-            this.specificityLabel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.specificityLabel.MaximumSize = new System.Drawing.Size(133, 0);
-            this.specificityLabel.MinimumSize = new System.Drawing.Size(133, 28);
+            this.specificityLabel.Location = new System.Drawing.Point(1067, 4);
+            this.specificityLabel.Margin = new System.Windows.Forms.Padding(4);
+            this.specificityLabel.MaximumSize = new System.Drawing.Size(116, 0);
+            this.specificityLabel.MinimumSize = new System.Drawing.Size(116, 26);
             this.specificityLabel.Name = "specificityLabel";
-            this.specificityLabel.Size = new System.Drawing.Size(133, 28);
+            this.specificityLabel.Size = new System.Drawing.Size(116, 26);
             this.specificityLabel.TabIndex = 10;
             this.specificityLabel.Text = "Specificity";
             this.specificityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.specificityLabel.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             // 
-            // thresholdTextBox
+            // updatetProgressBar
             // 
-            this.thresholdTextBox.Location = new System.Drawing.Point(371, 6);
-            this.thresholdTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.thresholdTextBox.MinimumSize = new System.Drawing.Size(132, 23);
-            this.thresholdTextBox.Name = "thresholdTextBox";
-            this.thresholdTextBox.Size = new System.Drawing.Size(132, 22);
-            this.thresholdTextBox.TabIndex = 12;
-            this.thresholdTextBox.TextChanged += new System.EventHandler(this.thresholdTextBox_TextChanged);
-            this.thresholdTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.thresholdTextBox_KeyPress);
+            this.updatetProgressBar.Location = new System.Drawing.Point(324, 7);
+            this.updatetProgressBar.Name = "updatetProgressBar";
+            this.updatetProgressBar.Size = new System.Drawing.Size(117, 23);
+            this.updatetProgressBar.TabIndex = 11;
             // 
             // ValidationFlowLayoutPanelUserControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.thresholdTextBox);
+            this.Controls.Add(this.updatetProgressBar);
             this.Controls.Add(this.specificityLabel);
             this.Controls.Add(this.sensitivityLabel);
             this.Controls.Add(this.algorithmTypeLabel);
@@ -176,9 +172,9 @@ namespace BSP_Using_AI.AITools.Details
             this.Controls.Add(this.trainingDatasetLabel);
             this.Controls.Add(this.datasetSizeLabel);
             this.Controls.Add(this.modelTargetLabel);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "ValidationFlowLayoutPanelUserControl";
-            this.Size = new System.Drawing.Size(1360, 37);
+            this.Size = new System.Drawing.Size(1190, 35);
             this.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -195,6 +191,6 @@ namespace BSP_Using_AI.AITools.Details
         public System.Windows.Forms.Label algorithmTypeLabel;
         public System.Windows.Forms.Label sensitivityLabel;
         public System.Windows.Forms.Label specificityLabel;
-        public System.Windows.Forms.TextBox thresholdTextBox;
+        private System.Windows.Forms.ProgressBar updatetProgressBar;
     }
 }

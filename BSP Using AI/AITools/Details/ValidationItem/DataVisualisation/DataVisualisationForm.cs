@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -14,29 +15,28 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
     {
         public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
-        string _ModelName;
-        string _ProblemName;
-        long _modelId;
-        string _stepName;
+        private ObjectiveBaseModel _objectiveModel;
 
-        private List<Sample> DataList;
+        private CustomArchiBaseModel _InnerObjectiveModel;
+
+        public ValidationFlowLayoutPanelUserControl _ValidationItemUserControl;
+
+        long _modelId;
+
+        private List<Sample> DataList { get; set; }
         private long _datasetSize;
 
-        bool _mouseDown = false;
-        int _previousMouseX;
-        int _previousMouseY;
         int _firstMouseX;
         int _firstMouseY;
 
-        public DataVisualisationForm(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, string modelName, string problemName, long modelId, string stepName, List<Sample> dataList, long datasetSize)
+        public DataVisualisationForm(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, ObjectiveBaseModel objectiveModel, CustomArchiBaseModel innerObjectiveModel, long modelId, List<Sample> dataList, long datasetSize)
         {
             InitializeComponent();
 
             _objectivesModelsDic = objectivesModelsDic;
-            _ModelName = modelName;
-            _ProblemName = problemName;
+            _objectiveModel = objectiveModel;
+            _InnerObjectiveModel = innerObjectiveModel;
             _modelId = modelId;
-            _stepName = stepName;
             DataList = dataList;
             _datasetSize = datasetSize;
 

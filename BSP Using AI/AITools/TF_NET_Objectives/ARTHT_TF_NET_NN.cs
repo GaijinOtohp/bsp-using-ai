@@ -64,7 +64,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                 TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepName], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName]).BaseModel, dataLists[stepName], null, saveModel: true);
             }
             else
-                foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
+                foreach (string stepNa in dataLists.Keys)
                 {
                     // Fit features in model
                     TF_NET_NN.fit(arthtModels.ARTHTModelsDic[stepNa], ((TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepNa]).BaseModel,
@@ -140,6 +140,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
         public static TFNETNeuralNetworkModel createTFNETNeuralNetModel(string name, string path, int inputDim, int outputDim)
         {
             TFNETNeuralNetworkModel model = new TFNETNeuralNetworkModel(path, inputDim, outputDim) { Name = name };
+            if (name.Equals(ARTHTNamings.Step1RPeaksScanData) || name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || name.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                model.Type = ObjectiveType.Regression;
+            else
+                model.Type = ObjectiveType.Classification;
 
             model.BaseModel.Session = createTFNETNeuralNetModelSession(inputDim, outputDim);
 

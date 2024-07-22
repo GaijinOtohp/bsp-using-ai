@@ -21,8 +21,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         public class ValidationData
         {
             [DataMember]
-            public string AlgorithmType { get; set; }
-            [DataMember]
             public int _datasetSize { get; set; }
             [DataMember]
             public double _trainingDatasetSize { get; set; }
@@ -38,7 +36,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public ValidationData Clone()
             {
                 ValidationData validationData = new ValidationData();
-                validationData.AlgorithmType = AlgorithmType;
                 validationData._datasetSize = _datasetSize;
                 validationData._trainingDatasetSize = _trainingDatasetSize;
                 validationData._validationDatasetSize = _validationDatasetSize;
@@ -68,12 +65,20 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             }
         }
 
+        public enum ObjectiveType
+        {
+            Classification,
+            Regression
+        }
+
         [Serializable]
         [DataContract(IsReference = true)]
         public class CustomArchiBaseModel
         {
             [DataMember]
             public string Name { get; set; }
+            [DataMember]
+            public ObjectiveType Type { get; set; }
             [DataMember]
             public bool _pcaActive { get; set; } = false;
             [DataMember]
@@ -92,6 +97,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 CustomArchiBaseModel baseArchiModelClone = CreateCloneInstance();
 
                 baseArchiModelClone.Name = Name;
+                baseArchiModelClone.Type = Type;
                 baseArchiModelClone._pcaActive = _pcaActive;
 
                 foreach (PCAitem pcLoadingScores in PCA)

@@ -16,16 +16,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 {
     public partial class DatasetExplorerForm
     {
-        public List<Sample> GetTrainingSamples(DataTable dataTable)
+        public static Dictionary<string, List<Sample>> GetPreviousTrainingSamples(DataTable dataTable)
         {
-            int fitProgress = 0;
-            int tolatFitProgress = dataTable.Rows.Count;
-            string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
-
-            // Initialize the reinforcement learning environment
-            CWD_RL cwdRL = new CWD_RL();
-
-            // Get previously learned data
             DbStimulator dbStimulator = new DbStimulator();
             DataTable previousDataDataTable = dbStimulator.Query("cwd_rl_dataset",
                                 new string[] { "sginal_data_key", "training_data" },
@@ -38,7 +30,29 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 previousDataDict.Add(row.Field<string>("sginal_data_key"), GeneralTools.ByteArrayToObject<Data>(row.Field<byte[]>("training_data")));
 
             // Create the training samples list
-            List<Sample> trainingSamplesList = new List<Sample>(dataTable.Rows.Count * 10);
+            Dictionary<string, List<Sample>> trainingSamplesListsDict = new Dictionary<string, List<Sample>>(dataTable.Rows.Count * 10);
+
+            foreach (DataRow row in dataTable.AsEnumerable())
+            {
+                string signalDataKey = row.Field<string>("sginal_name") + row.Field<long>("starting_index");
+                if (previousDataDict.ContainsKey(signalDataKey))
+                    trainingSamplesListsDict.Add(signalDataKey, previousDataDict[signalDataKey].Samples);
+            }
+
+            return trainingSamplesListsDict;
+        }
+
+        public List<Sample> GetTrainingSamples(DataTable dataTable)
+        {
+            int fitProgress = 0;
+            int tolatFitProgress = dataTable.Rows.Count;
+            string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
+
+            // Initialize the reinforcement learning environment
+            CWD_RL cwdRL = new CWD_RL();
+
+            // Get previously learned data
+            Dictionary<string, List<Sample>> trainingSamplesListsDict = GetPreviousTrainingSamples(dataTable);
 
             foreach (DataRow row in dataTable.AsEnumerable())
             {
@@ -54,11 +68,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     }, "AIToolsForm");
                 // Check if current signal is already learned before
                 string signalDataKey = row.Field<string>("sginal_name") + row.Field<long>("starting_index");
-                if (previousDataDict.ContainsKey(signalDataKey))
-                {
-                    trainingSamplesList.AddRange(previousDataDict[signalDataKey].Samples);
+                if (trainingSamplesListsDict.ContainsKey(signalDataKey))
                     continue;
-                }
 
                 // Learn the new signal
                 int samplingRate = (int)(row.Field<long>("sampling_rate"));
@@ -68,9 +79,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
                 Data newSignalData = cwdRL.FitRLData(signalSamples, samplingRate, annoData);
                 // Append the new siganl data into trainingSamplesList
-                trainingSamplesList.AddRange(newSignalData.Samples);
+                trainingSamplesListsDict.Add(signalDataKey, newSignalData.Samples);
 
                 // Save the new signal data into cwd_rl_dataset
+                DbStimulator dbStimulator = new DbStimulator();
                 Thread dbStimulatorThread = new Thread(() => dbStimulator.Insert("cwd_rl_dataset",
                                         new string[] { "sginal_data_key", "training_data" },
                                         new object[] { signalDataKey, GeneralTools.ObjectToByteArray(newSignalData) },
@@ -78,7 +90,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 dbStimulatorThread.Start();
             }
 
-            return trainingSamplesList;
+            return trainingSamplesListsDict.SelectMany(dictPair => dictPair.Value).ToList();
         }
 
         public void holdRecordReport_CWDReinforcementL(DataTable dataTable, string callingClassName)

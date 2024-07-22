@@ -126,7 +126,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
         {
             int modelSequenceLength = 10;
             int layers = 1;
-            TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, modelSequenceLength, layers: layers) { Name = name };
+            TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, modelSequenceLength, layers: layers) { Name = name, Type = ObjectiveType.Classification };
 
             model.BaseModel.Session = TF_NET_LSTM.LSTMSession(inputDim, outputDim, modelSequenceLength, false, layers);
 
@@ -158,6 +158,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
         private void UpdateThresholds(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences)
         {
+            if (dataListSequences.Count == 0)
+                return;
+
             // Set the high and low outputs averaged to zeros
             for (int iOutput = 0; iOutput < lstmModel.BaseModel._outputDim; iOutput++)
             {

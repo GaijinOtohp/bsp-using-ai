@@ -22,7 +22,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 return;
 
             // Qurey for signals features in all last selected intervals from dataset
-            (string selection, object[] selectionArgs) = SelectDataFromIntervals(null, null);
+            (string selection, object[] selectionArgs) = SelectDataFromIntervals(_objectiveModel.DataIdsIntervalsList[_objectiveModel.DataIdsIntervalsList.Count - 1], null, null);
 
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.bindToRecordsDbStimulatorReportHolder(this);

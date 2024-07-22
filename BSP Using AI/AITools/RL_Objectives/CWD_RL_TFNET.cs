@@ -103,7 +103,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
         public static TFNETReinforcementL createTFNETRLModel(string name, string path, int inputDim, int outputDim)
         {
-            TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim) { Name = name };
+            TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim) { Name = name, Type = ObjectiveType.Regression };
 
             model.BaseModel.Session = createTFNETNeuralNetModelSession(inputDim, outputDim);
 

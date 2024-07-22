@@ -1,5 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
 using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using BSP_Using_AI.Database;
 using System;
@@ -8,100 +9,161 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
 namespace BSP_Using_AI.AITools.Details
 {
-    public partial class ValidationFlowLayoutPanelUserControl : UserControl, DbStimulatorReportHolder
+    public partial class ValidationFlowLayoutPanelUserControl : UserControl, DbStimulatorReportHolder, AIBackThreadReportHolder
     {
-        float[] OutputsThresholds;
+        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
-        public ValidationFlowLayoutPanelUserControl(float[] outputsThresholds)
+        private ObjectiveBaseModel _objectiveModel;
+
+        private CustomArchiBaseModel _InnerObjectiveModel;
+
+        public ValidationFlowLayoutPanelUserControl(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, ObjectiveBaseModel objectiveModel, CustomArchiBaseModel innerObjectiveModel)
         {
             InitializeComponent();
 
-            OutputsThresholds = outputsThresholds;
+            _objectivesModelsDic = objectivesModelsDic;
+            _objectiveModel = objectiveModel;
+            _InnerObjectiveModel = innerObjectiveModel;
         }
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
-        private void thresholdTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
-        }
-
-        private void thresholdTextBox_TextChanged(object sender, EventArgs e)
-        {
-            if (thresholdTextBox.Text.Length > 0)
-                for (int i = 0; i < OutputsThresholds.Length; i++)
-                    OutputsThresholds[i] = float.Parse(thresholdTextBox.Text);
-        }
-
         private void ValidationFlowLayoutPanelUserControl_Click(object sender, EventArgs e)
         {
-            queryForSelectedDataset(((DetailsForm)this.FindForm())._objectiveModel.DataIdsIntervalsList, this);
+            // Qurey for signals features in all last selected intervals from dataset
+            List<IdInterval> allDataIdsIntervalsList = new List<IdInterval>();
+            foreach (List<IdInterval> trainingIntervalsList in _objectiveModel.DataIdsIntervalsList)
+                allDataIdsIntervalsList.AddRange(trainingIntervalsList);
+
+            // Check which objective is this data for
+            if (_objectiveModel is ARTHTModels)
+                queryForSelectedDataset_ARTHT(allDataIdsIntervalsList);
+            else if (_objectiveModel is CWDReinforcementL || (_objectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETReinforcementL))
+                queryForSelectedDataset_CWD(allDataIdsIntervalsList, "CWDReinforcementL");
+            else if (_objectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETLSTMModel)
+                queryForSelectedDataset_CWD(allDataIdsIntervalsList, "CWDLSTM");
         }
 
-        public static void queryForSelectedDataset(List<List<IdInterval>> dataIdsIntervalsList, DbStimulatorReportHolder dbStimulatorReportHolder)
+        public void queryForSelectedDataset_ARTHT(List<IdInterval> allDataIdsIntervalsList)
         {
-            // Qurey for signals features in all selected intervals from dataset
-            string selection = "_id>=? and _id<=?";
-            int intervalsNum = 1;
-            foreach (List<IdInterval> training in dataIdsIntervalsList)
-                intervalsNum += training.Count;
-            object[] selectionArgs = new object[intervalsNum * 2];
-            intervalsNum = 0;
-            selectionArgs[intervalsNum] = 0;
-            selectionArgs[intervalsNum + 1] = 0;
-            foreach (List<IdInterval> training in dataIdsIntervalsList)
-                foreach (IdInterval datasetInterval in training)
-                {
-                    intervalsNum += 2;
-                    selection += " or _id>=? and _id<=?";
-                    selectionArgs[intervalsNum] = datasetInterval.starting;
-                    selectionArgs[intervalsNum + 1] = datasetInterval.ending;
-                }
+            (string selection, object[] selectionArgs) = DatasetExplorerForm.SelectDataFromIntervals(allDataIdsIntervalsList, null, null);
 
             DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.bindToRecordsDbStimulatorReportHolder(dbStimulatorReportHolder);
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
             Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
                                         new String[] { "features" },
                                         selection,
                                         selectionArgs,
-                                        "", "ValidationFlowLayoutPanelUserControl"));
+                                        "", "ValidationFlowLayoutPanelUserControl_ARTHT"));
+            dbStimulatorThread.Start();
+        }
+
+        public void queryForSelectedDataset_CWD(List<IdInterval> allDataIdsIntervalsList, string modelType)
+        {
+            (string selection, object[] selectionArgs) = DatasetExplorerForm.SelectDataFromIntervals(allDataIdsIntervalsList,
+                                                                                     "and anno_objective=?", new object[] { CharacteristicWavesDelineation.ObjectiveName });
+
+            DbStimulator dbStimulator = new DbStimulator();
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("anno_ds",
+                                        new string[] { "sginal_name", "starting_index", "signal_data", "sampling_rate", "anno_data" },
+                                        selection,
+                                        selectionArgs,
+                                        "", "ValidationFlowLayoutPanelUserControl_" + modelType));
             dbStimulatorThread.Start();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
+
+        private List<Sample> SortDatasetSamples_ARTHT(DataTable dataTable)
+        {
+            List<Sample> dataList = new List<Sample>();
+
+            ARTHTFeatures aRTHTFeatures = null;
+            foreach (DataRow row in dataTable.AsEnumerable())
+            {
+                aRTHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
+
+                dataList.AddRange(aRTHTFeatures.StepsDataDic[_InnerObjectiveModel.Name].Samples);
+            }
+
+            return dataList;
+        }
+
+        private List<Sample> SortDatasetSamples_CWDReinforcementL(DataTable dataTable)
+        {
+            Dictionary<string, List<Sample>> trainingSamplesListsDict = DatasetExplorerForm.GetPreviousTrainingSamples(dataTable);
+
+            List<Sample> dataList = trainingSamplesListsDict.SelectMany(dictPair => dictPair.Value).ToList();
+
+            return dataList;
+        }
+
+        private List<Sample> SortDatasetSamples_CWDLSTM(DataTable dataTable)
+        {
+            List<List<Sample>> trainingDataListSequences = DatasetExplorerForm.BuildLSTMTrainingSequences(dataTable, ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
+
+            List<Sample> dataList = trainingDataListSequences.SelectMany(sequenceList => sequenceList).ToList();
+
+            return dataList;
+        }
+
         public void holdRecordReport(DataTable dataTable, string callingClassName)
         {
-            if (!callingClassName.Equals("ValidationFlowLayoutPanelUserControl"))
+            if (!callingClassName.Contains("ValidationFlowLayoutPanelUserControl"))
                 return;
 
             // Initialize list of features for selected step
             List<Sample> dataList = new List<Sample>();
             long datasetSize = dataTable.Rows.Count;
 
-            // Get features of only the selected step
-            string stepName = Name;
-
-            // Iterate through each signal features and sort them in featuresLists
-            ARTHTFeatures aRTHTFeatures = null;
-            foreach (DataRow row in dataTable.AsEnumerable())
-            {
-                aRTHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
-
-                foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
-                    dataList.Add(sample);
-            }
+            // Get features of only the selected inner model
+            if (callingClassName.Contains("ARTHT"))
+                dataList = SortDatasetSamples_ARTHT(dataTable);
+            else if (callingClassName.Contains("CWDReinforcementL"))
+                dataList = SortDatasetSamples_CWDReinforcementL(dataTable);
+            else if (callingClassName.Contains("CWDLSTM"))
+                dataList = SortDatasetSamples_CWDLSTM(dataTable);
 
             // Send data to DataVisualisationForm
-            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(((DetailsForm)this.FindForm())._tFBackThread._objectivesModelsDic,
-                                                                                    ((DetailsForm)this.FindForm())._objectiveModel.ModelName, ((DetailsForm)this.FindForm())._objectiveModel.ObjectiveName,
-                                                                                    ((DetailsForm)this.FindForm())._modelId, stepName, dataList, datasetSize);
+            DataVisualisationForm dataVisualisationForm = new DataVisualisationForm(_objectivesModelsDic,
+                                                                                    _objectiveModel, _InnerObjectiveModel,
+                                                                                    ((DetailsForm)this.FindForm())._modelId, dataList, datasetSize);
+            dataVisualisationForm._ValidationItemUserControl = this;
             dataVisualisationForm.stepLabel.Text = modelTargetLabel.Text;
             this.Invoke(new MethodInvoker(delegate () { dataVisualisationForm.Show(); }));
+        }
+
+        public void holdAIReport(AIReport report, string callingClassName)
+        {
+            // Check if this is fitting progress report
+            if (report.ReportType == AIReportType.FittingProgress)
+            {
+                // If yes then refresh progress bar of the selected model
+                FittingProgAIReport progReport = (FittingProgAIReport)report;
+                this.Invoke(new MethodInvoker(delegate () { updatetProgressBar.Maximum = progReport.fitMaxProgress; }));
+                this.Invoke(new MethodInvoker(delegate () { updatetProgressBar.Value = progReport.fitProgress; }));
+            }
+            else if (report.ReportType == AIReportType.FittingComplete)
+            {
+                FittingCompAIReport compReport = (FittingCompAIReport)report;
+                if (compReport.datasetSize == -1)
+                {
+                    // If yes then this is from PCA analysis, then just set the progress bar to its maximum
+                    this.Invoke(new MethodInvoker(delegate () { updatetProgressBar.Maximum = 1; }));
+                    this.Invoke(new MethodInvoker(delegate () { updatetProgressBar.Value = 1; }));
+                }
+            }
         }
     }
 }

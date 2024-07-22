@@ -13,6 +13,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -36,7 +37,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         public EigenVectorItem[] EigenVector; // PC loading scores
 
         [DataMember]
-        public bool _selected = true;
+        public bool _selected = false;
 
         public PCAitem Clone()
         {
@@ -143,72 +144,18 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private void saveChangesButton_Click(object sender, EventArgs e)
         {
-            ARTHTModels arthtModels = (ARTHTModels)_objectivesModelsDic[_ModelName + _ProblemName];
-            // Remove previous selection of eigenvectors
-            arthtModels.ARTHTModelsDic[_stepName].PCA.Clear();
-            // Save selected eigenvectors in _pcLoadingScoresArray
-            foreach (PCAitem pcaItem in PCA)
-                arthtModels.ARTHTModelsDic[_stepName].PCA.Add(pcaItem.Clone());
+            // Qurey for signals features in all last selected intervals from dataset
+            List<IdInterval> allDataIdsIntervalsList = new List<IdInterval>();
+            foreach (List<IdInterval> trainingIntervalsList in _objectiveModel.DataIdsIntervalsList)
+                allDataIdsIntervalsList.AddRange(trainingIntervalsList);
 
-            // Update model in models table with the new eigenvectors
-            DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.Update("models", new string[] { "the_model" },
-                new Object[] { GeneralTools.ObjectToByteArray(arthtModels.Clone()) }, _modelId, "PCADataVis");
-
-            // Update the model
-            // Initialize features lists
-            Dictionary<string, List<Sample>> dataLists = new Dictionary<string, List<Sample>>();
-            dataLists.Add(_stepName, DataList);
-
-            // Send features for fitting
-            // Search for AIToolsForm
-            AIToolsForm aIToolsForm = null;
-            if (Application.OpenForms.OfType<AIToolsForm>().Count() == 1)
-                aIToolsForm = Application.OpenForms.OfType<AIToolsForm>().First();
-            // Check which model is selected
-            if (_ModelName.Equals(KerasNETNeuralNetworkModel.ModelName))
-            {
-                // This is for neural network
-                aIToolsForm._tFBackThread._queue.Enqueue(new QueueSignalInfo()
-                {
-                    TargetFunc = "fit",
-                    CallingClass = "PCADataVis",
-                    ModelsName = _ModelName + _ProblemName,
-                    DataLists = dataLists,
-                    _datasetSize = _datasetSize,
-                    _modelId = _modelId,
-                    StepName = _stepName
-                });
-                aIToolsForm._tFBackThread._signal.Set();
-            }
-            else if (_ModelName.Equals(KNNModel.ModelName))
-            {
-                // This is for knn
-                ARTHT_KNN kNNBackThread = new ARTHT_KNN(_objectivesModelsDic, aIToolsForm);
-                Thread knnThread = new Thread(() => kNNBackThread.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
-                knnThread.Start();
-            }
-            else if (_ModelName.Equals(NaiveBayesModel.ModelName))
-            {
-                // This is for naive bayes TF_NET_KERAS_NN
-                ARTHT_NaiveBayes naiveBayesBackThread = new ARTHT_NaiveBayes(_objectivesModelsDic, aIToolsForm);
-                Thread nbThread = new Thread(() => naiveBayesBackThread.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
-                nbThread.Start();
-            }
-            else if (_ModelName.Equals(TFNETNeuralNetworkModel.ModelName))
-            {
-                // This is for Tensorflow.Net Neural Networks models
-                ARTHT_TF_NET_NN tf_NET_NN = new ARTHT_TF_NET_NN(_objectivesModelsDic, aIToolsForm);
-                Thread tfNetThread = new Thread(() => tf_NET_NN.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
-                tfNetThread.Start();
-            }
-            else if (_ModelName.Equals(TFKerasNeuralNetworkModel.ModelName))
-            {
-                // This is for Tensorflow.Keras Neural Networks models
-                TF_KERAS_NN tf_Keras_NN = new TF_KERAS_NN(_objectivesModelsDic, aIToolsForm);
-                Thread tfKerasThread = new Thread(() => tf_Keras_NN.fit(_ModelName + _ProblemName, dataLists, _datasetSize, _modelId, _stepName));
-                tfKerasThread.Start();
-            }
+            // Check which objective is this data for
+            if (_objectiveModel is ARTHTModels)
+                queryForSelectedDataset_ARTHT(allDataIdsIntervalsList);
+            else if (_objectiveModel is CWDReinforcementL || (_objectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETReinforcementL))
+                queryForSelectedDataset_CWD(allDataIdsIntervalsList, "CWDReinforcementL");
+            else if (_objectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETLSTMModel)
+                queryForSelectedDataset_CWD(allDataIdsIntervalsList, "CWDLSTM");
         }
 
         //*******************************************************************************************************//
@@ -243,12 +190,12 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             pcaChart.Refresh();
 
             // Check the previously selected PCs
-            /*for (int i = 0; i < ((ARTHTModels)_objectivesModelsDic[_ModelName + _ProblemName]).ARTHTModelsDic[_stepName].PCA.Count; i++)
+            for (int i = 0; i < _InnerObjectiveModel.PCA.Count; i++)
             {
-                PCAitem pcaItem = ((ARTHTModels)_objectivesModelsDic[_ModelName + _ProblemName]).ARTHTModelsDic[_stepName].PCA[i];
+                PCAitem pcaItem = _InnerObjectiveModel.PCA[i];
                 if (pcaItem._selected)
                     ((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked = true;
-            }*/
+            }
         }
 
         private void pcaCheckBox_CheckedChanged(object sender, EventArgs e)

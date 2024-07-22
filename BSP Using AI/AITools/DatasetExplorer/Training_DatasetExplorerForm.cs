@@ -19,11 +19,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         public int _updatesNum;
         public AIToolsForm _aIToolsForm;
 
-        private (string selection, object[] selectionArgs) SelectDataFromIntervals(string appendSelection, object[] appendSelArgs)
+        public static (string selection, object[] selectionArgs) SelectDataFromIntervals(List<IdInterval> dataIdsIntervalsList, string appendSelection, object[] appendSelArgs)
         {
             if (appendSelArgs == null)
                 appendSelArgs = new object[0];
-            List<IdInterval> dataIdsIntervalsList = _objectiveModel.DataIdsIntervalsList[_objectiveModel.DataIdsIntervalsList.Count - 1];
             
             int totalIntervals = 1;
             if (dataIdsIntervalsList.Count > 0)

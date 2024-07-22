@@ -1,6 +1,7 @@
 ﻿using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI;
 using BSP_Using_AI.AITools;
+using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.AITools.Details;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using BSP_Using_AI.Database;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
@@ -65,7 +67,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
                                                       dataLists[stepName], null);
             }
             else
-                foreach (string stepNa in arthtModels.ARTHTModelsDic.Keys)
+                foreach (string stepNa in dataLists.Keys)
                     KNN.fit((KNNModel)arthtModels.ARTHTModelsDic[stepNa], dataLists[stepNa], UpdateFittingProgress);
 
             // Update model in models table
@@ -144,13 +146,17 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             return tempModel;
         }
 
-        public static KNNModel createKNNModel(string name, int k, int outputNumber)
+        public static KNNModel createKNNModel(string name, int k, int outputDimension)
         {
             // Create a KNN model structure with the initial optimum K
             KNNModel model = new KNNModel { Name = name, k = k };
+            if (name.Equals(ARTHTNamings.Step1RPeaksScanData) || name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || name.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                model.Type = ObjectiveType.Regression;
+            else
+                model.Type = ObjectiveType.Classification;
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new OutputThresholdItem[outputNumber];
-            for (int i = 0; i < outputNumber; i++)
+            model.OutputsThresholds = new OutputThresholdItem[outputDimension];
+            for (int i = 0; i < outputDimension; i++)
                 model.OutputsThresholds[i] = new OutputThresholdItem();
 
             return model;
@@ -163,7 +169,19 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             _aRTHTModels = arthtModels;
 
             // Query for the selected dataset
-            ValidationFlowLayoutPanelUserControl.queryForSelectedDataset(arthtModels.DataIdsIntervalsList, this);
+            List<IdInterval> allDataIdsIntervalsList = new List<IdInterval>();
+            foreach (List<IdInterval> trainingIntervalsList in arthtModels.DataIdsIntervalsList)
+                allDataIdsIntervalsList.AddRange(trainingIntervalsList);
+            (string selection, object[] selectionArgs) = DatasetExplorerForm.SelectDataFromIntervals(allDataIdsIntervalsList, null, null);
+
+            DbStimulator dbStimulator = new DbStimulator();
+            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
+            Thread dbStimulatorThread = new Thread(() => dbStimulator.Query("dataset",
+                                        new String[] { "features" },
+                                        selection,
+                                        selectionArgs,
+                                        "", "ARTHT_KNN"));
+            dbStimulatorThread.Start();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://

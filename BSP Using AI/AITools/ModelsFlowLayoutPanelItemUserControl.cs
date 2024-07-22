@@ -78,7 +78,7 @@ namespace BSP_Using_AI.AITools
         private void detailsButton_Click(object sender, EventArgs e)
         {
             // Show details form and insert update details in trainingsDetailsListBox
-            DetailsForm detailsForm = new DetailsForm(_id, _objectiveModel, ((AIToolsForm)this.FindForm())._tFBackThread);
+            DetailsForm detailsForm = new DetailsForm(_objectivesModelsDic, _id, _objectiveModel, ((AIToolsForm)this.FindForm())._tFBackThread);
             detailsForm.Show();
             detailsForm.initializeForm();
         }

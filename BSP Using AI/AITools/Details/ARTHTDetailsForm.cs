@@ -291,8 +291,7 @@ namespace BSP_Using_AI.AITools.Details
                 }
 
                 // Insert new validation data in validationFlowLayoutPanel
-                insertValidatoinData(totalTrainingSize, totalValidationSize, accuracy, sensitivity, specificity, stepName);
-                refreshValidationData(stepName, false);
+                UpdateModelValidatoinData(totalTrainingSize, totalValidationSize, accuracy, sensitivity, specificity, stepName);
             }
         }
     }

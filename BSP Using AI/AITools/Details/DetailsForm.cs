@@ -26,20 +26,36 @@ namespace BSP_Using_AI.AITools.Details
     {
         public ARTHT_Keras_NET_NN _tFBackThread;
 
+        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
+
         public long _modelId;
-        public ObjectiveBaseModel _objectiveModel;
+        public ObjectiveBaseModel _ObjectiveModel;
+        public Dictionary<string, CustomArchiBaseModel> _InnerObjectiveModels;
 
-        Dictionary<string, float[]> OutputsThresholdsDic = new Dictionary<string, float[]>(7);
-
-        public DetailsForm(long modelId, ObjectiveBaseModel objectiveModel, ARTHT_Keras_NET_NN tFBackThread)
+        public DetailsForm(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, long modelId, ObjectiveBaseModel objectiveModel, ARTHT_Keras_NET_NN tFBackThread)
         {
             InitializeComponent();
 
+            _objectivesModelsDic = objectivesModelsDic;
+
             _modelId = modelId;
-            _objectiveModel = objectiveModel;
+            _ObjectiveModel = objectiveModel;
             _tFBackThread = tFBackThread;
 
-            this.Text = _objectiveModel.ModelName + _objectiveModel.ObjectiveName + " Details";
+            this.Text = _ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName + " Details";
+
+            // Get the models
+            _InnerObjectiveModels = new Dictionary<string, CustomArchiBaseModel>();
+            if (_ObjectiveModel is ARTHTModels arthtModels)
+                foreach (CustomArchiBaseModel baseModel in arthtModels.ARTHTModelsDic.Values)
+                    _InnerObjectiveModels.Add(baseModel.Name, baseModel);
+            else if (_ObjectiveModel is CWDReinforcementL cwdReinforcementL)
+                _InnerObjectiveModels.Add(cwdReinforcementL.CWDReinforcementLModel.Name, cwdReinforcementL.CWDReinforcementLModel);
+            else if (_ObjectiveModel is CWDLSTM cwdLSTM)
+            {
+                _InnerObjectiveModels.Add(cwdLSTM.CWDReinforcementLModel.Name, cwdLSTM.CWDReinforcementLModel);
+                _InnerObjectiveModels.Add(cwdLSTM.CWDLSTMModel.Name, cwdLSTM.CWDLSTMModel);
+            }
         }
 
         //*******************************************************************************************************//
@@ -72,87 +88,61 @@ namespace BSP_Using_AI.AITools.Details
 
         public void initializeForm()
         {
-            // Set previous validation data and copy thresholds
-            if (_objectiveModel is ARTHTModels)
-            {
-                ARTHTModels arthtModels = (ARTHTModels)_objectiveModel;
-                foreach (string stepName in arthtModels.ARTHTModelsDic.Keys)
-                {
-                    OutputsThresholdsDic.Add(stepName, (float[])arthtModels.ARTHTModelsDic[stepName].OutputsThresholds.Clone());
-                    refreshValidationData(stepName, false);
-                }
-            }
+            // Set previous validation data
+            refreshValidationData();
 
-            timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(_objectiveModel._validationTimeCompelxity) + ", " + _objectiveModel._ValidationInfo;
+            timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(_ObjectiveModel._validationTimeCompelxity) + ", " + _ObjectiveModel._ValidationInfo;
 
             // Query for all signals in dataset table
-            if (_objectiveModel is ARTHTModels)
+            if (_ObjectiveModel is ARTHTModels)
                 queryForSignals_ARTHT();
-            else if (_objectiveModel is CWDReinforcementL || _objectiveModel is CWDLSTM)
+            else if (_ObjectiveModel is CWDReinforcementL || _ObjectiveModel is CWDLSTM)
                 queryForSignals_Anno(CharacteristicWavesDelineation.ObjectiveName);
         }
 
-        private void refreshValidationData(string stepName, bool replace)
+        private void refreshValidationData()
         {
             // Insert new vallidation data in validationFlowLayoutPanel
-            ValidationFlowLayoutPanelUserControl validationFlowLayoutPanelUserControl = new ValidationFlowLayoutPanelUserControl(OutputsThresholdsDic[stepName]);
-            ValidationData validationData = null;
-            string accuracy = "", sensitivity = "", specificity = "", threshold = "";
+            validationFlowLayoutPanel.Controls.Clear();
+            double classifModelsCount = _InnerObjectiveModels.Values.Where(baseModel => baseModel.Type == ObjectiveType.Classification).Count();
+            double regrfModelsCount = _InnerObjectiveModels.Values.Where(baseModel => baseModel.Type == ObjectiveType.Regression).Count();
             double overallAccuracy = 0, overAllSensitivity = 0, overallSpecificity = 0, overallMASE = 0;
-            if (_objectiveModel is ARTHTModels arthtModels)
+            foreach (CustomArchiBaseModel innerObjectiveModel in _InnerObjectiveModels.Values)
             {
-                validationData = arthtModels.ARTHTModelsDic[stepName].ValidationData;
+                ValidationFlowLayoutPanelUserControl validationFlowLayoutPanelUserControl = new ValidationFlowLayoutPanelUserControl(_objectivesModelsDic, _ObjectiveModel, innerObjectiveModel);
+                ValidationData validationData = innerObjectiveModel.ValidationData;
+                string accuracy = "/", sensitivity = "/", specificity = "/";
 
-                if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                if (innerObjectiveModel.Type == ObjectiveType.Regression)
                 {
                     accuracy = Math.Round(validationData._accuracy, 4).ToString();
-                    validationFlowLayoutPanelUserControl.thresholdTextBox.Enabled = false;
-                    sensitivity = "/";
-                    specificity = "/";
+
+                    overallMASE += validationData._accuracy / regrfModelsCount;
                 }
                 else
                 {
                     accuracy = Math.Round(validationData._accuracy * 100, 2).ToString() + "%";
-                    threshold = arthtModels.ARTHTModelsDic[stepName].OutputsThresholds[0]._threshold.ToString();
+                    sensitivity = Math.Round(validationData._sensitivity * 100, 2).ToString() + "%";
+                    specificity = Math.Round(validationData._specificity * 100, 2).ToString() + "%";
+
+                    overallAccuracy += validationData._accuracy / classifModelsCount;
+                    overAllSensitivity += validationData._sensitivity / classifModelsCount;
+                    overallSpecificity += validationData._specificity / classifModelsCount;
                 }
 
-                foreach (CustomArchiBaseModel model in arthtModels.ARTHTModelsDic.Values)
-                {
-                    if (model.Name.Equals(ARTHTNamings.Step1RPeaksScanData) || model.Name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || model.Name.Equals(ARTHTNamings.Step6UpstrokesScanData))
-                        overallMASE += model.ValidationData._accuracy / 3;
-                    else
-                    {
-                        overallAccuracy += model.ValidationData._accuracy / 4;
-                        overAllSensitivity += model.ValidationData._sensitivity / 4;
-                        overallSpecificity += model.ValidationData._specificity / 4;
-                    }
-                }
-            }
-            validationFlowLayoutPanelUserControl.Name = stepName;
-            validationFlowLayoutPanelUserControl.modelTargetLabel.Text = stepName;
-            validationFlowLayoutPanelUserControl.algorithmTypeLabel.Text = validationData.AlgorithmType;
-            validationFlowLayoutPanelUserControl.datasetSizeLabel.Text = validationData._datasetSize.ToString();
-            validationFlowLayoutPanelUserControl.trainingDatasetLabel.Text = Math.Round(validationData._trainingDatasetSize, 2).ToString();
-            validationFlowLayoutPanelUserControl.validationDatasetLabel.Text = Math.Round(validationData._validationDatasetSize, 2).ToString();
+                validationFlowLayoutPanelUserControl.Name = innerObjectiveModel.Name;
+                validationFlowLayoutPanelUserControl.modelTargetLabel.Text = innerObjectiveModel.Name;
+                validationFlowLayoutPanelUserControl.algorithmTypeLabel.Text = innerObjectiveModel.Type.ToString();
+                validationFlowLayoutPanelUserControl.datasetSizeLabel.Text = validationData._datasetSize.ToString();
+                validationFlowLayoutPanelUserControl.trainingDatasetLabel.Text = Math.Round(validationData._trainingDatasetSize, 2).ToString();
+                validationFlowLayoutPanelUserControl.validationDatasetLabel.Text = Math.Round(validationData._validationDatasetSize, 2).ToString();
 
-            validationFlowLayoutPanelUserControl.sensitivityLabel.Text = Math.Round(validationData._sensitivity * 100, 2).ToString() + "%";
-            validationFlowLayoutPanelUserControl.specificityLabel.Text = Math.Round(validationData._specificity * 100, 2).ToString() + "%";
+                validationFlowLayoutPanelUserControl.accuracyLabel.Text = accuracy;
+                validationFlowLayoutPanelUserControl.sensitivityLabel.Text = sensitivity;
+                validationFlowLayoutPanelUserControl.specificityLabel.Text = specificity;
 
-            validationFlowLayoutPanelUserControl.accuracyLabel.Text = accuracy;
-            validationFlowLayoutPanelUserControl.sensitivityLabel.Text = sensitivity;
-            validationFlowLayoutPanelUserControl.specificityLabel.Text = specificity;
-            validationFlowLayoutPanelUserControl.thresholdTextBox.Text = threshold;
-
-            if (replace)
-                this.Invoke(new MethodInvoker(delegate ()
-                {
-                    int index = validationFlowLayoutPanel.Controls.IndexOfKey(stepName);
-                    validationFlowLayoutPanel.Controls.RemoveByKey(stepName);
-                    validationFlowLayoutPanel.Controls.Add(validationFlowLayoutPanelUserControl);
-                    validationFlowLayoutPanel.Controls.SetChildIndex(validationFlowLayoutPanelUserControl, index);
-                }));
-            else
                 this.Invoke(new MethodInvoker(delegate () { validationFlowLayoutPanel.Controls.Add(validationFlowLayoutPanelUserControl); }));
+            }
 
             // Insert overall accuracy, sensitivity, specificity, and mase in their controls
             this.Invoke(new MethodInvoker(delegate ()
@@ -164,11 +154,9 @@ namespace BSP_Using_AI.AITools.Details
             }));
         }
 
-        private void insertValidatoinData(double trainingSize, double validationSize, double accuracy, double sensitivity, double specificity, string stepName)
+        private void UpdateModelValidatoinData(double trainingSize, double validationSize, double accuracy, double sensitivity, double specificity, string baseModelName)
         {
-            ValidationData validationData = null;
-            if (_objectiveModel is ARTHTModels arthtModels)
-                validationData = arthtModels.ARTHTModelsDic[stepName].ValidationData;
+            ValidationData validationData = _InnerObjectiveModels[baseModelName].ValidationData;
 
             validationData._datasetSize = (int)(trainingSize + validationSize);
             validationData._trainingDatasetSize = trainingSize;
@@ -177,12 +165,7 @@ namespace BSP_Using_AI.AITools.Details
             validationData._sensitivity = sensitivity;
             validationData._specificity = specificity;
 
-            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
-            {
-                validationData.AlgorithmType = "Regression";
-            }
-            else
-                validationData.AlgorithmType = "Classification";
+            refreshValidationData();
         }
 
         private double[] askForPrediction(double[] features, string modelName, CustomArchiBaseModel model, string stepName)
@@ -273,14 +256,14 @@ namespace BSP_Using_AI.AITools.Details
             {
                 // Set final processing time
                 long processingTime = (DateTimeOffset.Now.ToUnixTimeMilliseconds() - _startingTime) / 1000;
-                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(processingTime) + ", " + _objectiveModel._ValidationInfo; }));
+                this.Invoke(new MethodInvoker(delegate () { timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(processingTime) + ", " + _ObjectiveModel._ValidationInfo; }));
                 // Insert it in _validationData
-                _objectiveModel._validationTimeCompelxity = processingTime;
+                _ObjectiveModel._validationTimeCompelxity = processingTime;
 
                 // Update validation data in models table
                 DbStimulator dbStimulator = new DbStimulator();
                 dbStimulator.Update("models", new string[] { "the_model" },
-                    new Object[] { GeneralTools.ObjectToByteArray(_objectiveModel.Clone()) }, _modelId, "DetailsForm");
+                    new Object[] { GeneralTools.ObjectToByteArray(_ObjectiveModel.Clone()) }, _modelId, "DetailsForm");
             }
             else
                 _timer.Change(TIME_INTERVAL_IN_MILLISECONDS, Timeout.Infinite);
@@ -293,23 +276,18 @@ namespace BSP_Using_AI.AITools.Details
             queryFeatures("DetailsFormForFeatures");
         }
 
-        private void optimizeThresholdsButton_Click(object sender, EventArgs e)
-        {
-            queryFeatures("DetailsFormForThresholds");
-        }
-
         private void queryFeatures(string callingClassName)
         {
             // Qurey for signals features in all selected intervals from dataset
             string selection = "_id>=? and _id<=?";
             int intervalsNum = 1;
-            foreach (List<IdInterval> training in _objectiveModel.DataIdsIntervalsList)
+            foreach (List<IdInterval> training in _ObjectiveModel.DataIdsIntervalsList)
                 intervalsNum += training.Count;
             object[] selectionArgs = new object[intervalsNum * 2];
             intervalsNum = 0;
             selectionArgs[intervalsNum] = 0;
             selectionArgs[intervalsNum + 1] = 0;
-            foreach (List<IdInterval> training in _objectiveModel.DataIdsIntervalsList)
+            foreach (List<IdInterval> training in _ObjectiveModel.DataIdsIntervalsList)
                 foreach (IdInterval datasetInterval in training)
                 {
                     intervalsNum += 2;
@@ -328,25 +306,6 @@ namespace BSP_Using_AI.AITools.Details
             dbStimulatorThread.Start();
         }
 
-        private void saveChangesButton_Click(object sender, EventArgs e)
-        {
-            // Get new thresholds from OutputsThresholdsDic
-            if (_objectiveModel is ARTHTModels arthtModels)
-                foreach (string stepName in OutputsThresholdsDic.Keys)
-                    for (int i = 0; i < OutputsThresholdsDic[stepName].Length; i++)
-                        arthtModels.ARTHTModelsDic[stepName].OutputsThresholds[i]._threshold = (double)OutputsThresholdsDic[stepName][i];
-
-            // Now save _outputThresholds in database
-            DbStimulator dbStimulator = new DbStimulator();
-            dbStimulator.bindToRecordsDbStimulatorReportHolder(this);
-            Thread dbStimulatorThread = new Thread(() => dbStimulator.Update("models",
-                                        new String[] { "the_model" },
-                                        new object[] { GeneralTools.ObjectToByteArray(_objectiveModel.Clone()) },
-                                        _modelId,
-                                        "DetailsForm"));
-            dbStimulatorThread.Start();
-        }
-
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
         //:::::::::::::::::::::::::::CROSS PROCESS FORM FUNCTIONS (INTERFACES)::::::::::::::::::::::://
         public void holdRecordReport(DataTable dataTable, string callingClassName)
@@ -361,9 +320,9 @@ namespace BSP_Using_AI.AITools.Details
                     // Show dataset signals and updates values
                     // Set updates iterations
                     // Iterate through each training update
-                    long[] updatesDatasetSize = new long[_objectiveModel.DataIdsIntervalsList.Count];
+                    long[] updatesDatasetSize = new long[_ObjectiveModel.DataIdsIntervalsList.Count];
                     int updateListIndex;
-                    for (int i = 0; i < _objectiveModel.DataIdsIntervalsList.Count; i++)
+                    for (int i = 0; i < _ObjectiveModel.DataIdsIntervalsList.Count; i++)
                     {
                         DatasetFlowLayoutPanelItem2UserControl datasetFlowLayoutPanelItem2UserControl = new DatasetFlowLayoutPanelItem2UserControl();
                         datasetFlowLayoutPanelItem2UserControl.Name = "trainingUpdate" + i;
@@ -382,9 +341,9 @@ namespace BSP_Using_AI.AITools.Details
                     foreach (DataRow row in rowsList)
                     {
                         // Check which update does this signal belong to
-                        for (int i = 0; i < _objectiveModel.DataIdsIntervalsList.Count; i++)
+                        for (int i = 0; i < _ObjectiveModel.DataIdsIntervalsList.Count; i++)
                         {
-                            List<IdInterval> training = _objectiveModel.DataIdsIntervalsList[i];
+                            List<IdInterval> training = _ObjectiveModel.DataIdsIntervalsList[i];
                             foreach (IdInterval datasetInterval in training)
                             {
                                 if (row.Field<long>("_id") >= datasetInterval.starting && row.Field<long>("_id") <= datasetInterval.ending)
@@ -402,7 +361,7 @@ namespace BSP_Using_AI.AITools.Details
                                     this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Add(datasetFlowLayoutPanelItemUserControl); }));
 
                                     // Set the signal to the correct update list
-                                    if (i < _objectiveModel.DataIdsIntervalsList.Count - 1)
+                                    if (i < _ObjectiveModel.DataIdsIntervalsList.Count - 1)
                                     {
                                         updateListIndex = signalsFlowLayoutPanel.Controls.GetChildIndex(signalsFlowLayoutPanel.Controls.Find("trainingUpdate" + (i + 1), false)[0]);
                                         this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.SetChildIndex(datasetFlowLayoutPanelItemUserControl, updateListIndex); }));
@@ -420,37 +379,6 @@ namespace BSP_Using_AI.AITools.Details
                         this.Invoke(new MethodInvoker(delegate () { ((DatasetFlowLayoutPanelItem2UserControl)signalsFlowLayoutPanel.Controls.Find("trainingUpdate" + i, false)[0]).trainingUpdateLabel.Text += " (" + updatesDatasetSize[i] + ")"; }));
                         this.Invoke(new MethodInvoker(delegate () { trainingsDetailsListBox.Items.Add((i + 1) + ". " + updatesDatasetSize[i] + " signal"); }));
                     }
-                }
-                else if (callingClassName.Equals("DetailsFormForThresholds"))
-                {
-                    // Count the ones of the outputs for each classification step
-                    foreach (string stepName in OutputsThresholdsDic.Keys)
-                        if (stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData) || stepName.Equals(ARTHTNamings.Step4PTSelectionData) ||
-                            stepName.Equals(ARTHTNamings.Step5ShortPRScanData) || stepName.Equals(ARTHTNamings.Step7DeltaExaminationData))
-                        {
-                            float[] ones = new float[OutputsThresholdsDic[stepName].Length];
-                            float allPoss = 0f;
-
-                            foreach (DataRow row in dataTable.AsEnumerable())
-                            {
-                                ARTHTFeatures aRTHTFeatures = GeneralTools.ByteArrayToObject<ARTHTFeatures>(row.Field<byte[]>("features"));
-
-                                foreach (Sample sample in aRTHTFeatures.StepsDataDic[stepName].Samples)
-                                {
-                                    double[] outputs = sample.getOutputs();
-                                    for (int i = 0; i < outputs.Length; i++)
-                                        ones[i] += (float)outputs[i];
-                                    allPoss++;
-                                }
-                            }
-
-                            // Calculate new threshold
-                            for (int i = 0; i < ones.Length; i++)
-                                ones[i] = ones[i] / allPoss > 0 ? (ones[i] / allPoss < 1 ? ones[i] / allPoss : 0.5f) : 0.5f;
-                            // Update _outputThresholds with the new thresholds
-                            OutputsThresholdsDic[stepName] = ones;
-                            refreshValidationData(stepName, true);
-                        }
                 }
                 else if (callingClassName.Equals("DetailsFormForFeatures"))
                 {
@@ -473,7 +401,7 @@ namespace BSP_Using_AI.AITools.Details
             // Clear validationFlowLayoutPanel
             this.Invoke(new MethodInvoker(delegate () { EventHandlers.fastClearFlowLayout(ref validationFlowLayoutPanel); }));
             // Set validation info
-            _objectiveModel._ValidationInfo = validationInfo;
+            _ObjectiveModel._ValidationInfo = validationInfo;
 
             // Check if data is sufficient
             bool showError = false;
@@ -487,7 +415,7 @@ namespace BSP_Using_AI.AITools.Details
                 return;
             }
 
-            if (_objectiveModel is ARTHTModels arthtModels)
+            if (_ObjectiveModel is ARTHTModels arthtModels)
                 ARTHRValidateModel(valModelsData, arthtModels);
         }
     }

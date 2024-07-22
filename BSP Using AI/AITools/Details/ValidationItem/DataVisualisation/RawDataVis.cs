@@ -157,7 +157,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             else
             {
                 // Check if the selected model is for classification
-                if (1 == 1)
+                if (1 == 2)
                 {
                     // If yes then create yAxisVals and xAxisVals of each selected output
                     foreach (RawVisItemUserControl rawVisItemUserControl in outputFlowLayoutPanel.Controls)

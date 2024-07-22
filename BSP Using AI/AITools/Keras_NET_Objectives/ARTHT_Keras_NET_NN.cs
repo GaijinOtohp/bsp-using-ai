@@ -81,14 +81,15 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
                             initializeNeuralNetworkModelsForWPW(item.aRTHTModels);
                             break;
                         case "Close":
-                            List<ObjectiveBaseModel> arthtModels = _objectivesModelsDic.Values.ToList();
-                            for (int i = 0; i < arthtModels.Count; i++)
-                                if (((ARTHTModels)arthtModels[i]).ARTHTModelsDic.ElementAt(0).Value is KerasNETNeuralNetworkModel)
-                                {
-                                    List<CustomArchiBaseModel> neuralNetworkModels = ((ARTHTModels)arthtModels[i]).ARTHTModelsDic.Values.ToList();
-                                    for (int j = 0; j < neuralNetworkModels.Count; j++)
-                                        ((KerasNETNeuralNetworkModel)neuralNetworkModels[j]).Model.Dispose();
-                                }
+                            List<ObjectiveBaseModel> objectivesModels = _objectivesModelsDic.Values.ToList();
+                            for (int i = 0; i < objectivesModels.Count; i++)
+                                if (objectivesModels[i] is ARTHTModels arthtModels)
+                                    if (arthtModels.ARTHTModelsDic.ElementAt(0).Value is KerasNETNeuralNetworkModel)
+                                    {
+                                        List<CustomArchiBaseModel> neuralNetworkModels = arthtModels.ARTHTModelsDic.Values.ToList();
+                                        for (int j = 0; j < neuralNetworkModels.Count; j++)
+                                            ((KerasNETNeuralNetworkModel)neuralNetworkModels[j]).Model.Dispose();
+                                    }
                             return;
                     }
                 }
@@ -198,6 +199,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
         private KerasNETNeuralNetworkModel createNeuralNetModel(string name, string path, int input, int output)
         {
             KerasNETNeuralNetworkModel model = new KerasNETNeuralNetworkModel() { Name = name, ModelPath = path };
+            if (name.Equals(ARTHTNamings.Step1RPeaksScanData) || name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || name.Equals(ARTHTNamings.Step6UpstrokesScanData))
+                model.Type = ObjectiveType.Regression;
+            else
+                model.Type = ObjectiveType.Classification;
             Sequential sequential = new Sequential();
             // Start from the first hidden layer, since the input is not actually a layer   
             // but inform the shape of the input, with "input" elements.
