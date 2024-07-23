@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
@@ -157,7 +158,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             else
             {
                 // Check if the selected model is for classification
-                if (1 == 2)
+                if (_InnerObjectiveModel.Type == ObjectiveType.Classification)
                 {
                     // If yes then create yAxisVals and xAxisVals of each selected output
                     foreach (RawVisItemUserControl rawVisItemUserControl in outputFlowLayoutPanel.Controls)
