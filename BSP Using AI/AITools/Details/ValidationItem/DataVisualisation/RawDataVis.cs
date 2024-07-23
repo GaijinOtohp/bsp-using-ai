@@ -37,6 +37,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                         RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName + " (" + j + ")");
                         rawVisItemUserControl.Name = outputName;
                         rawVisItemUserControl.Tag = j;
+                        rawVisItemUserControl._ignoreEvent = true;
+                        if (j == 0)
+                            rawVisItemUserControl.outputCheckBox.Checked = false;
+                        rawVisItemUserControl._ignoreEvent = false;
 
                         // If yes then pick a different color number
                         Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));

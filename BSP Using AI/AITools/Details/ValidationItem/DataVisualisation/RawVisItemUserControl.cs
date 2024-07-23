@@ -5,6 +5,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     public partial class RawVisItemUserControl : UserControl
     {
+        public bool _ignoreEvent = false;
+
         public RawVisItemUserControl(string outputLabel)
         {
             InitializeComponent();
@@ -25,8 +27,9 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private void outputCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            // Refresh chart
-            ((DataVisualisationForm)this.FindForm()).refreshRawChart();
+            if (!_ignoreEvent)
+                // Refresh chart
+                ((DataVisualisationForm)this.FindForm()).refreshRawChart();
         }
     }
 }
