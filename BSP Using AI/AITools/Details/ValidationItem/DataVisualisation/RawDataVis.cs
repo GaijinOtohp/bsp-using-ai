@@ -31,7 +31,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 xInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
 
                 // If the selected model is for classification
-                if (1 == 1)
+                if (_InnerObjectiveModel.Type == ObjectiveType.Classification)
                     for (int j = 0; j < 2; j++)
                     {
                         RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName + " (" + j + ")");
