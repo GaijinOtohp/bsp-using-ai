@@ -260,5 +260,39 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             return hardSigmoid;
         }
+
+        public static Tensor GELU(Tensor input, string name = null)
+        {
+            // The GELU (Gaussian Error Linear Unit) equation equals:
+            // 0.5 * input * ( 1 + tanh [ sqrt ( 2 / pi ) * ( input + 0.044715 * pow ( input, 3 ) ) ] )
+
+            // Start with the middle equation
+            Tensor geluPow3 = tf.multiply(tf.multiply(tf.multiply(input, input), input), 0.044517f);
+            Tensor geluMidAdd = tf.add(input, geluPow3);
+            Tensor sqrtMul = tf.multiply(tf.sqrt(tf.multiply(2f, 1f / (float)Math.PI)), geluMidAdd);
+            Tensor outerTanh = tf.add(1f, tf.tanh(sqrtMul));
+            Tensor GELU = tf.multiply(tf.multiply(0.5f, input), outerTanh, name);
+
+            return GELU;
+        }
+
+        public static Tensor ELU(Tensor input, float alfa = 1, string name = null)
+        {
+            // The ELU (Exponential Linear Unit) equation equals:
+            // input                        ----- if ----> 0 < input
+            // alfa * ( exp ( input ) - 1 ) ----- if ----> input <= 0
+            // alfa: is a constante initialized to 1
+
+            // Create only the second equation
+            Tensor expELU = tf.multiply(alfa, tf.add(tf.exp(input), -1f));
+
+            // Now set the conditions
+            Tensor lowCondition = tf.less_equal(input, tf.constant(0f));
+
+            // Perform the conditions to lineartHS
+            Tensor ELU = tf.where(lowCondition, expELU, input, name);
+
+            return ELU;
+        }
     }
 }
