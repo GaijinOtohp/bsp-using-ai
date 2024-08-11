@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using static BSP_Using_AI.DetailsModify.FormDetailsModify;
-using static BSP_Using_AI.DetailsModify.FormDetailsModify.DWT;
+using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.DWT;
 
 namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
 {

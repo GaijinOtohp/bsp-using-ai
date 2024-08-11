@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Annotations;
+using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.Filters;
 using BSP_Using_AI.DetailsModify.FiltersControls;
@@ -17,8 +18,8 @@ using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
+using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
 using static Biological_Signal_Processing_Using_AI.Structures;
-using static BSP_Using_AI.DetailsModify.FormDetailsModify.CornersScanner;
 
 namespace BSP_Using_AI.DetailsModify
 {

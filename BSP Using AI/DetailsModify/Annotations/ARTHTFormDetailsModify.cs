@@ -1,7 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
-using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
-using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
+using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
 using Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.Filters;
@@ -39,7 +38,7 @@ namespace BSP_Using_AI.DetailsModify
             public static string DCRemoval = "DCRemoval";
             public static string Normalize = "Normalize";
             public static string Absolute = "Absolute";
-            public static string ExistanceDeclare = "ExistanceDeclare";
+            public static string ExistenceDeclare = "ExistenceDeclare";
             public static string IIRFilter = "IIRFilter";
             public static string DWT = "DWT";
             public static string PeaksAnalyzer = "PeaksAnalyzer";
@@ -748,7 +747,7 @@ namespace BSP_Using_AI.DetailsModify
                             // Make the form ready for next goal
                             _arthtFeatures._processedStep++;
                             // Add the check box of short PR declaration in filtersFlowLayoutPanel
-                            ExistanceDeclare existanceDeclare = new ExistanceDeclare(_FilteringTools, "Existance of short PR");
+                            ExistenceDeclare existanceDeclare = new ExistenceDeclare(_FilteringTools, "Existance of short PR");
                             existanceDeclare.InsertFilter(filtersFlowLayoutPanel);
                             // Show the first selected R
                             setNextBeat(_arthtFeatures.SignalBeats[0], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[0], null);
@@ -801,7 +800,7 @@ namespace BSP_Using_AI.DetailsModify
                             else
                                 shortPRScanSamp.insertOutput(0,
                                                              ARTHTNamings.ShortPR,
-                                                             ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare])._exists);
+                                                             ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare])._exists);
                             flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPR + ": " + shortPRScanSamp.getOutputByLabel(ARTHTNamings.ShortPR));
                         }
                         else
@@ -817,7 +816,7 @@ namespace BSP_Using_AI.DetailsModify
                         {
                             // If yes then set the next beat for segmentation
                             // Uncheck short PR declaration in filtersFlowLayoutPanel
-                            ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare]).SetExistance(false);
+                            ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare]).SetExistance(false);
                             // Refresh the apply button if autoApply is checked
                             setNextBeat(_arthtFeatures.SignalBeats[selectedBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[selectedBeatIndx], null);
 
@@ -829,7 +828,7 @@ namespace BSP_Using_AI.DetailsModify
                             // Make the form ready for next goal
                             _arthtFeatures._processedStep++;
                             // Remove the check box of short PR declaration in filtersFlowLayoutPanel
-                            _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
+                            _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare].RemoveFilter();
                             // Get short PR declaration step threshold from the model if prediction is activated
                             if (_predictionOn)
                                 threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0]._threshold;
@@ -963,7 +962,7 @@ namespace BSP_Using_AI.DetailsModify
                             // Make the form ready for next goal
                             _arthtFeatures._processedStep++;
                             // Add the check box of delta declaration in filtersFlowLayoutPanel
-                            ExistanceDeclare existanceDeclare = new ExistanceDeclare(_FilteringTools, "Existance of delta");
+                            ExistenceDeclare existanceDeclare = new ExistenceDeclare(_FilteringTools, "Existance of delta");
                             existanceDeclare.InsertFilter(filtersFlowLayoutPanel);
                             // Get number of declared short PR
                             shortPRBeatIndx = -1;
@@ -1037,7 +1036,7 @@ namespace BSP_Using_AI.DetailsModify
                             deltaExamSamp.insertOutputArray(new string[] { ARTHTNamings.WPWPattern }, askForPrediction_ARTHT(deltaExamSamp.getFeatures(), ARTHTNamings.Step7DeltaExaminationData));
                         else
                             deltaExamSamp.insertOutput(0, ARTHTNamings.WPWPattern,
-                                                       ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare])._exists);
+                                                       ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare])._exists);
                         flowLayoutItems02.DropDownItems.Add(ARTHTNamings.WPWPattern + ": " + deltaExamSamp.getOutputByLabel(ARTHTNamings.WPWPattern));
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
@@ -1055,7 +1054,7 @@ namespace BSP_Using_AI.DetailsModify
                         {
                             // If yes then set the next short PR beat
                             // Uncheck delta existance in filtersFlowLayoutPanel
-                            ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare]).SetExistance(false);
+                            ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare]).SetExistance(false);
                             setNextBeat(_arthtFeatures.SignalBeats[nextShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[nextShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step6UpstrokesScanData].Samples[featuresItems.DropDownItems.Count]);
 
                             // Give the instruction for next goal, and enable previous button
@@ -1234,7 +1233,7 @@ namespace BSP_Using_AI.DetailsModify
                         peaksAnalyzer._FilterControl.Enabled = false;
 
                         // Add the check box of delta declaration in filtersFlowLayoutPanel
-                        ExistanceDeclare existanceDeclare = new ExistanceDeclare(_FilteringTools, "Existance of delta");
+                        ExistenceDeclare existanceDeclare = new ExistenceDeclare(_FilteringTools, "Existance of delta");
                         existanceDeclare.InsertFilter(filtersFlowLayoutPanel);
 
                         // Enable next button
@@ -1260,7 +1259,7 @@ namespace BSP_Using_AI.DetailsModify
                         }
                     // Set the previous short PR beat
                     // Uncheck delta existance in filtersFlowLayoutPanel
-                    ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare]).SetExistance(false);
+                    ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare]).SetExistance(false);
                     setNextBeat(_arthtFeatures.SignalBeats[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step3BeatPeaksScanData].Samples[previousShortPRBeatIndx], _arthtFeatures.StepsDataDic[ARTHTNamings.Step6UpstrokesScanData].Samples[featuresItems.DropDownItems.Count]);
 
                     // Give the instruction for next goal, and enable previous button
@@ -1289,7 +1288,7 @@ namespace BSP_Using_AI.DetailsModify
                     if (featuresItems.DropDownItems.Count + 1 == shortPRNmbr)
                     {
                         // Remove the check box of delta declaration in filtersFlowLayoutPanel
-                        _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
+                        _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare].RemoveFilter();
                         // Enable peaks analyzer
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._FilterControl.Enabled = true;
                     }
@@ -1345,12 +1344,12 @@ namespace BSP_Using_AI.DetailsModify
                         ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).ActivateTDT(false);
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
 
-                        ExistanceDeclare existanceDeclare = new ExistanceDeclare(_FilteringTools, "Existance of short PR");
+                        ExistenceDeclare existanceDeclare = new ExistenceDeclare(_FilteringTools, "Existance of short PR");
                         existanceDeclare.InsertFilter(filtersFlowLayoutPanel);
                     }
 
                     // Uncheck short PR declaration in filtersFlowLayoutPanel
-                    ((ExistanceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare]).SetExistance(false);
+                    ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare]).SetExistance(false);
                     // Refresh the apply button if autoApply is checked
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())
                         if (statesLabelProperty.GetValue(null) is string statesLabel)
@@ -1371,7 +1370,7 @@ namespace BSP_Using_AI.DetailsModify
 
                     // Remove the check box of short PR declaration in filtersFlowLayoutPanel
                     if (featuresItems.DropDownItems.Count + 1 == _arthtFeatures.SignalBeats.Count)
-                        _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistanceDeclare].RemoveFilter();
+                        _FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare].RemoveFilter();
 
                     // Set the next beat for segmentation
                     foreach (PropertyInfo statesLabelProperty in typeof(SANamings.ScatterPlotsNames).GetProperties())

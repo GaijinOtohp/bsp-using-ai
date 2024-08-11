@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.Garage;
+﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.SignalFusion;
 using ScottPlot;
 using ScottPlot.Plottable;

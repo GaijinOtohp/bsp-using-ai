@@ -78,6 +78,9 @@
     <Compile Update="DetailsModify\EventsHandlersFormDetailsModify.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="DetailsModify\FiltersControls\MedianFilterUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="DetailsModify\FiltersControls\SegmentDistributionUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -85,9 +88,6 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="DetailsModify\Filters\FormDetailsModifyFilters.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="DetailsModify\Filters\FormDetailsModifyFiltersClone.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="DetailsModify\SignalFusion\FormSignalFusion.cs">

@@ -12,7 +12,7 @@ using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesAr
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.RL_Objectives.CWD_RL;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
-using static BSP_Using_AI.DetailsModify.FormDetailsModify.CornersScanner;
+using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
 
 namespace BSP_Using_AI.DetailsModify
 {

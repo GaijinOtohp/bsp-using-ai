@@ -1,11 +1,8 @@
-﻿using Biological_Signal_Processing_Using_AI.Garage;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Biological_Signal_Processing_Using_AI.Structures;
-using static BSP_Using_AI.DetailsModify.FormDetailsModify.CornersScanner;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
 {
