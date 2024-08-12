@@ -182,6 +182,7 @@
             "Butterworth",
             "Chebyshev I",
             "Chebyshev II",
+            "Median filter",
             "DC removal",
             "Normalize signal",
             "Absolute signal",

@@ -141,6 +141,9 @@ namespace BSP_Using_AI.DetailsModify
             // Check which filter is selected
             switch (filtersComboBox.SelectedItem)
             {
+                case "Median filter":
+                    filter = new MedianFilter(_FilteringTools);
+                break;
                 case "DC removal":
                     filter = new DCRemoval(_FilteringTools);
                     break;
