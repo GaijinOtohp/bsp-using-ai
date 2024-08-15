@@ -546,7 +546,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                             else if (objectiveBaseModel is CWDLSTM lstmBaseModel)
                                 CWDReinforcementLModel = lstmBaseModel.CWDReinforcementLModel;
 
-                            TariningCWDReinforcementLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(CWDReinforcementLModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", CWD_RL_TFNET.createTFNETNeuralNetModelSession);
+                            TFNETBaseModel baseModel = CWDReinforcementLModel.BaseModel;
+                            TariningCWDReinforcementLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(baseModel.ModelPath, baseModel._inputDim, baseModel._outputDim, CWD_RL_TFNET.createTFNETNeuralNetModelSession);
                             TF_NET_NN.SaveModelVariables(TariningCWDReinforcementLModel.BaseModel.Session, TariningCWDReinforcementLModel.BaseModel.ModelPath, new string[] { "output" });
 
                             rlModelCopied = true;

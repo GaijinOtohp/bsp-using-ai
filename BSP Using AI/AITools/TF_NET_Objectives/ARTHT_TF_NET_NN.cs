@@ -197,7 +197,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
             foreach (string stepName in stepsNames)
             {
                 TFNETNeuralNetworkModel model = (TFNETNeuralNetworkModel)arthtModels.ARTHTModelsDic[stepName].Clone();
-                model.BaseModel.Session = LoadModelVariables(model.BaseModel.ModelPath, "input_place_holder:0", "output:0", createTFNETNeuralNetModelSession);
+                model.BaseModel.Session = LoadModelVariables(model.BaseModel.ModelPath, model.BaseModel._inputDim, model.BaseModel._outputDim, createTFNETNeuralNetModelSession);
                 arthtModels.ARTHTModelsDic[stepName] = model;
             }
 

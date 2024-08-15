@@ -148,11 +148,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
         public void initializeRLModelForCWD(CWDLSTM cwdLSTM)
         {
             TFNETReinforcementL rfModel = (TFNETReinforcementL)cwdLSTM.CWDReinforcementLModel.Clone();
-            rfModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(rfModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", CWD_RL_TFNET.createTFNETNeuralNetModelSession);
+            rfModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(rfModel.BaseModel.ModelPath, rfModel.BaseModel._inputDim, rfModel.BaseModel._outputDim, CWD_RL_TFNET.createTFNETNeuralNetModelSession);
             cwdLSTM.CWDReinforcementLModel = rfModel;
 
             TFNETReinforcementL crazyRLModel = (TFNETReinforcementL)cwdLSTM.CWDCrazyReinforcementLModel.Clone();
-            crazyRLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyRLModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", CWD_RL_TFNET.createTFNETNeuralNetModelSession);
+            crazyRLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyRLModel.BaseModel.ModelPath, crazyRLModel.BaseModel._inputDim, crazyRLModel.BaseModel._outputDim, CWD_RL_TFNET.createTFNETNeuralNetModelSession);
             cwdLSTM.CWDCrazyReinforcementLModel = crazyRLModel;
 
             TFNETLSTMModel lstmModel = (TFNETLSTMModel)cwdLSTM.CWDLSTMModel.Clone();

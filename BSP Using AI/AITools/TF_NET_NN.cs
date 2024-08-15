@@ -180,15 +180,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             //File.WriteAllText(path + "labels.txt", string.Join("\n", new string[] { "3output" }));
         }
 
-        public static Session LoadModelVariables(string path, string inpTensorName, string outpTensorName, ModelArchitectureDelegate modelArchitectureDelegate)
+        public static Session LoadModelVariables(string path, int inputDim, int outputDim, ModelArchitectureDelegate modelArchitectureDelegate)
         {
             // Load the learned graph variables values
             Graph valsGraph = tf.train.load_graph(path + "/model_variables.pb");
             // and create a temporal session for reading the variables tensors values
             Session tempSess = tf.Session();
-            // Get the input and output tensors dimensions
-            int inputDim = (int)valsGraph.get_tensor_by_name(inpTensorName).dims[1];
-            int outputDim = (int)valsGraph.get_tensor_by_name(outpTensorName).dims[1];
 
             // Activate restore mode to enable both eager mode (run operations immediately without the need of a graph)
             // and graph mode (stores the new nodes to the default graph)

@@ -161,11 +161,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         public void initializeRLModelForCWD(CWDReinforcementL cwdReinforcementL)
         {
             TFNETReinforcementL model = (TFNETReinforcementL)cwdReinforcementL.CWDReinforcementLModel.Clone();
-            model.BaseModel.Session = TF_NET_NN.LoadModelVariables(model.BaseModel.ModelPath, "input_place_holder:0", "output:0", createTFNETNeuralNetModelSession);
+            model.BaseModel.Session = TF_NET_NN.LoadModelVariables(model.BaseModel.ModelPath, model.BaseModel._inputDim, model.BaseModel._outputDim, createTFNETNeuralNetModelSession);
             cwdReinforcementL.CWDReinforcementLModel = model;
 
             TFNETReinforcementL crazyModel = (TFNETReinforcementL)cwdReinforcementL.CWDCrazyReinforcementLModel.Clone();
-            crazyModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", createTFNETNeuralNetModelSession);
+            crazyModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyModel.BaseModel.ModelPath, crazyModel.BaseModel._inputDim, crazyModel.BaseModel._outputDim, createTFNETNeuralNetModelSession);
             cwdReinforcementL.CWDCrazyReinforcementLModel = crazyModel;
 
             _objectivesModelsDic.Add(cwdReinforcementL.ModelName + cwdReinforcementL.ObjectiveName, cwdReinforcementL);
