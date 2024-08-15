@@ -1258,6 +1258,33 @@ namespace Biological_Signal_Processing_Using_AI.Garage
 
             return timeToFinish;
         }
+        public static string PeriodInMillSecToString(long period)
+        {
+            long dayInMills = 86400000L;
+            long hourInMills = 3600000L;
+            long minuteInMills = 60000L;
+            long secondInMills = 1000L;
+
+            long days = period / dayInMills;
+            long hours = period % dayInMills / hourInMills;
+            long minutes = period % dayInMills % hourInMills / minuteInMills;
+            long sec = period % minuteInMills / secondInMills;
+            long mills = period % secondInMills;
+
+            string timeToFinish = "";
+            if (days != 0)
+                timeToFinish += days + " days, ";
+            if (hours != 0)
+                timeToFinish += hours + " hours, ";
+            if (minutes != 0)
+                timeToFinish += minutes + " minutes, ";
+            if (sec != 0)
+                timeToFinish += sec + " sec, ";
+            if (mills != 0)
+                timeToFinish += mills + " mills";
+
+            return timeToFinish;
+        }
 
         public static long StringToPeriodInSec(string periodString)
         {
