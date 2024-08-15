@@ -11,6 +11,7 @@ using Tensorflow;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 using static Tensorflow.Binding;
@@ -81,10 +82,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             while (_objectivesModelsDic.ContainsKey(TFNETReinforcementL.ModelName + " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx))
                 modelIndx++;
             string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + modelIndx;
+            string crazyModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/CrazyRL" + modelIndx;
 
             // Create the model object
             CWDReinforcementL cwdReinforcementL = new CWDReinforcementL();
             cwdReinforcementL.CWDReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, modelPath, inputDim: 8, outputDim: 2);
+            cwdReinforcementL.CWDCrazyReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyModelPath, inputDim: 8, outputDim: 2);
 
             cwdReinforcementL.ModelName = TFNETReinforcementL.ModelName;
             cwdReinforcementL.ObjectiveName = " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx;
@@ -103,7 +106,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
         public static TFNETReinforcementL createTFNETRLModel(string name, string path, int inputDim, int outputDim)
         {
-            TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim) { Name = name, Type = ObjectiveType.Regression };
+            List<RLDimension> dimensionsList = new List<RLDimension>(2);
+            dimensionsList.Add(new RLDimension(name: CWDNamigs.AT, size: 60, min: 1, max: 40));
+            dimensionsList.Add(new RLDimension(name: CWDNamigs.ART, size: 60, min: 0, max: 0.3d));
+
+            TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim, dimensionsList) { Name = name, Type = ObjectiveType.Regression };
 
             model.BaseModel.Session = createTFNETNeuralNetModelSession(inputDim, outputDim);
 
@@ -128,7 +135,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             // The graph is automatically built in the default graph
             Graph graph = new Graph().as_default();
             // Create the list of variables (wieghts, and biases) assignments
-            List<Operation> assignmentsList = new List<Operation>();
+            List<Operation>  assignmentsList = new List<Operation>();
             // Define the input and output variables
             Tensor input = tf.placeholder(tf.float32, (-1, inputDim), name: "input_place_holder");
             Tensor outputPlaceholder = tf.placeholder(tf.float32, (-1, outputDim), name: "output_place_holder");
@@ -156,6 +163,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             TFNETReinforcementL model = (TFNETReinforcementL)cwdReinforcementL.CWDReinforcementLModel.Clone();
             model.BaseModel.Session = TF_NET_NN.LoadModelVariables(model.BaseModel.ModelPath, "input_place_holder:0", "output:0", createTFNETNeuralNetModelSession);
             cwdReinforcementL.CWDReinforcementLModel = model;
+
+            TFNETReinforcementL crazyModel = (TFNETReinforcementL)cwdReinforcementL.CWDCrazyReinforcementLModel.Clone();
+            crazyModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", createTFNETNeuralNetModelSession);
+            cwdReinforcementL.CWDCrazyReinforcementLModel = crazyModel;
 
             _objectivesModelsDic.Add(cwdReinforcementL.ModelName + cwdReinforcementL.ObjectiveName, cwdReinforcementL);
         }

@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.AITools.RL_Objectives.CWD_RL;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
@@ -371,7 +372,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
                     double[] atARTOutput = TF_NET_NN.predict(features, rlModel, rlModel.BaseModel.Session);
 
-                    List<CornerSample> tempCornersList = ScanCorners(segment.SegmentSamples, segment.startingIndex, samplingRate, atARTOutput[1], atARTOutput[0] * 360d);
+                    List<RLDimension> dimList = rlModel._DimensionsList;
+                    double at = dimList[0]._min + (atARTOutput[0] * (dimList[0]._max - dimList[0]._min));
+                    double art = dimList[1]._min + (atARTOutput[1] * (dimList[1]._max - dimList[1]._min));
+                    List<CornerSample> tempCornersList = ScanCorners(segment.SegmentSamples, segment.startingIndex, samplingRate, art, at);
 
                     // Update dataBuilderMemory with the segment samples
                     (_, double rescSegmentMin, double rescSegmentMax) = GeneralTools.MeanMinMax(segment.SegmentSamples);
@@ -553,7 +557,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // Get deep Q-learning model's training dataset if available
             List<Sample> rlTrainingSamplesList = new List<Sample>();
             if (!rlModelCopied)
-                rlTrainingSamplesList = GetTrainingSamples(dataTable);
+                rlTrainingSamplesList = GetTrainingSamples(dataTable, ((CWDLSTM)_objectiveModel).CWDCrazyReinforcementLModel);
 
             // Train the deep Q-learning model
             cwdLSTM.FitOnRLModel(modelName, rlTrainingSamplesList);

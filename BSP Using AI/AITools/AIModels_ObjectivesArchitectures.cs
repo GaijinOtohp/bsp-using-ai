@@ -190,7 +190,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public class CWDReinforcementL : ObjectiveBaseModel
             {
                 [DataMember]
-                public TFNETReinforcementL CWDReinforcementLModel = new TFNETReinforcementL("", 0, 0);
+                public TFNETReinforcementL CWDReinforcementLModel = new TFNETReinforcementL("", 0, 0, null);
+                [DataMember]
+                public TFNETReinforcementL CWDCrazyReinforcementLModel = new TFNETReinforcementL("", 0, 0, null);
 
                 protected override ObjectiveBaseModel CreateCloneInstance()
                 {
@@ -201,6 +203,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     CWDReinforcementL cwdReinforcementL = (CWDReinforcementL)base.Clone();
 
                     cwdReinforcementL.CWDReinforcementLModel = (TFNETReinforcementL)CWDReinforcementLModel.Clone();
+                    cwdReinforcementL.CWDCrazyReinforcementLModel = (TFNETReinforcementL)CWDCrazyReinforcementLModel.Clone();
 
                     return cwdReinforcementL;
                 }
@@ -209,7 +212,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public class CWDLSTM : ObjectiveBaseModel
             {
                 [DataMember]
-                public TFNETReinforcementL CWDReinforcementLModel = new TFNETReinforcementL("", 0, 0);
+                public TFNETReinforcementL CWDReinforcementLModel = new TFNETReinforcementL("", 0, 0, null);
+                [DataMember]
+                public TFNETReinforcementL CWDCrazyReinforcementLModel = new TFNETReinforcementL("", 0, 0, null);
                 [DataMember]
                 public TFNETLSTMModel CWDLSTMModel = new TFNETLSTMModel("", 0, 0, 0, layers: 0);
 
@@ -222,6 +227,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     CWDLSTM cwdLSTM = (CWDLSTM)base.Clone();
 
                     cwdLSTM.CWDReinforcementLModel = (TFNETReinforcementL)CWDReinforcementLModel.Clone();
+                    cwdLSTM.CWDCrazyReinforcementLModel = (TFNETReinforcementL)CWDCrazyReinforcementLModel.Clone();
                     cwdLSTM.CWDLSTMModel = (TFNETLSTMModel)CWDLSTMModel.Clone();
 
                     return cwdLSTM;

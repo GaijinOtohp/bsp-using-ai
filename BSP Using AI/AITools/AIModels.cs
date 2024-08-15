@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using Tensorflow;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace Biological_Signal_Processing_Using_AI.AITools
@@ -342,20 +343,26 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public static string ModelName = "Reinforcement learning";
             [DataMember]
             public TFNETBaseModel BaseModel;
+            [DataMember]
+            public List<RLDimension> _DimensionsList;
 
-            public TFNETReinforcementL(string modelpath, int inputDim, int outputDim)
+            public TFNETReinforcementL(string modelpath, int inputDim, int outputDim, List<RLDimension> dimensionsList)
             {
                 BaseModel = new TFNETBaseModel(modelpath, inputDim, outputDim);
+                _DimensionsList = dimensionsList;
             }
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFNETReinforcementL(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
+                return new TFNETReinforcementL(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim, _DimensionsList);
             }
             public override CustomArchiBaseModel Clone()
             {
                 TFNETReinforcementL tfNETReinforcementLModel = (TFNETReinforcementL)base.Clone();
                 tfNETReinforcementLModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
+                if (_DimensionsList != null)
+                    for (int iDimension = 0; iDimension < _DimensionsList.Count; iDimension++)
+                        tfNETReinforcementLModel._DimensionsList[iDimension] = _DimensionsList[iDimension].Clone();
 
                 return tfNETReinforcementLModel;
             }

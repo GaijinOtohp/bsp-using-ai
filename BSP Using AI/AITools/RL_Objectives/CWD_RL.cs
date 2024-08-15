@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Tensorflow;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
@@ -17,7 +16,6 @@ using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.Ann
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
-using static Tensorflow.Binding;
 
 namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 {
@@ -54,13 +52,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
         bool _done = false;
 
-        public CWD_RL()
+        public CWD_RL(List<RLDimension> dimensionsList)
         {
             // Set the environment
-            List<ReinforcementLearning.Environment.Dimension> dimensionsList = new List<ReinforcementLearning.Environment.Dimension>(2);
-            dimensionsList.Add(new ReinforcementLearning.Environment.Dimension(name: "at", size: 60, min: 1, max: 40));
-            dimensionsList.Add(new ReinforcementLearning.Environment.Dimension(name: "art", size: 60, min: 0, max: 0.3d));
-
             double learningRate = 0.1d;
             double discount = 0.95d;
             _Env = new ReinforcementLearning.Environment(dimensionsList, learningRate, discount, ComputeReward, CheckIfDone);
@@ -74,9 +68,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             double[] windowSamples = _RescaledSamples.Where((val, index) => _SignalSegmentsList[_selectedSegment].startingIndex <= index && index <= _SignalSegmentsList[_selectedSegment].endingIndex).ToArray();
 
             // Scan corners of the selected window
-            ReinforcementLearning.Environment.Dimension atDim = env._DimensionsList.Where(dim => dim._Name.Equals("at")).ToList()[0];
-            ReinforcementLearning.Environment.Dimension artDim = env._DimensionsList.Where(dim => dim._Name.Equals("art")).ToList()[0];
-            List<CornerSample> tempCornersList = ScanCorners(windowSamples, _SignalSegmentsList[_selectedSegment].startingIndex, _samplingRate, state[1] * artDim._step, state[0] * atDim._step);
+            List<RLDimension> dimList = env._DimensionsList;
+            double at = dimList[0]._min + (state[0] * dimList[0]._step);
+            double art = dimList[1]._min + (state[1] * dimList[1]._step);
+            List<CornerSample> tempCornersList = ScanCorners(windowSamples, _SignalSegmentsList[_selectedSegment].startingIndex, _samplingRate, art, at);
             // Take only the indexes of the corners
             int[] tempCornersIndex = tempCornersList.Select(corner => corner._index).ToArray();
             // Create a list of the intervals holding the corners in tempCornersIndex
@@ -139,7 +134,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 GeneralTools.amplitudeInterval(_artCircularQueue.ToArray().Select(art => (double)art).ToArray()) < 2 && _artCircularQueue._count > 4 &&
                 !_done)
             {
-                _Env.Reset();
+                _Env.AgentReset();
                 _atCircularQueue = new CircularQueue<int>(5);
                 _artCircularQueue = new CircularQueue<int>(5);
             }
@@ -170,6 +165,85 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                                                               Where(ecgAnno => ecgAnno.GetIndexes().starting != int.MinValue).ToArray();
 
             return trueCorners;
+        }
+
+        public Data DeepFitRLData(double[] samples, int samplingRate, AnnotationData annoData, TFNETReinforcementL CWDCrazyReinforcementLModel)
+        {
+            RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.AT)).ToList()[0];
+            RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.ART)).ToList()[0];
+            // Include the signal infos
+            // Rescale samples to be in an amplitude interval of 4
+            _RescaledSamples = GeneralTools.rescaleSignal(samples, 4);
+            _samplingRate = samplingRate;
+
+            AnnotationECG[] trueCorners = GetCornersExceptDleta(annoData);
+
+            // Create the intervals covering 20% from the corners in both sides
+            _ApproxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, _RescaledSamples, samplingRate);
+
+            // Initialize the conditions of finishing the episodes
+            _atCircularQueue = new CircularQueue<int>(5);
+            _artCircularQueue = new CircularQueue<int>(5);
+
+            // Create the global features and outputs data object
+            Data GlobalCornersScanData = new Data(CWDNamigs.RLCornersScanData);
+
+            // Segment the samples of signal according to the chunks' distribution
+            _SignalSegmentsList = SegmentTheMainSamples(_RescaledSamples, (int)_samplingRate, 0.002d, 0.5d);
+            int maxEpisodes = 50;
+            for (_selectedSegment = 0; _selectedSegment < _SignalSegmentsList.Count; _selectedSegment++)
+            {
+                // ---------------------------------------------Try reset then new environment's q-table
+                _Env.QTableReset();
+
+                // Iterate through episodes
+                for (int iEpisode = 0; iEpisode < maxEpisodes; iEpisode++)
+                {
+                    // Create the features and outputs data object
+                    Data EpisodeCornersScanData = new Data(CWDNamigs.RLCornersScanData);
+                    // Get the features of the selected segment
+                    Sample EpisodeSample = GetFeaturesOfTheSamples(EpisodeCornersScanData);
+                    // Predict the initial state of the selected segment
+                    double[] features = EpisodeSample.getFeatures();
+
+                    double[] atARTOutput = TF_NET_NN.predict(features, CWDCrazyReinforcementLModel, CWDCrazyReinforcementLModel.BaseModel.Session);
+
+                    // Start training with the new initial state in the new episode
+                    (int[] episodeBestState, bool badState) = _Env.DeepTrain(atARTOutput);
+
+                    // Check if the predicted state of the crazy model is greater than the improvementThreshold
+                    double improvementThreshold = 0.001d;
+                    double bestAT = (episodeBestState[0] * atDim._step) / (atDim._max - atDim._min);
+                    double bestART = (episodeBestState[1] * artDim._step) / (artDim._max - artDim._min);
+                    if ((Math.Abs(atARTOutput[0] - bestAT) + Math.Abs(atARTOutput[1] - bestART)) > improvementThreshold)
+                    {
+                        // Then train the crazy model with the new sample
+                        // Include the best state as output to the sample
+                        EpisodeSample.insertOutput(0, CWDNamigs.AT, bestAT);
+                        EpisodeSample.insertOutput(1, CWDNamigs.ART, bestART);
+
+                        List<Sample> trainingSamplesList = new List<Sample>() { EpisodeSample };
+                        TF_NET_NN.fit(CWDCrazyReinforcementLModel, CWDCrazyReinforcementLModel.BaseModel, trainingSamplesList, null, saveModel: false, epochsMax: 1);
+                    }
+                }
+
+                // Get the features of the selected segment
+                Sample SegmentSample = GetFeaturesOfTheSamples(GlobalCornersScanData);
+                // Get the best state of the environment
+                Dictionary<string, (double reward, bool badState)> generalQTable = _Env.GetQTableDict();
+                List<(double reward, string state)> acceptableStates = generalQTable.Where(state => state.Value.badState == false).Select(state => (state.Value.reward, state.Key)).ToList();
+                // Check if there was no best state
+                if (acceptableStates.Count == 0)
+                    // Then just take the whole Q table
+                    acceptableStates = generalQTable.Select(state => (state.Value.reward, state.Key)).ToList();
+                // Take the state with the highest reward
+                int[] segmentBestState = ReinforcementLearning.Environment.String2IntArray(acceptableStates.Max().state);
+
+                SegmentSample.insertOutput(0, CWDNamigs.AT, (segmentBestState[0] * atDim._step) / (atDim._max - atDim._min));
+                SegmentSample.insertOutput(1, CWDNamigs.ART, (segmentBestState[1] * artDim._step) / (artDim._max - artDim._min));
+            }
+
+            return GlobalCornersScanData;
         }
 
         public Data FitRLData(double[] samples, int samplingRate, AnnotationData annoData)
@@ -210,11 +284,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 // Include the best state for the corners scan as outputs
                 Sample chunkSample = GetFeaturesOfTheSamples(CornersScanData);
 
-                ReinforcementLearning.Environment.Dimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals("at")).ToList()[0];
-                ReinforcementLearning.Environment.Dimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals("art")).ToList()[0];
+                RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.AT)).ToList()[0];
+                RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.ART)).ToList()[0];
 
-                chunkSample.insertOutput(0, CWDNamigs.AT, (bestState[0] * atDim._step) / 360d); // Normalize the value to be from 0 to 1 by dividing with 360 (the max angle)
-                chunkSample.insertOutput(1, CWDNamigs.ART, (bestState[1] * artDim._step)); // art is already between 0 and 1
+                chunkSample.insertOutput(0, CWDNamigs.AT, (bestState[0] * atDim._step) / (atDim._max - atDim._min)); // Normalize the value to be from 0 to 1 by dividing with 360 (the max angle)
+                chunkSample.insertOutput(1, CWDNamigs.ART, (bestState[1] * artDim._step) / (artDim._max - artDim._min)); // art is already between 0 and 1
             }
 
             return CornersScanData;

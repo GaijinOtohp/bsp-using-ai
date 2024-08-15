@@ -17,7 +17,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
     public class TF_NET_NN
     {
         public delegate Session ModelArchitectureDelegate(int inputDim, int outputDim);
-        public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList, FittingProgAIReportDelegate fittingProgAIReportDelegate, float earlyStopThreshold = 0.0001f, float learningRate = 0.1f, bool saveModel = false, int suggestedBatchSize = 4)
+        public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList,
+            FittingProgAIReportDelegate fittingProgAIReportDelegate, float earlyStopThreshold = 0.0001f, float learningRate = 0.1f, bool saveModel = false, int suggestedBatchSize = 4, int epochsMax = 1000)
         {
             if (model._pcaActive)
                 dataList = GeneralTools.rearrangeFeaturesInput(dataList, model.PCA);
@@ -60,7 +61,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 }
 
                 // Start training
-                float improvementThreshold = 0.0001f;
                 // Get the necessary nodes for training from the model graph
                 Tensor input = session.graph.OperationByName("input_place_holder");
                 Tensor output = session.graph.OperationByName("output");
@@ -83,8 +83,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 float meanCost = 0;
 
                 // Start training
-                // Max 1000 epochs
-                int epochsMax = 1000;
                 for (int epoch = 0; epoch < epochsMax; epoch++)
                 {
                     // Iterate through the batches
@@ -113,7 +111,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     if (fittingProgAIReportDelegate != null)
                         fittingProgAIReportDelegate(epoch, epochsMax);
 
-                    // Check if the learning is not improving according to improvementThreshold
+                    // Check if the learning is not improving according to earlyStopThreshold
                     // in the last 15 epochs
                     costCirQueue.Enqueue(meanCost);
                     meanCost = 0;
@@ -121,7 +119,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     if (costCirQueue._count == 15)
                     {
                         (float mean, float min, float max) = GeneralTools.MeanMinMax(costCirQueue.ToArray());
-                        if ((max - min) < improvementThreshold)
+                        if ((max - min) < earlyStopThreshold)
                             // If yes then there is no greate improvement. We can stop learning here
                             break;
                     }

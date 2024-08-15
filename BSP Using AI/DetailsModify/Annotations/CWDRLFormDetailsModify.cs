@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.AITools.RL_Objectives.CWD_RL;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
@@ -40,7 +41,10 @@ namespace BSP_Using_AI.DetailsModify
 
                 double[] atARTOutput = TF_NET_NN.predict(features, CWDReinforcementLModel, CWDReinforcementLModel.BaseModel.Session);
 
-                List<CornerSample> TempCornersList = ScanCorners(Segment.SegmentSamples, Segment.startingIndex, samplingRate, atARTOutput[1], atARTOutput[0] * 360d);
+                List<RLDimension> dimList = CWDReinforcementLModel._DimensionsList;
+                double at = dimList[0]._min + (atARTOutput[0] * (dimList[0]._max - dimList[0]._min));
+                double art = dimList[1]._min + (atARTOutput[1] * (dimList[1]._max - dimList[1]._min));
+                List<CornerSample> TempCornersList = ScanCorners(Segment.SegmentSamples, Segment.startingIndex, samplingRate, art, at);
 
                 // Copy the new scanned corners to scannedCornersIndecies and as annotation
                 foreach (CornerSample CornerSample in TempCornersList)

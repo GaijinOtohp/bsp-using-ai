@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
@@ -42,14 +43,14 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             return trainingSamplesListsDict;
         }
 
-        public List<Sample> GetTrainingSamples(DataTable dataTable)
+        public List<Sample> GetTrainingSamples(DataTable dataTable, TFNETReinforcementL CWDCrazyReinforcementLModel)
         {
             int fitProgress = 0;
             int tolatFitProgress = dataTable.Rows.Count;
             string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
 
             // Initialize the reinforcement learning environment
-            CWD_RL cwdRL = new CWD_RL();
+            CWD_RL cwdRL = new CWD_RL(CWDCrazyReinforcementLModel._DimensionsList);
 
             // Get previously learned data
             Dictionary<string, List<Sample>> trainingSamplesListsDict = GetPreviousTrainingSamples(dataTable);
@@ -77,7 +78,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 double[] signalSamples = GeneralTools.ByteArrayToObject<double[]>(row.Field<byte[]>("signal_data"));
                 AnnotationData annoData = GeneralTools.ByteArrayToObject<AnnotationData>(row.Field<byte[]>("anno_data"));
 
-                Data newSignalData = cwdRL.FitRLData(signalSamples, samplingRate, annoData);
+                Data newSignalData = cwdRL.DeepFitRLData(signalSamples, samplingRate, annoData, CWDCrazyReinforcementLModel);
                 // Append the new siganl data into trainingSamplesList
                 trainingSamplesListsDict.Add(signalDataKey, newSignalData.Samples);
 
@@ -90,13 +91,16 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 dbStimulatorThread.Start();
             }
 
+            // Save the crazy model
+            //TF_NET_NN.SaveModelVariables(CWDCrazyReinforcementLModel.BaseModel.Session, CWDCrazyReinforcementLModel.BaseModel.ModelPath, new string[] { "output" });
+
             return trainingSamplesListsDict.SelectMany(dictPair => dictPair.Value).ToList();
         }
 
         public void holdRecordReport_CWDReinforcementL(DataTable dataTable, string callingClassName)
         {
             string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
-            List<Sample> trainingSamplesList = GetTrainingSamples(dataTable);
+            List<Sample> trainingSamplesList = GetTrainingSamples(dataTable, ((CWDReinforcementL)_objectiveModel).CWDCrazyReinforcementLModel);
 
             // Now fit all of trainingSamplesList into the reinforcement learning neural network model
             long datasetSize = _datasetSize + dataTable.Rows.Count;

@@ -98,12 +98,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             while (_objectivesModelsDic.ContainsKey(TFNETLSTMModel.ModelName + " for " + CharacteristicWavesDelineation.ObjectiveName + lstmModelIndx))
                 lstmModelIndx++;
             string rlModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + rlModelIndx;
+            string crazyRLModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/CrazyRL" + rlModelIndx;
             string lstmModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/LSTM" + lstmModelIndx;
 
             // Create the model object
             CWDLSTM cwdLSTM = new CWDLSTM();
             // One for tuning the peaks analyzer using deep Q learning
             cwdLSTM.CWDReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, rlModelPath, inputDim: 8, outputDim: 2);
+            cwdLSTM.CWDCrazyReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyRLModelPath, inputDim: 8, outputDim: 2);
             // One for classifying the peaks
             cwdLSTM.CWDLSTMModel = createTFNETLSTMModel(CWDNamigs.LSTMPeaksClassificationData, lstmModelPath, inputDim: 21, outputDim: 12);
 
@@ -148,6 +150,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             TFNETReinforcementL rfModel = (TFNETReinforcementL)cwdLSTM.CWDReinforcementLModel.Clone();
             rfModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(rfModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", CWD_RL_TFNET.createTFNETNeuralNetModelSession);
             cwdLSTM.CWDReinforcementLModel = rfModel;
+
+            TFNETReinforcementL crazyRLModel = (TFNETReinforcementL)cwdLSTM.CWDCrazyReinforcementLModel.Clone();
+            crazyRLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyRLModel.BaseModel.ModelPath, "input_place_holder:0", "output:0", CWD_RL_TFNET.createTFNETNeuralNetModelSession);
+            cwdLSTM.CWDCrazyReinforcementLModel = crazyRLModel;
 
             TFNETLSTMModel lstmModel = (TFNETLSTMModel)cwdLSTM.CWDLSTMModel.Clone();
             lstmModel.BaseModel.Session = TF_NET_LSTM.LoadLSTMModelVariables(lstmModel);
