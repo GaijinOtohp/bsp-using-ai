@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tensorflow;
+using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
@@ -112,7 +113,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim, dimensionsList) { Name = name, Type = ObjectiveType.Regression };
 
-            model.BaseModel.Session = createTFNETNeuralNetModelSession(inputDim, outputDim);
+            model.BaseModel.Session = createTFNETNeuralNetModelSession(model.BaseModel);
 
             // Save the model
             if (path.Length > 0)
@@ -126,7 +127,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             // Get the parameters
             return model;
         }
-        public static Session createTFNETNeuralNetModelSession(int inputDim, int outputDim)
+        public static Session createTFNETNeuralNetModelSession(TFNETBaseModel baseModel, Dictionary<string, NDArray> initVarsVals = null)
         {
             // Disable eager mode to enable storing new nodes to the default graph automatically
             tf.compat.v1.disable_eager_execution();
@@ -134,21 +135,24 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             // The model operations and variables are organized in a graph
             // The graph is automatically built in the default graph
             Graph graph = new Graph().as_default();
-            // Create the list of variables (wieghts, and biases) assignments
-            List<Operation>  assignmentsList = new List<Operation>();
             // Define the input and output variables
+            int inputDim = baseModel._inputDim;
+            int outputDim = baseModel._outputDim;
             Tensor input = tf.placeholder(tf.float32, (-1, inputDim), name: "input_place_holder");
             Tensor outputPlaceholder = tf.placeholder(tf.float32, (-1, outputDim), name: "output_place_holder");
             // Start from the first hidden layer, since the input is not actually a layer   
             // but inform the shape of the input, with "input" elements.
             int hidLayerDim = (int)((float)inputDim * (2f / 3f) + outputDim);
             // Define the model function
-            Tensor hiddenLayer1 = tf.nn.tanh(TF_NET_NN.Layer(input, hidLayerDim, assignmentsList)); // The input layer connected to the 1st hidden layer. The 1st layer has "Tanh" as activation function
-            Tensor hiddenLayer2 = TF_NET_NN.Layer(hiddenLayer1, hidLayerDim, assignmentsList); // The 1st hidden layer connected to the 2nd hidden layer. The 2nd layer has "linear" as activation function (default)
-            Tensor output = TF_NET_NN.HardSigmoid(TF_NET_NN.Layer(hiddenLayer2, outputDim, assignmentsList), "output"); // The 2nd hidden layer connected to the output layer. The output layer has "hard sigmoid" as activation function
+            Tensor hiddenLayer1 = tf.nn.tanh(TF_NET_NN.Layer(input, hidLayerDim)); // The input layer connected to the 1st hidden layer. The 1st layer has "Tanh" as activation function
+            Tensor hiddenLayer2 = TF_NET_NN.Layer(hiddenLayer1, hidLayerDim); // The 1st hidden layer connected to the 2nd hidden layer. The 2nd layer has "linear" as activation function (default)
+            Tensor output = TF_NET_NN.HardSigmoid(TF_NET_NN.Layer(hiddenLayer2, outputDim), "output"); // The 2nd hidden layer connected to the output layer. The output layer has "hard sigmoid" as activation function
             Session session = new Session(graph);
-            // Run the assignments of the variables
-            session.run(assignmentsList.ToArray());
+            // Assign values to the graph variables
+            (Dictionary<string, Operation> initAssignmentsDict, initVarsVals) = TF_NET_NN.AssignValsToVars(session, initVarsVals);
+            // Store initVarsVals and their assignments in baseModel
+            baseModel._AssignedValsDict = initVarsVals;
+            baseModel._InitAssignmentsOpDict = initAssignmentsDict;
             // Insert the cost function operation to the graph of the model
             Tensor costFunc = tf.reduce_mean(tf.square(tf.sub(output, outputPlaceholder)), name: "cost_function");
             // Insert the optimizer operation to the graph of the model with a default learning rate of 0.01
@@ -161,11 +165,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         public void initializeRLModelForCWD(CWDReinforcementL cwdReinforcementL)
         {
             TFNETReinforcementL model = (TFNETReinforcementL)cwdReinforcementL.CWDReinforcementLModel.Clone();
-            model.BaseModel.Session = TF_NET_NN.LoadModelVariables(model.BaseModel.ModelPath, model.BaseModel._inputDim, model.BaseModel._outputDim, createTFNETNeuralNetModelSession);
+            model.BaseModel.Session = TF_NET_NN.LoadModelVariables(model.BaseModel, createTFNETNeuralNetModelSession);
             cwdReinforcementL.CWDReinforcementLModel = model;
 
             TFNETReinforcementL crazyModel = (TFNETReinforcementL)cwdReinforcementL.CWDCrazyReinforcementLModel.Clone();
-            crazyModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyModel.BaseModel.ModelPath, crazyModel.BaseModel._inputDim, crazyModel.BaseModel._outputDim, createTFNETNeuralNetModelSession);
+            crazyModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyModel.BaseModel, createTFNETNeuralNetModelSession);
             cwdReinforcementL.CWDCrazyReinforcementLModel = crazyModel;
 
             _objectivesModelsDic.Add(cwdReinforcementL.ModelName + cwdReinforcementL.ObjectiveName, cwdReinforcementL);

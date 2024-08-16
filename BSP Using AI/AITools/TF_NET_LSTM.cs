@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tensorflow;
+using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
@@ -113,10 +114,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 // Save the initiale values of the variables for restoring the graph if the learning isn't going well
                 // Save them as assignment operations to the
                 session.graph.as_default();
-                IVariableV1[] vars = tf.global_variables();
-                Operation[] initOperations = new Operation[vars.Length];
-                for (int i = 0; i < vars.Length; i++)
-                    initOperations[i] = tf.assign(vars[i], session.run(vars[i].AsTensor()));
+                IVariableV1[] currentVars = tf.global_variables();
+                Dictionary<string, NDArray> currentVarsValsDict = new Dictionary<string, NDArray>();
+                foreach (IVariableV1 iVar in currentVars)
+                    currentVarsValsDict.Add(iVar.Name, session.run(iVar.AsTensor()));
 
                 // Create an error queue for storing the mean training error of each epoch
                 CircularQueue<float> costCirQueue = new CircularQueue<float>(15);
@@ -170,7 +171,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                                 // If yes then decrease the learning rate
                                 lRate /= 10f;
                                 // Restore the initial values of the variables (weights, and biases)
-                                session.run(initOperations);
+                                TF_NET_NN.RefreshModelAndUpdateInitVals(lstmModel.BaseModel, currentVars, currentVarsValsDict);
                             }
 
                             // Update the last and the mean cost value
@@ -408,7 +409,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             return predictedSequenceList;
         }
 
-        public static Session LSTMSession(int inputDim, int outputDim, int timeSteps = 1, bool bidirectional = false, int hiddenLayers = 1)
+        public static Session LSTMSession(TFNETBaseModel baseModel, int timeSteps = 1, bool bidirectional = false, int hiddenLayers = 1, Dictionary<string, NDArray> initVarsVals = null)
         {
             // Disable eager mode to enable storing new nodes to the default graph automatically
             tf.compat.v1.disable_eager_execution();
@@ -416,10 +417,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // The model operations and variables are organized in a graph
             // The graph is automatically built in the default graph
             Graph graph = new Graph().as_default();
-            // Create the list of variables (wieghts, and biases) assignments
-            List<Operation> assignmentsList = new List<Operation>();
 
             // Define the input and output placeholders
+            int inputDim = baseModel._inputDim;
+            int outputDim = baseModel._outputDim;
             Tensor sartingOutput = tf.placeholder(tf.float32, (-1, outputDim), name: "cells_startingOutput");
             Tensor startingState = tf.placeholder(tf.float32, (-1, outputDim), name: "cells_startingState");
             List<Tensor> sequenceCellsInputs = new List<Tensor>(timeSteps);
@@ -441,13 +442,16 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
                 // Check if the layer is bidirectional
                 if (bidirectional)
-                    sequenceCellsOutputs = BiLSTMSequence(sequenceCellsInputs, sartingOutput, startingState, assignmentsList, name: "bi_layer" + iLayer);
+                    sequenceCellsOutputs = BiLSTMSequence(sequenceCellsInputs, sartingOutput, startingState, name: "bi_layer" + iLayer);
                 else
-                    sequenceCellsOutputs = LSTMSequence(sequenceCellsInputs, sartingOutput, startingState, assignmentsList, name: "layer" + iLayer).sequenceCellsOutputs;
+                    sequenceCellsOutputs = LSTMSequence(sequenceCellsInputs, sartingOutput, startingState, name: "layer" + iLayer).sequenceCellsOutputs;
             }
             Session session = new Session(graph);
-            // Run the assignments of the variables
-            session.run(assignmentsList.ToArray());
+            // Assign values to the graph variables
+            (Dictionary<string, Operation> initAssignmentsDict, initVarsVals) = TF_NET_NN.AssignValsToVars(session, initVarsVals);
+            // Store initVarsVals and their assignments in baseModel
+            baseModel._AssignedValsDict = initVarsVals;
+            baseModel._InitAssignmentsOpDict = initAssignmentsDict;
             // Insert the cost function operation to the graph of the model
             Tensor costFunc = null;
             if (timeSteps > 1)
@@ -468,7 +472,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             return session;
         }
 
-        private static (Tensor output, Tensor state) LSTMCell(Tensor input, Tensor prevOutput, Tensor prevState, List<Operation> assignmentsList = null, string name = "_cell0")
+        private static (Tensor output, Tensor state) LSTMCell(Tensor input, Tensor prevOutput, Tensor prevState, string name = "_cell0")
         {
             // Get the shape of the output
             int outputDim = (int)prevOutput.shape[1];
@@ -477,10 +481,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             Tensor outputInputJoin = tf.concat(new Tensor[] { prevOutput, input }, axis: 1, name + "_prevOutput_input_concat");
 
             // Build the gates of the LSTM cell
-            Tensor forgetGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_forget_gate"));
-            Tensor inputGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_input_gate"));
-            Tensor inputNode = tf.nn.tanh(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_input_node"));
-            Tensor outputGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, assignmentsList, name + "_output_gate"));
+            Tensor forgetGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, name + "_forget_gate"));
+            Tensor inputGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, name + "_input_gate"));
+            Tensor inputNode = tf.nn.tanh(TF_NET_NN.Layer(outputInputJoin, outputDim, name + "_input_node"));
+            Tensor outputGate = tf.nn.sigmoid(TF_NET_NN.Layer(outputInputJoin, outputDim, name + "_output_gate"));
 
             // Perform the operations of the LSTM cell
             Tensor forgetState = tf.multiply(prevState, forgetGate, name + "_forget_state");
@@ -490,7 +494,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             return (output, newState);
         }
 
-        private static (List<Tensor> sequenceCellsOutputs, Tensor latestCellState) LSTMSequence(List<Tensor> sequenceCellsInputs, Tensor prevOutput, Tensor prevState, List<Operation> assignmentsList = null, string name = "layer0")
+        private static (List<Tensor> sequenceCellsOutputs, Tensor latestCellState) LSTMSequence(List<Tensor> sequenceCellsInputs, Tensor prevOutput, Tensor prevState, string name = "layer0")
         {
             // Get the shape of the output
             int outputDim = (int)prevOutput.shape[1];
@@ -500,7 +504,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // Iterate through the time steps
             for (int iTimeStep = 0; iTimeStep < sequenceCellsInputs.Count; iTimeStep++)
             {
-                (prevOutput, prevState) = LSTMCell(sequenceCellsInputs[iTimeStep], prevOutput, prevState, assignmentsList, name + "_cell" + iTimeStep);
+                (prevOutput, prevState) = LSTMCell(sequenceCellsInputs[iTimeStep], prevOutput, prevState, name + "_cell" + iTimeStep);
 
                 sequenceCellsOutputs.Add(prevOutput);
             }
@@ -508,15 +512,15 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             return (sequenceCellsOutputs, prevState);
         }
 
-        private static List<Tensor> BiLSTMSequence(List<Tensor> directSequenceCellsInputs, Tensor prevOutput, Tensor prevState, List<Operation> assignmentsList = null, string name = "bi_layer0")
+        private static List<Tensor> BiLSTMSequence(List<Tensor> directSequenceCellsInputs, Tensor prevOutput, Tensor prevState, string name = "bi_layer0")
         {
             // Reverse the input sequence
             List<Tensor> reverseSequenceCellsInputs = directSequenceCellsInputs.Select(tensor => tensor).ToList();
             reverseSequenceCellsInputs.Reverse();
 
             // Build the direct and reversed LSTM sequences
-            List<Tensor> directSequenceCellsOutputs = LSTMSequence(directSequenceCellsInputs, prevOutput, prevState, assignmentsList, name + "_direct").sequenceCellsOutputs;
-            List<Tensor> reverseSequenceCellsOutputs = LSTMSequence(reverseSequenceCellsInputs, prevOutput, prevState, assignmentsList, name + "_reverse").sequenceCellsOutputs;
+            List<Tensor> directSequenceCellsOutputs = LSTMSequence(directSequenceCellsInputs, prevOutput, prevState, name + "_direct").sequenceCellsOutputs;
+            List<Tensor> reverseSequenceCellsOutputs = LSTMSequence(reverseSequenceCellsInputs, prevOutput, prevState, name + "_reverse").sequenceCellsOutputs;
 
             // Merge the outputs of the two sequences as the merged output tensors
             // By averaging each two cells outputs
@@ -538,23 +542,18 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // and graph mode (stores the new nodes to the default graph)
             tf.Context.restore_mode();
 
-            // Create a new session for the model
-            Session session = LSTMSession(lstmModel.BaseModel._inputDim, lstmModel.BaseModel._outputDim, lstmModel._modelSequenceLength, lstmModel._bidirectional, lstmModel._layers);
-
-            // Set the session graph as the default graph
-            session.graph.as_default();
-            // Get the global variables from the default graph
-            IVariableV1[] newVars = tf.global_variables();
-
-            // Initiate the new graph with learned graph variables values
-            for (int i = 0; i < newVars.Length; i++)
+            // Get valsGraph Variables' values
+            Dictionary<string, NDArray> initVarsVals = new Dictionary<string, Tensorflow.NumPy.NDArray>();
+            string[] varsTensorsNames = valsGraph.get_operations().Where(iTensOp => iTensOp.op.OpType == "Identity").Select(iTensOp => iTensOp.name.Split("/")[0] + ":0").ToArray();
+            foreach (string varTensName in varsTensorsNames)
             {
-                IVariableV1 var = newVars[i];
-                Tensor valsTensor = valsGraph.get_tensor_by_name(var.Name);
-                Tensorflow.NumPy.NDArray vals = tempSess.run(valsTensor);
-                Tensor operation = tf.assign(var, vals);
-                session.run(operation);
+                Tensor valsTensor = valsGraph.get_tensor_by_name(varTensName);
+                Tensorflow.NumPy.NDArray val = tempSess.run(valsTensor);
+                initVarsVals.Add(varTensName, val);
             }
+
+            // Create a new session for the model
+            Session session = LSTMSession(lstmModel.BaseModel, lstmModel._modelSequenceLength, lstmModel._bidirectional, lstmModel._layers, initVarsVals);
 
             return session;
         }

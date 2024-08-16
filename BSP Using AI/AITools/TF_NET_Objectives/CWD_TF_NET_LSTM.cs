@@ -130,7 +130,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             int layers = 1;
             TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, modelSequenceLength, layers: layers) { Name = name, Type = ObjectiveType.Classification };
 
-            model.BaseModel.Session = TF_NET_LSTM.LSTMSession(inputDim, outputDim, modelSequenceLength, false, layers);
+            model.BaseModel.Session = TF_NET_LSTM.LSTMSession(model.BaseModel, modelSequenceLength, false, layers);
 
             // Save the model
             if (path.Length > 0)
@@ -148,11 +148,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
         public void initializeRLModelForCWD(CWDLSTM cwdLSTM)
         {
             TFNETReinforcementL rfModel = (TFNETReinforcementL)cwdLSTM.CWDReinforcementLModel.Clone();
-            rfModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(rfModel.BaseModel.ModelPath, rfModel.BaseModel._inputDim, rfModel.BaseModel._outputDim, CWD_RL_TFNET.createTFNETNeuralNetModelSession);
+            rfModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(rfModel.BaseModel, CWD_RL_TFNET.createTFNETNeuralNetModelSession);
             cwdLSTM.CWDReinforcementLModel = rfModel;
 
             TFNETReinforcementL crazyRLModel = (TFNETReinforcementL)cwdLSTM.CWDCrazyReinforcementLModel.Clone();
-            crazyRLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyRLModel.BaseModel.ModelPath, crazyRLModel.BaseModel._inputDim, crazyRLModel.BaseModel._outputDim, CWD_RL_TFNET.createTFNETNeuralNetModelSession);
+            crazyRLModel.BaseModel.Session = TF_NET_NN.LoadModelVariables(crazyRLModel.BaseModel, CWD_RL_TFNET.createTFNETNeuralNetModelSession);
             cwdLSTM.CWDCrazyReinforcementLModel = crazyRLModel;
 
             TFNETLSTMModel lstmModel = (TFNETLSTMModel)cwdLSTM.CWDLSTMModel.Clone();

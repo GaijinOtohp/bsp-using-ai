@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading;
 using Tensorflow;
+using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -297,6 +298,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public int _inputDim;
             [DataMember]
             public int _outputDim;
+            [IgnoreDataMemberAttribute]
+            public Dictionary<string, NDArray> _AssignedValsDict;
+            [IgnoreDataMemberAttribute]
+            public Dictionary<string, Operation> _InitAssignmentsOpDict;
             [IgnoreDataMemberAttribute]
             public Session Session;
 

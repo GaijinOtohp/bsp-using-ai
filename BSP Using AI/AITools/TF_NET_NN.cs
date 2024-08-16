@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tensorflow;
+using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
@@ -16,7 +17,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 {
     public class TF_NET_NN
     {
-        public delegate Session ModelArchitectureDelegate(int inputDim, int outputDim);
+        public delegate Session ModelArchitectureDelegate(TFNETBaseModel baseModel, Dictionary<string, NDArray> initVarsVals = null);
         public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList,
             FittingProgAIReportDelegate fittingProgAIReportDelegate, float earlyStopThreshold = 0.0001f, float learningRate = 0.1f, bool saveModel = false, int suggestedBatchSize = 4, int epochsMax = 1000)
         {
@@ -73,10 +74,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 // Save the initiale values of the variables for restoring the graph if the learning isn't going well
                 // Save them as assignment operations to the
                 session.graph.as_default();
-                IVariableV1[] vars = tf.global_variables();
-                Operation[] initOperations = new Operation[vars.Length];
-                for (int i = 0; i < vars.Length; i++)
-                    initOperations[i] = tf.assign(vars[i], session.run(vars[i].AsTensor()));
+                IVariableV1[] currentVars = tf.global_variables();
+                Dictionary<string, NDArray> currentVarsValsDict = new Dictionary<string, NDArray>();
+                foreach (IVariableV1 iVar in currentVars)
+                    currentVarsValsDict.Add(iVar.Name, session.run(iVar.AsTensor()));
 
                 // Create an error queue for storing the mean training error of each epoch
                 CircularQueue<float> costCirQueue = new CircularQueue<float>(15);
@@ -100,7 +101,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                             // If yes then decrease the learning rate
                             learningRate /= 10f;
                             // Restore the initial values of the variables (weights, and biases)
-                            session.run(initOperations);
+                            RefreshModelAndUpdateInitVals(baseModel, currentVars, currentVarsValsDict);
                         }
 
                         // Update the last and the mean cost value
@@ -180,10 +181,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             //File.WriteAllText(path + "labels.txt", string.Join("\n", new string[] { "3output" }));
         }
 
-        public static Session LoadModelVariables(string path, int inputDim, int outputDim, ModelArchitectureDelegate modelArchitectureDelegate)
+        public static Session LoadModelVariables(TFNETBaseModel baseModel, ModelArchitectureDelegate modelArchitectureDelegate)
         {
             // Load the learned graph variables values
-            Graph valsGraph = tf.train.load_graph(path + "/model_variables.pb");
+            Graph valsGraph = tf.train.load_graph(baseModel.ModelPath + "/model_variables.pb");
             // and create a temporal session for reading the variables tensors values
             Session tempSess = tf.Session();
 
@@ -191,28 +192,80 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // and graph mode (stores the new nodes to the default graph)
             tf.Context.restore_mode();
 
-            // Create a new session for the model
-            Session session = modelArchitectureDelegate(inputDim, outputDim);
+            // Get valsGraph Variables' values
+            Dictionary<string, NDArray> initVarsVals = new Dictionary<string, NDArray>();
+            string[] varsTensorsNames = valsGraph.get_operations().Where(iTensOp => iTensOp.op.OpType == "Identity").Select(iTensOp => iTensOp.name.Split("/")[0] + ":0").ToArray();
+            foreach (string varTensName in varsTensorsNames)
+            {
+                Tensor valsTensor = valsGraph.get_tensor_by_name(varTensName);
+                NDArray val = tempSess.run(valsTensor);
+                initVarsVals.Add(varTensName, val);
+            }
 
+            // Create a new session for the model
+            Session session = modelArchitectureDelegate(baseModel, initVarsVals);
+
+            return session;
+        }
+
+        public static (Dictionary<string, Operation> initAssignmentsDict, Dictionary<string, NDArray> initVarsVals) AssignValsToVars(Session session, Dictionary<string, NDArray> initVarsVals = null)
+        {
             // Set the session graph as the default graph
             session.graph.as_default();
             // Get the global variables from the default graph
             IVariableV1[] newVars = tf.global_variables();
 
-            // Initiate the new graph with learned graph variables values
+            // Create the assignment operations
+            if (initVarsVals == null)
+                initVarsVals = new Dictionary<string, NDArray>();
+            Dictionary<string, Operation> initAssignmentsDict = new Dictionary<string, Operation>();
             for (int i = 0; i < newVars.Length; i++)
             {
                 IVariableV1 var = newVars[i];
-                Tensor valsTensor = valsGraph.get_tensor_by_name(var.Name);
-                Tensorflow.NumPy.NDArray vals = tempSess.run(valsTensor);
-                Tensor operation = tf.assign(var, vals);
-                session.run(operation);
+
+                // Get the shape of the var input
+                int inputDim = (int)var.shape[0];
+
+                // Check if the variable value is not defined in initVarsVals
+                if (!initVarsVals.ContainsKey(var.Name))
+                    // If yes then initialize the variable randomly
+                    // Initialize the weights to be 1 / inputDim so that one neuron from the input doesn't saturate the output on its own
+                    // Initializing variables with the same values. Otherwise, all the weights will have the same value after training.
+                    initVarsVals.Add(var.Name, new NDArray(tf.random.normal(var.shape, 0, 1f / (float)inputDim)));
+
+                // Create the assignment operation
+                Operation assignOp = tf.assign(var, initVarsVals[var.Name]);
+                initAssignmentsDict.Add(var.Name, assignOp);
             }
 
-            return session;
+            // Run the assignments of the variables
+            session.run(initAssignmentsDict.Values.ToArray());
+
+            return (initAssignmentsDict, initVarsVals);
         }
 
-        public static Tensor Layer(Tensor input, int outputDim, List<Operation> assignmentsList = null, string name = null)
+        public static void RefreshModelAndUpdateInitVals(TFNETBaseModel baseModel, IVariableV1[] currentVars, Dictionary<string, NDArray> currentVarsValsDict)
+        {
+            baseModel.Session.graph.as_default();
+            // Iterate through the currentVars values and check if they are different that their corresponding assignment values in _AssignedValsDict
+            foreach (IVariableV1 iVar in currentVars)
+            {
+                NDArray currentVarVal = currentVarsValsDict[iVar.Name];
+                // Check if its previous value is different than the current one
+                if (!baseModel._AssignedValsDict[iVar.Name].Equals(currentVarVal))
+                {
+                    // If yes then update the previous values and its assignment
+                    baseModel._AssignedValsDict[iVar.Name] = currentVarVal;
+                    Operation assignOp = tf.assign(iVar, currentVarVal);
+                    baseModel._InitAssignmentsOpDict[iVar.Name] = assignOp;
+                }
+            }
+
+            // Refresh the model by apply the new assignments
+            baseModel.Session.run(baseModel._InitAssignmentsOpDict.Values.ToArray());
+        }
+
+        public static Tensor Layer(Tensor input, int outputDim, string name = null)
         {
             // Get the shape of the input
             int inputDim = (int)input.shape[1];
@@ -220,17 +273,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // Create the weights and biases parameters
             ResourceVariable weightsVar = tf.Variable(tf.ones((inputDim, outputDim)));
             ResourceVariable biasesVar = tf.Variable(tf.zeros(outputDim));
-            // Initialize the weights to be 1 / inputDim so that one neuron from the input doesn't saturate the output on its own
-            // Initializing variables with the same values. Otherwise, all the weights will have the same value after training.
-            Operation weightsAssign = tf.assign(weightsVar, tf.random.normal((inputDim, outputDim), 0, 1f / (float)inputDim));
-            Operation biasesAssign = tf.assign(biasesVar, tf.random.normal(outputDim, 0, 1f / (float)inputDim));
 
             // Perform the Times operation with the weights and biases
             Tensor output = tf.add(tf.matmul(input, weightsVar), biasesVar, name);
-
-            // Insert the assignemnts to assignmentsList if its not null
-            assignmentsList?.Add(weightsAssign);
-            assignmentsList?.Add(biasesAssign);
 
             return output;
         }
