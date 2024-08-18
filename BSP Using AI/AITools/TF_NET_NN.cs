@@ -28,6 +28,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             {
                 // Get the session from the model
                 Session session = baseModel.Session;
+                session.as_default();
 
                 // Sort data into batches
                 int batchesCount = (dataList.Count / suggestedBatchSize) + (dataList.Count % suggestedBatchSize > 0 ? 1 : 0);
@@ -145,6 +146,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 features = GeneralTools.rearrangeInput(features, model.PCA);
 
             session.graph.as_default();
+            session.as_default();
 
             // Get the input and output variables from the graph
             Tensor input = session.graph.OperationByName("input_place_holder");
@@ -212,6 +214,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         {
             // Set the session graph as the default graph
             session.graph.as_default();
+            session.as_default();
             // Get the global variables from the default graph
             IVariableV1[] newVars = tf.global_variables();
 
@@ -247,6 +250,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
         public static void RefreshModelAndUpdateInitVals(TFNETBaseModel baseModel, IVariableV1[] currentVars, Dictionary<string, NDArray> currentVarsValsDict)
         {
             baseModel.Session.graph.as_default();
+            baseModel.Session.as_default();
             // Iterate through the currentVars values and check if they are different that their corresponding assignment values in _AssignedValsDict
             foreach (IVariableV1 iVar in currentVars)
             {

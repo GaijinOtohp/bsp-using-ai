@@ -41,6 +41,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             {
                 // Get the session from the model
                 Session session = lstmModel.BaseModel.Session;
+                session.as_default();
                 //________________________________________________________________________________________________________________________________________//
                 //________________________________________________________________________________________________________________________________________//
 
@@ -263,6 +264,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             Session session = model.BaseModel.Session;
 
             session.graph.as_default();
+            session.as_default();
 
             // Get the cells input and output tensors
             Tensor sartingOutput = session.graph.OperationByName("cells_startingOutput");
@@ -318,6 +320,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             Session session = model.BaseModel.Session;
 
             session.graph.as_default();
+            session.as_default();
 
             // Get the cells input and output tensors
             Tensor sartingOutput = session.graph.OperationByName("cells_startingOutput");
@@ -374,6 +377,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             Session session = model.BaseModel.Session;
 
             session.graph.as_default();
+            session.as_default();
 
             // Get the cells input and output tensors
             Tensor sartingOutput = session.graph.OperationByName("cells_startingOutput");
@@ -447,6 +451,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     sequenceCellsOutputs = LSTMSequence(sequenceCellsInputs, sartingOutput, startingState, name: "layer" + iLayer).sequenceCellsOutputs;
             }
             Session session = new Session(graph);
+            session.as_default();
             // Assign values to the graph variables
             (Dictionary<string, Operation> initAssignmentsDict, initVarsVals) = TF_NET_NN.AssignValsToVars(session, initVarsVals);
             // Store initVarsVals and their assignments in baseModel

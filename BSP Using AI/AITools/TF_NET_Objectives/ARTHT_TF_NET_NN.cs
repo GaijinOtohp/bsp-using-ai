@@ -181,6 +181,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
             Tensor hiddenLayer2 = TF_NET_NN.Layer(hiddenLayer1, hidLayerDim); // The 1st hidden layer connected to the 2nd hidden layer. The 2nd layer has "linear" as activation function (default)
             Tensor output = TF_NET_NN.HardSigmoid(TF_NET_NN.Layer(hiddenLayer2, outputDim), "output"); // The 2nd hidden layer connected to the output layer. The output layer has "hard sigmoid" as activation function
             Session session = new Session(graph);
+            session.as_default();
             // Assign values to the graph variables
             (Dictionary<string, Operation> initAssignmentsDict, initVarsVals) = TF_NET_NN.AssignValsToVars(session, initVarsVals);
             // Store initVarsVals and their assignments in baseModel
