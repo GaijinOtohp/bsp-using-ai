@@ -4,6 +4,7 @@ using Keras.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using Tensorflow;
@@ -18,6 +19,42 @@ namespace Biological_Signal_Processing_Using_AI.AITools
     {
         //_______________________________________________________//
         //:::::::::::::::::::::ValidationData:::::::::::::::::::://
+        [DataContract(IsReference = true)]
+        public class OutputMetrics
+        {
+            [DataMember]
+            public int _truePositive;
+            [DataMember]
+            public int _trueNegative;
+            [DataMember]
+            public int _falsePositive;
+            [DataMember]
+            public int _falseNegative;
+
+            [DataMember]
+            public double _mase; // Mean absolute scaled error
+            [DataMember]
+            public double _mae; // Mean absolute error
+            [DataMember]
+            public double _maeNaive; // Mean absolute error for naive forcast
+            [DataMember]
+            public int _iSamples;
+
+            public OutputMetrics Clone()
+            {
+                OutputMetrics clonedOutputMetrics = new OutputMetrics();
+                clonedOutputMetrics._truePositive = _truePositive;
+                clonedOutputMetrics._trueNegative = _trueNegative;
+                clonedOutputMetrics._falsePositive = _falsePositive;
+                clonedOutputMetrics._falseNegative = _falseNegative;
+                clonedOutputMetrics._mase = _mase;
+                clonedOutputMetrics._mae = _mae;
+                clonedOutputMetrics._maeNaive = _maeNaive;
+                clonedOutputMetrics._iSamples = _iSamples;
+                return clonedOutputMetrics;
+            }
+        }
+
         [Serializable]
         [DataContract(IsReference = true)]
         public class ValidationData
@@ -29,22 +66,23 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public double _validationDatasetSize { get; set; }
             [DataMember]
-            public double _accuracy { get; set; }
-            [DataMember]
-            public double _sensitivity { get; set; }
-            [DataMember]
-            public double _specificity { get; set; }
+            public OutputMetrics[] _ModelOutputsValidMetrics { get; set; }
 
             public ValidationData Clone()
             {
-                ValidationData validationData = new ValidationData();
+                ValidationData validationData = new ValidationData(_ModelOutputsValidMetrics.Length);
                 validationData._datasetSize = _datasetSize;
                 validationData._trainingDatasetSize = _trainingDatasetSize;
                 validationData._validationDatasetSize = _validationDatasetSize;
-                validationData._accuracy = _accuracy;
-                validationData._sensitivity = _sensitivity;
-                validationData._specificity = _specificity;
+                validationData._ModelOutputsValidMetrics = _ModelOutputsValidMetrics.Select(outputMetrics => outputMetrics.Clone()).ToArray();
                 return validationData;
+            }
+
+            public ValidationData(int outputDim)
+            {
+                _ModelOutputsValidMetrics = new OutputMetrics[outputDim];
+                for (int i = 0; i < outputDim; i++)
+                    _ModelOutputsValidMetrics[i] = new OutputMetrics();
             }
         }
         //_______________________________________________________//
@@ -82,17 +120,21 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public ObjectiveType Type { get; set; }
             [DataMember]
+            public int _inputDim;
+            [DataMember]
+            public int _outputDim;
+            [DataMember]
             public bool _pcaActive { get; set; } = false;
             [DataMember]
             public List<PCAitem> PCA { get; set; } = new List<PCAitem>();
             [DataMember]
             public OutputThresholdItem[] OutputsThresholds { get; set; }
             [DataMember]
-            public ValidationData ValidationData = new ValidationData();
+            public ValidationData ValidationData { get; set; }
 
             protected virtual CustomArchiBaseModel CreateCloneInstance()
             {
-                return new CustomArchiBaseModel();
+                return new CustomArchiBaseModel(_inputDim, _outputDim);
             }
             public virtual CustomArchiBaseModel Clone()
             {
@@ -115,6 +157,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
                 return baseArchiModelClone;
             }
+
+            public CustomArchiBaseModel(int inputDim, int outputDim)
+            {
+                _inputDim = inputDim;
+                _outputDim = outputDim;
+                ValidationData = new ValidationData(outputDim);
+            }
         }
         //_______________________________________________________//
         //:::::::::::::::::::::::::::KNN::::::::::::::::::::::::://
@@ -131,7 +180,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new KNNModel();
+                return new KNNModel(_inputDim, _outputDim);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -139,6 +188,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 knnModel.k = k;
 
                 return knnModel;
+            }
+
+            public KNNModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            {
+
             }
         }
 
@@ -168,7 +222,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new KerasNETNeuralNetworkModel();
+                return new KerasNETNeuralNetworkModel(_inputDim, _outputDim);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -176,6 +230,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 neuralNetworkModel.ModelPath = ModelPath;
 
                 return neuralNetworkModel;
+            }
+
+            public KerasNETNeuralNetworkModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            {
+
             }
         }
 
@@ -218,7 +277,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new NaiveBayesModel();
+                return new NaiveBayesModel(_inputDim, _outputDim);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -235,6 +294,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 }
 
                 return naiveBayesModel;
+            }
+
+            public NaiveBayesModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            {
+
             }
         }
 
@@ -295,9 +359,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public string ModelPath;
             [DataMember]
-            public int _inputDim;
+            public int _inputDim { get; set; }
             [DataMember]
-            public int _outputDim;
+            public int _outputDim { get; set; }
             [IgnoreDataMemberAttribute]
             public Dictionary<string, NDArray> _AssignedValsDict;
             [IgnoreDataMemberAttribute]
@@ -305,7 +369,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [IgnoreDataMemberAttribute]
             public Session Session;
 
-            public TFNETBaseModel(string modelpath, int inputDim, int outputDim)
+            public TFNETBaseModel(string modelpath, ref int inputDim, ref int outputDim)
             {
                 ModelPath = modelpath;
                 _inputDim = inputDim;
@@ -321,19 +385,19 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public TFNETBaseModel BaseModel;
 
-            public TFNETNeuralNetworkModel(string modelpath, int inputDim, int outputDim)
+            public TFNETNeuralNetworkModel(string modelpath, int inputDim, int outputDim) : base(inputDim, outputDim)
             {
-                BaseModel = new TFNETBaseModel(modelpath, inputDim, outputDim);
+                BaseModel = new TFNETBaseModel(modelpath, ref _inputDim, ref _outputDim);
             }
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFNETNeuralNetworkModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
+                return new TFNETNeuralNetworkModel(BaseModel.ModelPath, _inputDim, _outputDim);
             }
             public override CustomArchiBaseModel Clone()
             {
                 TFNETNeuralNetworkModel tfNETNeuralNetworkModel = (TFNETNeuralNetworkModel)base.Clone();
-                tfNETNeuralNetworkModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
+                tfNETNeuralNetworkModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, ref _inputDim, ref _outputDim);
 
                 return tfNETNeuralNetworkModel;
             }
@@ -351,20 +415,20 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public List<RLDimension> _DimensionsList;
 
-            public TFNETReinforcementL(string modelpath, int inputDim, int outputDim, List<RLDimension> dimensionsList)
+            public TFNETReinforcementL(string modelpath, int inputDim, int outputDim, List<RLDimension> dimensionsList) : base(inputDim, outputDim)
             {
-                BaseModel = new TFNETBaseModel(modelpath, inputDim, outputDim);
+                BaseModel = new TFNETBaseModel(modelpath, ref _inputDim, ref _outputDim);
                 _DimensionsList = dimensionsList;
             }
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFNETReinforcementL(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim, _DimensionsList);
+                return new TFNETReinforcementL(BaseModel.ModelPath, _inputDim, _outputDim, _DimensionsList);
             }
             public override CustomArchiBaseModel Clone()
             {
                 TFNETReinforcementL tfNETReinforcementLModel = (TFNETReinforcementL)base.Clone();
-                tfNETReinforcementLModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
+                tfNETReinforcementLModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, ref _inputDim, ref _outputDim);
                 if (_DimensionsList != null)
                     for (int iDimension = 0; iDimension < _DimensionsList.Count; iDimension++)
                         tfNETReinforcementLModel._DimensionsList[iDimension] = _DimensionsList[iDimension].Clone();
@@ -389,9 +453,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public int _layers = 1;
 
-            public TFNETLSTMModel(string modelpath, int inputDim, int outputDim, int modelSequenceLength, bool bidirectional = false, int layers = 1)
+            public TFNETLSTMModel(string modelpath, int inputDim, int outputDim, int modelSequenceLength, bool bidirectional = false, int layers = 1) : base(inputDim, outputDim)
             {
-                BaseModel = new TFNETBaseModel(modelpath, inputDim, outputDim);
+                BaseModel = new TFNETBaseModel(modelpath, ref _inputDim, ref _outputDim);
                 _modelSequenceLength = modelSequenceLength;
                 _bidirectional = bidirectional;
                 _layers = layers;
@@ -399,12 +463,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFNETLSTMModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim, _modelSequenceLength, _bidirectional, _layers);
+                return new TFNETLSTMModel(BaseModel.ModelPath, _inputDim, _outputDim, _modelSequenceLength, _bidirectional, _layers);
             }
             public override CustomArchiBaseModel Clone()
             {
                 TFNETLSTMModel tfNETLSTMModel = (TFNETLSTMModel)base.Clone();
-                tfNETLSTMModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, BaseModel._inputDim, BaseModel._outputDim);
+                tfNETLSTMModel.BaseModel = new TFNETBaseModel(BaseModel.ModelPath, ref _inputDim, ref _outputDim);
                 tfNETLSTMModel._modelSequenceLength = _modelSequenceLength;
                 tfNETLSTMModel._bidirectional = _bidirectional;
                 tfNETLSTMModel._layers = _layers;
@@ -427,7 +491,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFKerasNeuralNetworkModel();
+                return new TFKerasNeuralNetworkModel(_inputDim, _outputDim);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -435,6 +499,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 tfKerasNeuralNetworkModel.ModelPath = ModelPath;
 
                 return tfKerasNeuralNetworkModel;
+            }
+
+            public TFKerasNeuralNetworkModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            {
+
             }
         }
     }

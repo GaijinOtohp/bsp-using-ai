@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -17,7 +18,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 {
     public partial class DatasetExplorerForm
     {
-        public static Dictionary<string, List<Sample>> GetPreviousTrainingSamples(DataTable dataTable)
+        public static Dictionary<string, List<Sample>> GetPreviousTrainingSamples(List<DataRow> rowsList)
         {
             DbStimulator dbStimulator = new DbStimulator();
             DataTable previousDataDataTable = dbStimulator.Query("cwd_rl_dataset",
@@ -31,9 +32,9 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 previousDataDict.Add(row.Field<string>("sginal_data_key"), GeneralTools.ByteArrayToObject<Data>(row.Field<byte[]>("training_data")));
 
             // Create the training samples list
-            Dictionary<string, List<Sample>> trainingSamplesListsDict = new Dictionary<string, List<Sample>>(dataTable.Rows.Count * 10);
+            Dictionary<string, List<Sample>> trainingSamplesListsDict = new Dictionary<string, List<Sample>>(rowsList.Count * 10);
 
-            foreach (DataRow row in dataTable.AsEnumerable())
+            foreach (DataRow row in rowsList)
             {
                 string signalDataKey = row.Field<string>("sginal_name") + row.Field<long>("starting_index");
                 if (previousDataDict.ContainsKey(signalDataKey))
@@ -43,24 +44,24 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             return trainingSamplesListsDict;
         }
 
-        public List<Sample> GetTrainingSamples(DataTable dataTable, TFNETReinforcementL CWDCrazyReinforcementLModel)
+        public static List<Sample> GetTrainingSamples(List<DataRow> rowsList, TFNETReinforcementL CWDCrazyReinforcementLModel, AIToolsForm aiToolsForm, ObjectiveBaseModel objectiveModel)
         {
             int fitProgress = 0;
-            int tolatFitProgress = dataTable.Rows.Count;
-            string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
+            int tolatFitProgress = rowsList.Count;
+            string modelName = objectiveModel.ModelName + objectiveModel.ObjectiveName;
 
             // Initialize the reinforcement learning environment
             CWD_RL cwdRL = new CWD_RL(CWDCrazyReinforcementLModel._DimensionsList);
 
             // Get previously learned data
-            Dictionary<string, List<Sample>> trainingSamplesListsDict = GetPreviousTrainingSamples(dataTable);
+            Dictionary<string, List<Sample>> trainingSamplesListsDict = GetPreviousTrainingSamples(rowsList);
 
-            foreach (DataRow row in dataTable.AsEnumerable())
+            foreach (DataRow row in rowsList)
             {
                 // Update fitProgressBar
                 fitProgress++;
-                if (_aIToolsForm != null)
-                    _aIToolsForm.holdAIReport(new FittingProgAIReport()
+                if (aiToolsForm != null)
+                    aiToolsForm.holdAIReport(new FittingProgAIReport()
                     {
                         ReportType = AIReportType.FittingProgress,
                         ModelName = modelName,
@@ -100,7 +101,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         public void holdRecordReport_CWDReinforcementL(DataTable dataTable, string callingClassName)
         {
             string modelName = _objectiveModel.ModelName + _objectiveModel.ObjectiveName;
-            List<Sample> trainingSamplesList = GetTrainingSamples(dataTable, ((CWDReinforcementL)_objectiveModel).CWDCrazyReinforcementLModel);
+            List<Sample> trainingSamplesList = GetTrainingSamples(dataTable.AsEnumerable().ToList(), ((CWDReinforcementL)_objectiveModel).CWDCrazyReinforcementLModel, _aIToolsForm, _objectiveModel);
 
             // Now fit all of trainingSamplesList into the reinforcement learning neural network model
             long datasetSize = _datasetSize + dataTable.Rows.Count;

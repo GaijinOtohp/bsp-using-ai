@@ -41,12 +41,13 @@ namespace BSP_Using_AI.AITools.Details
             this.samplingRateLabel = new System.Windows.Forms.Label();
             this.startingIndexLabel = new System.Windows.Forms.Label();
             this.signalNameLabel = new System.Windows.Forms.Label();
-            this.overallAccuracyLabel = new System.Windows.Forms.Label();
-            this.overallSensitivityLabel = new System.Windows.Forms.Label();
-            this.overallSpecificityLabel = new System.Windows.Forms.Label();
-            this.overallMASELabel = new System.Windows.Forms.Label();
+            this.overallTPLabel = new System.Windows.Forms.Label();
+            this.overallTNLabel = new System.Windows.Forms.Label();
+            this.overallFPLabel = new System.Windows.Forms.Label();
+            this.overallFNLabel = new System.Windows.Forms.Label();
             this.validationFlowLayoutPanelUserControlTitles1 = new BSP_Using_AI.AITools.Details.ValidationFlowLayoutPanelUserControlTitles();
             this.validationFlowLayoutPanel = new BSP_Using_AI.CustomFlowLayoutPanel();
+            this.overallMASELabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // trainingsDetailsLabel
@@ -175,53 +176,53 @@ namespace BSP_Using_AI.AITools.Details
             this.signalNameLabel.Text = "Signal name";
             this.signalNameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // overallAccuracyLabel
+            // overallTPLabel
             // 
-            this.overallAccuracyLabel.AutoSize = true;
-            this.overallAccuracyLabel.Location = new System.Drawing.Point(6, 855);
-            this.overallAccuracyLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.overallAccuracyLabel.MinimumSize = new System.Drawing.Size(140, 0);
-            this.overallAccuracyLabel.Name = "overallAccuracyLabel";
-            this.overallAccuracyLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.overallAccuracyLabel.Size = new System.Drawing.Size(140, 15);
-            this.overallAccuracyLabel.TabIndex = 39;
-            this.overallAccuracyLabel.Text = "Overall accuracy:";
+            this.overallTPLabel.AutoSize = true;
+            this.overallTPLabel.Location = new System.Drawing.Point(6, 855);
+            this.overallTPLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.overallTPLabel.MinimumSize = new System.Drawing.Size(160, 0);
+            this.overallTPLabel.Name = "overallTPLabel";
+            this.overallTPLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallTPLabel.Size = new System.Drawing.Size(160, 15);
+            this.overallTPLabel.TabIndex = 39;
+            this.overallTPLabel.Text = "Overall true positives:";
             // 
-            // overallSensitivityLabel
+            // overallTNLabel
             // 
-            this.overallSensitivityLabel.AutoSize = true;
-            this.overallSensitivityLabel.Location = new System.Drawing.Point(153, 855);
-            this.overallSensitivityLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.overallSensitivityLabel.MinimumSize = new System.Drawing.Size(140, 0);
-            this.overallSensitivityLabel.Name = "overallSensitivityLabel";
-            this.overallSensitivityLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.overallSensitivityLabel.Size = new System.Drawing.Size(140, 15);
-            this.overallSensitivityLabel.TabIndex = 40;
-            this.overallSensitivityLabel.Text = "Overall sensitivity:";
+            this.overallTNLabel.AutoSize = true;
+            this.overallTNLabel.Location = new System.Drawing.Point(174, 855);
+            this.overallTNLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.overallTNLabel.MinimumSize = new System.Drawing.Size(160, 0);
+            this.overallTNLabel.Name = "overallTNLabel";
+            this.overallTNLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallTNLabel.Size = new System.Drawing.Size(160, 15);
+            this.overallTNLabel.TabIndex = 40;
+            this.overallTNLabel.Text = "Overall true negatives:";
             // 
-            // overallSpecificityLabel
+            // overallFPLabel
             // 
-            this.overallSpecificityLabel.AutoSize = true;
-            this.overallSpecificityLabel.Location = new System.Drawing.Point(300, 855);
-            this.overallSpecificityLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.overallSpecificityLabel.MinimumSize = new System.Drawing.Size(140, 0);
-            this.overallSpecificityLabel.Name = "overallSpecificityLabel";
-            this.overallSpecificityLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.overallSpecificityLabel.Size = new System.Drawing.Size(140, 15);
-            this.overallSpecificityLabel.TabIndex = 41;
-            this.overallSpecificityLabel.Text = "Overall specificity:";
+            this.overallFPLabel.AutoSize = true;
+            this.overallFPLabel.Location = new System.Drawing.Point(342, 855);
+            this.overallFPLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.overallFPLabel.MinimumSize = new System.Drawing.Size(160, 0);
+            this.overallFPLabel.Name = "overallFPLabel";
+            this.overallFPLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallFPLabel.Size = new System.Drawing.Size(160, 15);
+            this.overallFPLabel.TabIndex = 41;
+            this.overallFPLabel.Text = "Overall false positives:";
             // 
-            // overallMASELabel
+            // overallFNLabel
             // 
-            this.overallMASELabel.AutoSize = true;
-            this.overallMASELabel.Location = new System.Drawing.Point(447, 855);
-            this.overallMASELabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.overallMASELabel.MinimumSize = new System.Drawing.Size(140, 0);
-            this.overallMASELabel.Name = "overallMASELabel";
-            this.overallMASELabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.overallMASELabel.Size = new System.Drawing.Size(140, 15);
-            this.overallMASELabel.TabIndex = 42;
-            this.overallMASELabel.Text = "Overall MASE:";
+            this.overallFNLabel.AutoSize = true;
+            this.overallFNLabel.Location = new System.Drawing.Point(510, 855);
+            this.overallFNLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.overallFNLabel.MinimumSize = new System.Drawing.Size(160, 0);
+            this.overallFNLabel.Name = "overallFNLabel";
+            this.overallFNLabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallFNLabel.Size = new System.Drawing.Size(160, 15);
+            this.overallFNLabel.TabIndex = 42;
+            this.overallFNLabel.Text = "Overall false negatives:";
             // 
             // validationFlowLayoutPanelUserControlTitles1
             // 
@@ -243,15 +244,28 @@ namespace BSP_Using_AI.AITools.Details
             this.validationFlowLayoutPanel.Size = new System.Drawing.Size(1220, 427);
             this.validationFlowLayoutPanel.TabIndex = 30;
             // 
+            // overallMASELabel
+            // 
+            this.overallMASELabel.AutoSize = true;
+            this.overallMASELabel.Location = new System.Drawing.Point(678, 855);
+            this.overallMASELabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.overallMASELabel.MinimumSize = new System.Drawing.Size(160, 0);
+            this.overallMASELabel.Name = "overallMASELabel";
+            this.overallMASELabel.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.overallMASELabel.Size = new System.Drawing.Size(160, 15);
+            this.overallMASELabel.TabIndex = 43;
+            this.overallMASELabel.Text = "Overall MASE:";
+            // 
             // DetailsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1237, 930);
             this.Controls.Add(this.overallMASELabel);
-            this.Controls.Add(this.overallSpecificityLabel);
-            this.Controls.Add(this.overallSensitivityLabel);
-            this.Controls.Add(this.overallAccuracyLabel);
+            this.Controls.Add(this.overallFNLabel);
+            this.Controls.Add(this.overallFPLabel);
+            this.Controls.Add(this.overallTNLabel);
+            this.Controls.Add(this.overallTPLabel);
             this.Controls.Add(this.validationFlowLayoutPanelUserControlTitles1);
             this.Controls.Add(this.samplingRateLabel);
             this.Controls.Add(this.startingIndexLabel);
@@ -290,9 +304,10 @@ namespace BSP_Using_AI.AITools.Details
         private System.Windows.Forms.Label startingIndexLabel;
         private System.Windows.Forms.Label signalNameLabel;
         private ValidationFlowLayoutPanelUserControlTitles validationFlowLayoutPanelUserControlTitles1;
-        private System.Windows.Forms.Label overallAccuracyLabel;
-        private System.Windows.Forms.Label overallSensitivityLabel;
-        private System.Windows.Forms.Label overallSpecificityLabel;
+        private System.Windows.Forms.Label overallTPLabel;
+        private System.Windows.Forms.Label overallTNLabel;
+        private System.Windows.Forms.Label overallFPLabel;
+        private System.Windows.Forms.Label overallFNLabel;
         private System.Windows.Forms.Label overallMASELabel;
     }
 }

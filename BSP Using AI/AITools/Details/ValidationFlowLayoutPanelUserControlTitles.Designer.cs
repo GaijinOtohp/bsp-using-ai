@@ -33,11 +33,13 @@ namespace BSP_Using_AI.AITools.Details
             this.datasetSizeLabel = new System.Windows.Forms.Label();
             this.trainingDatasetLabel = new System.Windows.Forms.Label();
             this.validationDatasetLabel = new System.Windows.Forms.Label();
-            this.accuracyLabel = new System.Windows.Forms.Label();
+            this.truePositiveLabel = new System.Windows.Forms.Label();
             this.algorithmTypeLabel = new System.Windows.Forms.Label();
-            this.sensitivityLabel = new System.Windows.Forms.Label();
-            this.specificityLabel = new System.Windows.Forms.Label();
+            this.trueNegativeLabel = new System.Windows.Forms.Label();
+            this.falsePositiveLabel = new System.Windows.Forms.Label();
             this.updateProgressLabel = new System.Windows.Forms.Label();
+            this.maseLabel = new System.Windows.Forms.Label();
+            this.falseNegativeLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // modelTargetLabel
@@ -92,18 +94,18 @@ namespace BSP_Using_AI.AITools.Details
             this.validationDatasetLabel.Text = "Validation dataset";
             this.validationDatasetLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // accuracyLabel
+            // truePositiveLabel
             // 
-            this.accuracyLabel.AutoSize = true;
-            this.accuracyLabel.Location = new System.Drawing.Point(819, 3);
-            this.accuracyLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.accuracyLabel.MaximumSize = new System.Drawing.Size(117, 0);
-            this.accuracyLabel.MinimumSize = new System.Drawing.Size(117, 27);
-            this.accuracyLabel.Name = "accuracyLabel";
-            this.accuracyLabel.Size = new System.Drawing.Size(117, 27);
-            this.accuracyLabel.TabIndex = 8;
-            this.accuracyLabel.Text = "Accuracy";
-            this.accuracyLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.truePositiveLabel.AutoSize = true;
+            this.truePositiveLabel.Location = new System.Drawing.Point(819, 3);
+            this.truePositiveLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.truePositiveLabel.MaximumSize = new System.Drawing.Size(117, 0);
+            this.truePositiveLabel.MinimumSize = new System.Drawing.Size(60, 27);
+            this.truePositiveLabel.Name = "truePositiveLabel";
+            this.truePositiveLabel.Size = new System.Drawing.Size(60, 27);
+            this.truePositiveLabel.TabIndex = 8;
+            this.truePositiveLabel.Text = "TP";
+            this.truePositiveLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // algorithmTypeLabel
             // 
@@ -118,31 +120,31 @@ namespace BSP_Using_AI.AITools.Details
             this.algorithmTypeLabel.Text = "Algorithm type";
             this.algorithmTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // sensitivityLabel
+            // trueNegativeLabel
             // 
-            this.sensitivityLabel.AutoSize = true;
-            this.sensitivityLabel.Location = new System.Drawing.Point(943, 3);
-            this.sensitivityLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.sensitivityLabel.MaximumSize = new System.Drawing.Size(117, 0);
-            this.sensitivityLabel.MinimumSize = new System.Drawing.Size(117, 27);
-            this.sensitivityLabel.Name = "sensitivityLabel";
-            this.sensitivityLabel.Size = new System.Drawing.Size(117, 27);
-            this.sensitivityLabel.TabIndex = 9;
-            this.sensitivityLabel.Text = "Sensitivity";
-            this.sensitivityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.trueNegativeLabel.AutoSize = true;
+            this.trueNegativeLabel.Location = new System.Drawing.Point(887, 3);
+            this.trueNegativeLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.trueNegativeLabel.MaximumSize = new System.Drawing.Size(117, 0);
+            this.trueNegativeLabel.MinimumSize = new System.Drawing.Size(60, 27);
+            this.trueNegativeLabel.Name = "trueNegativeLabel";
+            this.trueNegativeLabel.Size = new System.Drawing.Size(60, 27);
+            this.trueNegativeLabel.TabIndex = 9;
+            this.trueNegativeLabel.Text = "TN";
+            this.trueNegativeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // specificityLabel
+            // falsePositiveLabel
             // 
-            this.specificityLabel.AutoSize = true;
-            this.specificityLabel.Location = new System.Drawing.Point(1066, 3);
-            this.specificityLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.specificityLabel.MaximumSize = new System.Drawing.Size(117, 0);
-            this.specificityLabel.MinimumSize = new System.Drawing.Size(117, 27);
-            this.specificityLabel.Name = "specificityLabel";
-            this.specificityLabel.Size = new System.Drawing.Size(117, 27);
-            this.specificityLabel.TabIndex = 10;
-            this.specificityLabel.Text = "Specificity";
-            this.specificityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.falsePositiveLabel.AutoSize = true;
+            this.falsePositiveLabel.Location = new System.Drawing.Point(955, 3);
+            this.falsePositiveLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.falsePositiveLabel.MaximumSize = new System.Drawing.Size(117, 0);
+            this.falsePositiveLabel.MinimumSize = new System.Drawing.Size(60, 27);
+            this.falsePositiveLabel.Name = "falsePositiveLabel";
+            this.falsePositiveLabel.Size = new System.Drawing.Size(60, 27);
+            this.falsePositiveLabel.TabIndex = 10;
+            this.falsePositiveLabel.Text = "FP";
+            this.falsePositiveLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // updateProgressLabel
             // 
@@ -157,15 +159,43 @@ namespace BSP_Using_AI.AITools.Details
             this.updateProgressLabel.Text = "Update Progress";
             this.updateProgressLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // maseLabel
+            // 
+            this.maseLabel.AutoSize = true;
+            this.maseLabel.Location = new System.Drawing.Point(1091, 3);
+            this.maseLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.maseLabel.MaximumSize = new System.Drawing.Size(117, 0);
+            this.maseLabel.MinimumSize = new System.Drawing.Size(60, 27);
+            this.maseLabel.Name = "maseLabel";
+            this.maseLabel.Size = new System.Drawing.Size(60, 27);
+            this.maseLabel.TabIndex = 13;
+            this.maseLabel.Text = "MASE";
+            this.maseLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // falseNegativeLabel
+            // 
+            this.falseNegativeLabel.AutoSize = true;
+            this.falseNegativeLabel.Location = new System.Drawing.Point(1023, 3);
+            this.falseNegativeLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.falseNegativeLabel.MaximumSize = new System.Drawing.Size(117, 0);
+            this.falseNegativeLabel.MinimumSize = new System.Drawing.Size(60, 27);
+            this.falseNegativeLabel.Name = "falseNegativeLabel";
+            this.falseNegativeLabel.Size = new System.Drawing.Size(60, 27);
+            this.falseNegativeLabel.TabIndex = 12;
+            this.falseNegativeLabel.Text = "FN";
+            this.falseNegativeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // ValidationFlowLayoutPanelUserControlTitles
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.maseLabel);
+            this.Controls.Add(this.falseNegativeLabel);
             this.Controls.Add(this.updateProgressLabel);
-            this.Controls.Add(this.specificityLabel);
-            this.Controls.Add(this.sensitivityLabel);
+            this.Controls.Add(this.falsePositiveLabel);
+            this.Controls.Add(this.trueNegativeLabel);
             this.Controls.Add(this.algorithmTypeLabel);
-            this.Controls.Add(this.accuracyLabel);
+            this.Controls.Add(this.truePositiveLabel);
             this.Controls.Add(this.validationDatasetLabel);
             this.Controls.Add(this.trainingDatasetLabel);
             this.Controls.Add(this.datasetSizeLabel);
@@ -184,10 +214,12 @@ namespace BSP_Using_AI.AITools.Details
         public System.Windows.Forms.Label datasetSizeLabel;
         public System.Windows.Forms.Label trainingDatasetLabel;
         public System.Windows.Forms.Label validationDatasetLabel;
-        public System.Windows.Forms.Label accuracyLabel;
+        public System.Windows.Forms.Label truePositiveLabel;
         public System.Windows.Forms.Label algorithmTypeLabel;
-        public System.Windows.Forms.Label sensitivityLabel;
-        public System.Windows.Forms.Label specificityLabel;
+        public System.Windows.Forms.Label trueNegativeLabel;
+        public System.Windows.Forms.Label falsePositiveLabel;
         public System.Windows.Forms.Label updateProgressLabel;
+        public System.Windows.Forms.Label maseLabel;
+        public System.Windows.Forms.Label falseNegativeLabel;
     }
 }

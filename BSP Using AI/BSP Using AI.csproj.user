@@ -36,6 +36,12 @@
     <Compile Update="AITools\Details\ARTHTDetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="AITools\Details\CWDLSTM_DetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\CWDReinforcementL_DetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="AITools\Details\DetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>

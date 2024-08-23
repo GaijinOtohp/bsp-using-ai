@@ -108,7 +108,7 @@ namespace BSP_Using_AI.DetailsModify
             DataBuilderMemory.globalMin = GeneralTools.MeanMinMax(RescaledSamples).min;
             DataBuilderMemory.globalAmpInterval = globalAmpInterval;
             DataBuilderMemory.samplingRate = _FilteringTools._samplingRate;
-            DataBuilderMemory.latestPeakToClassifyProba = new double[CWDLSTMModel.BaseModel._outputDim];
+            DataBuilderMemory.latestPeakToClassifyProba = new double[CWDLSTMModel._outputDim];
 
             // Create the queue for building the input sequence of the LSTM model
             Queue<double[]> InputSeqQueue = new Queue<double[]>(CWDLSTMModel._modelSequenceLength + 1);

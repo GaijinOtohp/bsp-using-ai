@@ -217,7 +217,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
         public static TFKerasNeuralNetworkModel createTFKerasNeuralNetModel(string name, string path, int inputDim, int outputDim)
         {
-            TFKerasNeuralNetworkModel model = new TFKerasNeuralNetworkModel() { Name = name, ModelPath = path };
+            TFKerasNeuralNetworkModel model = new TFKerasNeuralNetworkModel(inputDim, outputDim) { Name = name, ModelPath = path };
 
             model.Model = createTFKerasNeuralNetModel(inputDim, outputDim);
 

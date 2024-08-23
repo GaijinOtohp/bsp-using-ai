@@ -39,7 +39,10 @@
     <Compile Update="AITools\Details\DatasetFlowLayoutPanelItem2UserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="AITools\Details\ValidationDataSelection\ValDataItemUC.cs">
+    <Compile Update="AITools\Details\ValidationDataSelection\ValNonSeleDataItemUC.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationDataSelection\ValSeleDataItemUC.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="AITools\Details\ValidationFlowLayoutPanelUserControlTitles.cs">

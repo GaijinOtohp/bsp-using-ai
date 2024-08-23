@@ -93,8 +93,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                         // Train the model with the selected batch
                         (_, float cost) = session.run((optimizer, costFunc),
                                                     (learningRateTensor, learningRate),
-                                                    (input, new Tensorflow.NumPy.NDArray(inputBatches[batch])),
-                                                    (outputPlaceholder, new Tensorflow.NumPy.NDArray(outputBatches[batch])));
+                                                    (input, new NDArray(inputBatches[batch])),
+                                                    (outputPlaceholder, new NDArray(outputBatches[batch])));
 
                         // Check if the cost went to infinity
                         if (float.IsNaN(cost) || float.IsInfinity(cost))
@@ -156,7 +156,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             float[,] featuresFloat = new float[1, features.Length];
             for (int i = 0; i < features.Length; i++) featuresFloat[0, i] = (float)features[i];
             // Predict the input
-            Tensorflow.NumPy.NDArray prediction = session.run(output, new FeedItem(input, featuresFloat));
+            NDArray prediction = session.run(output, new FeedItem(input, featuresFloat));
 
             // Return result to main user interface
             return prediction.ToMultiDimArray<float>().OfType<float>().Select(val => (double)val).ToArray();

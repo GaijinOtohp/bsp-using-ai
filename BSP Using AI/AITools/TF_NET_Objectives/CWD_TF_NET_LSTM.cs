@@ -162,20 +162,20 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             _objectivesModelsDic.Add(cwdLSTM.ModelName + cwdLSTM.ObjectiveName, cwdLSTM);
         }
 
-        private void UpdateThresholds(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences)
+        public static void UpdateThresholds(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences)
         {
             if (dataListSequences.Count == 0)
                 return;
 
             // Set the high and low outputs averaged to zeros
-            for (int iOutput = 0; iOutput < lstmModel.BaseModel._outputDim; iOutput++)
+            for (int iOutput = 0; iOutput < lstmModel._outputDim; iOutput++)
             {
                 lstmModel.OutputsThresholds[iOutput]._highOutputAv = 0;
                 lstmModel.OutputsThresholds[iOutput]._lowOutputAv = 0;
             }
 
-            int[] highOutputsCount = new int[lstmModel.BaseModel._outputDim];
-            int[] lowOutputsCount = new int[lstmModel.BaseModel._outputDim];
+            int[] highOutputsCount = new int[lstmModel._outputDim];
+            int[] lowOutputsCount = new int[lstmModel._outputDim];
 
             Queue<double[]> InputSeqQueue;
 
@@ -218,7 +218,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             }
 
             // Update the outputs thresholds according to the new _highOutputAv and _lowOutputAv
-            for (int iOutput = 0; iOutput < lstmModel.BaseModel._outputDim; iOutput++)
+            for (int iOutput = 0; iOutput < lstmModel._outputDim; iOutput++)
             {
                 lstmModel.OutputsThresholds[iOutput]._threshold = (lstmModel.OutputsThresholds[iOutput]._highOutputAv + lstmModel.OutputsThresholds[iOutput]._lowOutputAv) / 2;
             }

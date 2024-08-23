@@ -73,7 +73,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private List<Sample> SortDatasetSamples_CWDReinforcementL(DataTable dataTable)
         {
-            Dictionary<string, List<Sample>> trainingSamplesListsDict = DatasetExplorerForm.GetPreviousTrainingSamples(dataTable);
+            Dictionary<string, List<Sample>> trainingSamplesListsDict = DatasetExplorerForm.GetPreviousTrainingSamples(dataTable.AsEnumerable().ToList());
 
             List<Sample> dataList = trainingSamplesListsDict.SelectMany(dictPair => dictPair.Value).ToList();
 
@@ -82,7 +82,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private List<List<Sample>> SortDatasetSamples_CWDLSTM(DataTable dataTable)
         {
-            List<List<Sample>> trainingDataListSequences = DatasetExplorerForm.BuildLSTMTrainingSequences(dataTable, ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
+            List<List<Sample>> trainingDataListSequences = DatasetExplorerForm.BuildLSTMTrainingSequences(dataTable.AsEnumerable().ToList(), ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
 
             return trainingDataListSequences;
         }
@@ -108,10 +108,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 // Check which model is selected
                 if (_InnerObjectiveModel is KNNModel)
                     // If yes then this is for KNN models
-                    _InnerObjectiveModel = ARTHT_KNN.createKNNModel(_InnerObjectiveModel.Name, 3, outputDimension);
+                    _InnerObjectiveModel = ARTHT_KNN.createKNNModel(_InnerObjectiveModel.Name, 3, inputDimension, outputDimension);
                 else if (_InnerObjectiveModel is NaiveBayesModel)
                     // If yes then this is for Naive Bayes models
-                    _InnerObjectiveModel = ARTHT_NaiveBayes.createNBModel(_InnerObjectiveModel.Name, outputDimension);
+                    _InnerObjectiveModel = ARTHT_NaiveBayes.createNBModel(_InnerObjectiveModel.Name, inputDimension, outputDimension);
                 else if (_InnerObjectiveModel is TFNETNeuralNetworkModel)
                     // If yes then this is for Tensorflow.Net Neural Networks models
                     _InnerObjectiveModel = ARTHT_TF_NET_NN.createTFNETNeuralNetModel(_InnerObjectiveModel.Name, ((TFNETNeuralNetworkModel)_InnerObjectiveModel).BaseModel.ModelPath, inputDimension, outputDimension);

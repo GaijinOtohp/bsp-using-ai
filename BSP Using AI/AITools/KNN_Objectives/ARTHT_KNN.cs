@@ -98,13 +98,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             // 2 for delta deteciton (Acceleration threshold, delta existence) }
             ARTHTModels arthtModels = new ARTHTModels();
             // Create a KNN models structure with the initial optimum K, which is "3"
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createKNNModel(ARTHTNamings.Step1RPeaksScanData, 3, 2); // (15, 2) For R peaks detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createKNNModel(ARTHTNamings.Step2RPeaksSelectionData, 3, 1); // (2, 1) For R selection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createKNNModel(ARTHTNamings.Step3BeatPeaksScanData, 3, 2); // (5, 2) For beat peaks detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createKNNModel(ARTHTNamings.Step4PTSelectionData, 3, 2); // (3, 2) For P and T detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createKNNModel(ARTHTNamings.Step5ShortPRScanData, 3, 1); // (1, 1) For short PR detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createKNNModel(ARTHTNamings.Step6UpstrokesScanData, 3, 1); // (6, 1) For delta detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createKNNModel(ARTHTNamings.Step7DeltaExaminationData, 3, 1); // (6, 1) For WPW syndrome declaration
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createKNNModel(ARTHTNamings.Step1RPeaksScanData, 3, 15, 2); // (15, 2) For R peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createKNNModel(ARTHTNamings.Step2RPeaksSelectionData, 3, 2, 1); // (2, 1) For R selection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createKNNModel(ARTHTNamings.Step3BeatPeaksScanData, 3, 5, 2); // (5, 2) For beat peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createKNNModel(ARTHTNamings.Step4PTSelectionData, 3, 3, 2); // (3, 2) For P and T detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createKNNModel(ARTHTNamings.Step5ShortPRScanData, 3, 1, 1); // (1, 1) For short PR detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createKNNModel(ARTHTNamings.Step6UpstrokesScanData, 3, 6, 1); // (6, 1) For delta detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createKNNModel(ARTHTNamings.Step7DeltaExaminationData, 3, 6, 1); // (6, 1) For WPW syndrome declaration
 
             // Insert models in _arthtModelsDic
             int modelIndx = 0;
@@ -132,31 +132,45 @@ namespace Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives
             if (pcaActive)
                 // If yes then compute PCA loading scores
                 pca = DataVisualisationForm.getPCA(dataList);
+            int input;
             int output;
+
+            if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData))
+                input = 15;
+            else if (stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData))
+                input = 2;
+            else if (stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData))
+                input = 5;
+            else if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
+                input = 3;
+            else if (stepName.Equals(ARTHTNamings.Step5ShortPRScanData))
+                input = 1;
+            else
+                input = 6;
 
             if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step4PTSelectionData))
                 output = 2;
             else
                 output = 1;
 
-            KNNModel tempModel = createKNNModel(stepName, 3, output);
+            KNNModel tempModel = createKNNModel(stepName, 3, input, output);
             tempModel._pcaActive = pcaActive;
             tempModel.PCA = pca;
 
             return tempModel;
         }
 
-        public static KNNModel createKNNModel(string name, int k, int outputDimension)
+        public static KNNModel createKNNModel(string name, int k, int inputDim, int outputDim)
         {
             // Create a KNN model structure with the initial optimum K
-            KNNModel model = new KNNModel { Name = name, k = k };
+            KNNModel model = new KNNModel(inputDim, outputDim) { Name = name, k = k };
             if (name.Equals(ARTHTNamings.Step1RPeaksScanData) || name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || name.Equals(ARTHTNamings.Step6UpstrokesScanData))
                 model.Type = ObjectiveType.Regression;
             else
                 model.Type = ObjectiveType.Classification;
             // Set initial thresholds for output decisions
-            model.OutputsThresholds = new OutputThresholdItem[outputDimension];
-            for (int i = 0; i < outputDimension; i++)
+            model.OutputsThresholds = new OutputThresholdItem[outputDim];
+            for (int i = 0; i < outputDim; i++)
                 model.OutputsThresholds[i] = new OutputThresholdItem();
 
             return model;

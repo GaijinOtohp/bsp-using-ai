@@ -198,7 +198,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
 
         private KerasNETNeuralNetworkModel createNeuralNetModel(string name, string path, int input, int output)
         {
-            KerasNETNeuralNetworkModel model = new KerasNETNeuralNetworkModel() { Name = name, ModelPath = path };
+            KerasNETNeuralNetworkModel model = new KerasNETNeuralNetworkModel(input, output) { Name = name, ModelPath = path };
             if (name.Equals(ARTHTNamings.Step1RPeaksScanData) || name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || name.Equals(ARTHTNamings.Step6UpstrokesScanData))
                 model.Type = ObjectiveType.Regression;
             else

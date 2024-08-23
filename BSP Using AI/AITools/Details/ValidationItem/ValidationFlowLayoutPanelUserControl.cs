@@ -102,7 +102,7 @@ namespace BSP_Using_AI.AITools.Details
 
         private List<Sample> SortDatasetSamples_CWDReinforcementL(DataTable dataTable)
         {
-            Dictionary<string, List<Sample>> trainingSamplesListsDict = DatasetExplorerForm.GetPreviousTrainingSamples(dataTable);
+            Dictionary<string, List<Sample>> trainingSamplesListsDict = DatasetExplorerForm.GetPreviousTrainingSamples(dataTable.AsEnumerable().ToList());
 
             List<Sample> dataList = trainingSamplesListsDict.SelectMany(dictPair => dictPair.Value).ToList();
 
@@ -111,7 +111,7 @@ namespace BSP_Using_AI.AITools.Details
 
         private List<Sample> SortDatasetSamples_CWDLSTM(DataTable dataTable)
         {
-            List<List<Sample>> trainingDataListSequences = DatasetExplorerForm.BuildLSTMTrainingSequences(dataTable, ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
+            List<List<Sample>> trainingDataListSequences = DatasetExplorerForm.BuildLSTMTrainingSequences(dataTable.AsEnumerable().ToList(), ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
 
             List<Sample> dataList = trainingDataListSequences.SelectMany(sequenceList => sequenceList).ToList();
 

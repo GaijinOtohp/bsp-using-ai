@@ -109,13 +109,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 [DataMember]
                 public Dictionary<string, CustomArchiBaseModel> ARTHTModelsDic = new Dictionary<string, CustomArchiBaseModel>(7)
                 {
-                    { ARTHTNamings.Step1RPeaksScanData, new CustomArchiBaseModel() },
-                    { ARTHTNamings.Step2RPeaksSelectionData, new CustomArchiBaseModel() },
-                    { ARTHTNamings.Step3BeatPeaksScanData, new CustomArchiBaseModel() },
-                    { ARTHTNamings.Step4PTSelectionData, new CustomArchiBaseModel() },
-                    { ARTHTNamings.Step5ShortPRScanData, new CustomArchiBaseModel() },
-                    { ARTHTNamings.Step6UpstrokesScanData, new CustomArchiBaseModel() },
-                    { ARTHTNamings.Step7DeltaExaminationData, new CustomArchiBaseModel() },
+                    { ARTHTNamings.Step1RPeaksScanData, new CustomArchiBaseModel(0, 0) },
+                    { ARTHTNamings.Step2RPeaksSelectionData, new CustomArchiBaseModel(0, 0) },
+                    { ARTHTNamings.Step3BeatPeaksScanData, new CustomArchiBaseModel(0, 0) },
+                    { ARTHTNamings.Step4PTSelectionData, new CustomArchiBaseModel(0, 0) },
+                    { ARTHTNamings.Step5ShortPRScanData, new CustomArchiBaseModel(0, 0) },
+                    { ARTHTNamings.Step6UpstrokesScanData, new CustomArchiBaseModel(0, 0) },
+                    { ARTHTNamings.Step7DeltaExaminationData, new CustomArchiBaseModel(0, 0) },
                 };
 
                 protected override ObjectiveBaseModel CreateCloneInstance()

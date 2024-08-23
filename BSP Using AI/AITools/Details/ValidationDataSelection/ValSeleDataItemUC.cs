@@ -4,9 +4,9 @@ using System.Windows.Forms;
 
 namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection
 {
-    public partial class ValDataItemUC : UserControl
+    public partial class ValSeleDataItemUC : UserControl
     {
-        public delegate void SetSignalOrder(ValDataItemUC item, int newOrderIndex);
+        public delegate void SetSignalOrder(ValSeleDataItemUC item, int newOrderIndex);
 
         private SetSignalOrder _SetSignalOrder;
 
@@ -14,7 +14,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSe
 
         public bool _ignoreEvent = false;
 
-        public ValDataItemUC(SetSignalOrder setSignalOrder, int maxtOrderIndex)
+        public ValSeleDataItemUC(SetSignalOrder setSignalOrder, int maxtOrderIndex)
         {
             InitializeComponent();
             _SetSignalOrder = setSignalOrder;

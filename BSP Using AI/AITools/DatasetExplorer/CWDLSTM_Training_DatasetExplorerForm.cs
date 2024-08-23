@@ -328,11 +328,11 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             sample.insertOutputArray(labelsNamings, labels);
         }
 
-        public static List<List<Sample>> BuildLSTMTrainingSequences(DataTable dataTable, TFNETReinforcementL rlModel)
+        public static List<List<Sample>> BuildLSTMTrainingSequences(List<DataRow> rowsList, TFNETReinforcementL rlModel)
         {
-            List<List<Sample>> dataListSequences = new List<List<Sample>>(dataTable.Rows.Count);
+            List<List<Sample>> dataListSequences = new List<List<Sample>>(rowsList.Count);
 
-            foreach (DataRow row in dataTable.AsEnumerable())
+            foreach (DataRow row in rowsList)
             {
                 // Get the signal and segment it using the CWD_RL segmentation method
                 int samplingRate = (int)(row.Field<long>("sampling_rate"));
@@ -558,7 +558,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             // Get deep Q-learning model's training dataset if available
             List<Sample> rlTrainingSamplesList = new List<Sample>();
             if (!rlModelCopied)
-                rlTrainingSamplesList = GetTrainingSamples(dataTable, ((CWDLSTM)_objectiveModel).CWDCrazyReinforcementLModel);
+                rlTrainingSamplesList = GetTrainingSamples(dataTable.AsEnumerable().ToList(), ((CWDLSTM)_objectiveModel).CWDCrazyReinforcementLModel, _aIToolsForm, _objectiveModel);
 
             // Train the deep Q-learning model
             cwdLSTM.FitOnRLModel(modelName, rlTrainingSamplesList);
@@ -566,7 +566,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             //**************************************************************************************************************//
 
             // Build LSTM training sequences
-            List<List<Sample>> dataListSequences = BuildLSTMTrainingSequences(dataTable, ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
+            List<List<Sample>> dataListSequences = BuildLSTMTrainingSequences(dataTable.AsEnumerable().ToList(), ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
 
             // Train the LSTM model
             long datasetSize = _datasetSize + dataTable.Rows.Count;

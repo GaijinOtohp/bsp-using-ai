@@ -1,6 +1,6 @@
 ﻿namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection
 {
-    partial class ValDataItemUC
+    partial class ValSeleDataItemUC
     {
         /// <summary> 
         /// Required designer variable.
