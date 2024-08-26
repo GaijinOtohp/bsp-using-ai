@@ -54,7 +54,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
             // Fit features in model
             if (rlTrainingSamplesList.Count > 0)
-                TF_NET_NN.fit(cwdLSTM.CWDReinforcementLModel, cwdLSTM.CWDReinforcementLModel.BaseModel, rlTrainingSamplesList, UpdateFittingProgress, saveModel: true, earlyStopThreshold: 0.00001f);
+                TF_NET_NN.fit(cwdLSTM.CWDReinforcementLModel, cwdLSTM.CWDReinforcementLModel.BaseModel, rlTrainingSamplesList, UpdateFittingProgress, saveModel: true);
         }
 
         public void FitOnLSTMModel(string modelName, List<List<Sample>> dataListSequences, long datasetSize, long modelId)

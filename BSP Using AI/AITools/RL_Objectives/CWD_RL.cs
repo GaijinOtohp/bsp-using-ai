@@ -51,6 +51,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         int _selectedSegment;
 
         bool _done = false;
+        double _overPeaksRatio = 20d;
+        double _ratioIncrement = 0.5d;
+        double _overPeaksRatioReset = 20d;
+        int _holdRatio = 50;
+        int _holdRatioReset = 50;
 
         public CWD_RL(List<RLDimension> dimensionsList)
         {
@@ -114,7 +119,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                     badState = true;
                 }
 
-            if (!badState)
+            if (!badState && (((double)tempCornersIndex.Length / windowapproxIntervals.Length) < _overPeaksRatio || windowapproxIntervals.Length == 0))
             {
                 reward += _reward_detecting_all_corners;
                 _done = true;
@@ -143,6 +148,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             {
                 done = true;
                 _done = false;
+                _holdRatio = _holdRatioReset;
+            }
+            else if (_holdRatio > 0)
+                _holdRatio--;
+            else
+            {
+                _overPeaksRatio += _ratioIncrement;
+                _holdRatio = _holdRatioReset;
             }
 
             return done;
@@ -195,6 +208,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             {
                 // ---------------------------------------------Try reset then new environment's q-table
                 _Env.QTableReset();
+                _overPeaksRatio = _overPeaksRatioReset;
 
                 // Iterate through episodes
                 for (int iEpisode = 0; iEpisode < maxEpisodes; iEpisode++)

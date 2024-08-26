@@ -55,7 +55,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             CWDReinforcementL cwdReinforcementL = (CWDReinforcementL)_objectivesModelsDic[modelName];
             // Fit features in model
-            TF_NET_NN.fit(cwdReinforcementL.CWDReinforcementLModel, cwdReinforcementL.CWDReinforcementLModel.BaseModel, trainingSamplesList, UpdateFittingProgress, saveModel: true, earlyStopThreshold: 0.00001f);
+            TF_NET_NN.fit(cwdReinforcementL.CWDReinforcementLModel, cwdReinforcementL.CWDReinforcementLModel.BaseModel, trainingSamplesList, UpdateFittingProgress, saveModel: true);
 
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
