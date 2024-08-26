@@ -17,6 +17,13 @@ namespace BSP_Using_AI.AITools.Details
 {
     public partial class DetailsForm
     {
+        public class RefDouble
+        {
+            public double value;
+
+            public RefDouble(double initVal) => value = initVal;
+        }
+
         private void CWDLSTM_ValidateModel(List<ModelData> valModelsDataFolds, CWDLSTM cwdLSTM)
         {
             // Convert the annotation data samples to the deep reinforcement learning model samples
@@ -156,10 +163,17 @@ namespace BSP_Using_AI.AITools.Details
             double[] predictedOutput;
             double[] actualOutput;
 
+            // The following is used for rectifying predicted outputs
+            RefDouble[] predictedRefOutput;
+            RefDouble[] latestClassifiedRefOutput = null;
+            List<(RefDouble[] predictedRefOutput, double[] actualOutput)> prediActualOutputsPairsList;
+
             Queue<double[]> InputSeqQueue;
 
             foreach (List<Sample> samplesSeq in validationSequences)
             {
+                prediActualOutputsPairsList = new List<(RefDouble[] predictedRefOutput, double[] actualOutput)>(samplesSeq.Count);
+
                 InputSeqQueue = new Queue<double[]>(tempModel._modelSequenceLength + 1);
                 foreach (Sample sample in samplesSeq)
                 {
@@ -179,30 +193,56 @@ namespace BSP_Using_AI.AITools.Details
                         continue;
                     predictedOutput = output[output.Count - 1];
 
-                    // Set the validation measurements of the prediction
-                    for (int i = 0; i < predictedOutput.Length; i++)
+                    predictedRefOutput = new RefDouble[predictedOutput.Length];
+                    for (int iDouble = 0; iDouble < predictedOutput.Length; iDouble++)
+                        predictedRefOutput[iDouble] = new RefDouble(predictedOutput[iDouble]);
+
+                    // Insert the paris in prediActualOutputsPairsList
+                    prediActualOutputsPairsList.Add((predictedRefOutput, actualOutput));
+
+                    // Update latestClassifiedRefOutput
+                    if (latestClassifiedRefOutput == null)
+                        latestClassifiedRefOutput = predictedRefOutput;
+
+                    for (int iPredOutput = 0; iPredOutput < predictedRefOutput.Length; iPredOutput++)
+                        if (predictedRefOutput[iPredOutput].value >= outThresholds[iPredOutput]._threshold)
+                        {
+                            if (predictedRefOutput[iPredOutput].value >= latestClassifiedRefOutput[iPredOutput].value)
+                            {
+                                latestClassifiedRefOutput[iPredOutput].value = 0;
+                                latestClassifiedRefOutput[iPredOutput] = predictedRefOutput[iPredOutput];
+                            }
+                            else
+                                predictedRefOutput[iPredOutput].value = 0;
+                        }
+                        else
+                            latestClassifiedRefOutput[iPredOutput] = new RefDouble(0);
+
+                    // Update fitProgressBar
+                    this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Value++; }));
+                }
+
+                // Set the validation measurements of the prediction for the current sequence
+                foreach ((RefDouble[] predicted, double[] actual) predicPair in prediActualOutputsPairsList)
+                    for (int i = 0; i < predicPair.predicted.Length; i++)
                     {
                         // Check if the output should be positive or negative
-                        if (actualOutput[i] == 1)
+                        if (predicPair.actual[i] == 1)
                         {
                             // If yes then check if the forcasted output is true or false
-                            if (predictedOutput[i] >= outThresholds[i]._threshold)
+                            if (predicPair.predicted[i].value >= outThresholds[i]._threshold)
                                 outputMetrics[i]._truePositive++;
                             else
                                 outputMetrics[i]._falseNegative++;
                         }
                         else
                         {
-                            if (predictedOutput[i] < outThresholds[i]._threshold)
+                            if (predicPair.predicted[i].value < outThresholds[i]._threshold)
                                 outputMetrics[i]._trueNegative++;
                             else
                                 outputMetrics[i]._falsePositive++;
                         }
                     }
-
-                    // Update fitProgressBar
-                    this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Value++; }));
-                }
             }
         }
     }
