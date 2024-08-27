@@ -1,7 +1,7 @@
 ﻿
 namespace BSP_Using_AI.AITools.Details
 {
-    partial class ValidationFlowLayoutPanelUserControl
+    partial class ValidationRawMetrics
     {
         /// <summary> 
         /// Required designer variable.
@@ -118,6 +118,7 @@ namespace BSP_Using_AI.AITools.Details
             this.updatetProgressBar.Name = "updatetProgressBar";
             this.updatetProgressBar.Size = new System.Drawing.Size(117, 23);
             this.updatetProgressBar.TabIndex = 11;
+            this.updatetProgressBar.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             // 
             // maseLabel
             // 
@@ -131,6 +132,7 @@ namespace BSP_Using_AI.AITools.Details
             this.maseLabel.TabIndex = 18;
             this.maseLabel.Text = "MASE";
             this.maseLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.maseLabel.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             // 
             // falseNegativeLabel
             // 
@@ -144,6 +146,7 @@ namespace BSP_Using_AI.AITools.Details
             this.falseNegativeLabel.TabIndex = 17;
             this.falseNegativeLabel.Text = "FN";
             this.falseNegativeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.falseNegativeLabel.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             // 
             // falsePositiveLabel
             // 
@@ -157,6 +160,7 @@ namespace BSP_Using_AI.AITools.Details
             this.falsePositiveLabel.TabIndex = 16;
             this.falsePositiveLabel.Text = "FP";
             this.falsePositiveLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.falsePositiveLabel.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             // 
             // trueNegativeLabel
             // 
@@ -170,6 +174,7 @@ namespace BSP_Using_AI.AITools.Details
             this.trueNegativeLabel.TabIndex = 15;
             this.trueNegativeLabel.Text = "TN";
             this.trueNegativeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.trueNegativeLabel.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             // 
             // truePositiveLabel
             // 
@@ -183,8 +188,9 @@ namespace BSP_Using_AI.AITools.Details
             this.truePositiveLabel.TabIndex = 14;
             this.truePositiveLabel.Text = "TP";
             this.truePositiveLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.truePositiveLabel.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             // 
-            // ValidationFlowLayoutPanelUserControl
+            // ValidationRawMetrics
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -200,7 +206,7 @@ namespace BSP_Using_AI.AITools.Details
             this.Controls.Add(this.datasetSizeLabel);
             this.Controls.Add(this.modelTargetLabel);
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "ValidationFlowLayoutPanelUserControl";
+            this.Name = "ValidationRawMetrics";
             this.Size = new System.Drawing.Size(1190, 35);
             this.Click += new System.EventHandler(this.ValidationFlowLayoutPanelUserControl_Click);
             this.ResumeLayout(false);

@@ -2,9 +2,9 @@
 
 namespace BSP_Using_AI.AITools.Details
 {
-    public partial class ValidationFlowLayoutPanelUserControlTitles : UserControl
+    public partial class ValidationOverallAccF1ScoreMetrics : UserControl
     {
-        public ValidationFlowLayoutPanelUserControlTitles()
+        public ValidationOverallAccF1ScoreMetrics()
         {
             InitializeComponent();
         }

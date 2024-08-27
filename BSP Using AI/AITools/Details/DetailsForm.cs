@@ -6,8 +6,10 @@ using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.Database;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
@@ -50,6 +52,9 @@ namespace BSP_Using_AI.AITools.Details
                 _InnerObjectiveModels.Add(cwdLSTM.CWDReinforcementLModel.Name, cwdLSTM.CWDReinforcementLModel);
                 _InnerObjectiveModels.Add(cwdLSTM.CWDLSTMModel.Name, cwdLSTM.CWDLSTMModel);
             }
+
+            // List the evaluation techniques
+            metricsComboBox.DataSource = typeof(EvaluationTechnique).GetFields().Select(field => field.GetValue(null)).ToList();
         }
 
         //*******************************************************************************************************//
@@ -98,76 +103,6 @@ namespace BSP_Using_AI.AITools.Details
                 queryForSignals_ARTHT();
             else if (_ObjectiveModel is CWDReinforcementL || _ObjectiveModel is CWDLSTM)
                 queryForSignals_Anno(CharacteristicWavesDelineation.ObjectiveName);
-        }
-
-        private void refreshValidationData()
-        {
-            // Insert new vallidation data in validationFlowLayoutPanel
-            validationFlowLayoutPanel.Controls.Clear();
-            double classifModelsCount = _InnerObjectiveModels.Values.Where(baseModel => baseModel.Type == ObjectiveType.Classification).Count();
-            double regrfModelsCount = _InnerObjectiveModels.Values.Where(baseModel => baseModel.Type == ObjectiveType.Regression).Count();
-            double overallTP = 0, overAllTN = 0, overallFP = 0, overallFN = 0, overallMASE = 0;
-            foreach (CustomArchiBaseModel innerObjectiveModel in _InnerObjectiveModels.Values)
-            {
-                ValidationFlowLayoutPanelUserControl validationFlowLayoutPanelUserControl = new ValidationFlowLayoutPanelUserControl(_objectivesModelsDic, _ObjectiveModel, innerObjectiveModel);
-                ValidationData validationData = innerObjectiveModel.ValidationData;
-                string TP = "/", TN = "/", FP = "/", FN = "/", MASE = "/";
-
-                if (innerObjectiveModel.Type == ObjectiveType.Regression)
-                {
-                    double maseAverage = 0;
-                    foreach (OutputMetrics outputMet in innerObjectiveModel.ValidationData._ModelOutputsValidMetrics)
-                        maseAverage += outputMet._mase / innerObjectiveModel.ValidationData._ModelOutputsValidMetrics.Length;
-                    MASE = Math.Round(maseAverage, 4).ToString();
-
-                    overallMASE += maseAverage / regrfModelsCount;
-                }
-                else
-                {
-                    int accumTP = 0, accumTN = 0, accumFP = 0, accumFN = 0;
-                    foreach (OutputMetrics outputMet in innerObjectiveModel.ValidationData._ModelOutputsValidMetrics)
-                    {
-                        accumTP += outputMet._truePositive;
-                        accumTN += outputMet._trueNegative;
-                        accumFP += outputMet._falsePositive;
-                        accumFN += outputMet._falseNegative;
-                    }
-                    TP = accumTP.ToString();
-                    TN = accumTN.ToString();
-                    FP = accumFP.ToString();
-                    FN = accumFN.ToString();
-
-                    overallTP += accumTP;
-                    overAllTN += accumTN;
-                    overallFP += accumFP;
-                    overallFN += accumFN;
-                }
-
-                validationFlowLayoutPanelUserControl.Name = innerObjectiveModel.Name;
-                validationFlowLayoutPanelUserControl.modelTargetLabel.Text = innerObjectiveModel.Name;
-                validationFlowLayoutPanelUserControl.algorithmTypeLabel.Text = innerObjectiveModel.Type.ToString();
-                validationFlowLayoutPanelUserControl.datasetSizeLabel.Text = validationData._datasetSize.ToString();
-                validationFlowLayoutPanelUserControl.trainingDatasetLabel.Text = Math.Round(validationData._trainingDatasetSize, 2).ToString();
-                validationFlowLayoutPanelUserControl.validationDatasetLabel.Text = Math.Round(validationData._validationDatasetSize, 2).ToString();
-
-                validationFlowLayoutPanelUserControl.truePositiveLabel.Text = TP;
-                validationFlowLayoutPanelUserControl.trueNegativeLabel.Text = TN;
-                validationFlowLayoutPanelUserControl.falsePositiveLabel.Text = FP;
-                validationFlowLayoutPanelUserControl.falseNegativeLabel.Text = FN;
-                validationFlowLayoutPanelUserControl.maseLabel.Text = MASE;
-
-                this.Invoke(new MethodInvoker(delegate () { validationFlowLayoutPanel.Controls.Add(validationFlowLayoutPanelUserControl); }));
-            }
-
-            // Insert overall accuracy, sensitivity, specificity, and mase in their controls
-            this.Invoke(new MethodInvoker(delegate ()
-            {
-                overallTPLabel.Text = "Overall true positives: " + overallTP.ToString();
-                overallTNLabel.Text = "Overall true negatives: " + overAllTN.ToString();
-                overallFPLabel.Text = "Overall false positives: " + overallFP.ToString();
-                overallFPLabel.Text = "Overall false negatives: " + overallFN.ToString();
-                overallFNLabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
-            }));
         }
 
         private int _totalSamples;
@@ -228,6 +163,12 @@ namespace BSP_Using_AI.AITools.Details
             ValDataSelectionForm validationDataSelectionForm = new ValDataSelectionForm(_ObjectiveModel, CallModelValidation);
             validationDataSelectionForm.Show();
             validationDataSelectionForm.initializeForm();
+        }
+
+        private void metricsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.IsHandleCreated)
+                refreshValidationData();
         }
 
         //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://

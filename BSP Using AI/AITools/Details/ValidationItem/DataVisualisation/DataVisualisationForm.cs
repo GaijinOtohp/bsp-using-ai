@@ -19,7 +19,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private CustomArchiBaseModel _InnerObjectiveModel;
 
-        public ValidationFlowLayoutPanelUserControl _ValidationItemUserControl;
+        public AIBackThreadReportHolder _ValidationItemUserControl;
 
         long _modelId;
 

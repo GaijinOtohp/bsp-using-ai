@@ -39,19 +39,49 @@
     <Compile Update="AITools\Details\DatasetFlowLayoutPanelItem2UserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationAccF1ScoreTitles.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationAccPpvNpvTitles.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="AITools\Details\ValidationDataSelection\ValNonSeleDataItemUC.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="AITools\Details\ValidationDataSelection\ValSeleDataItemUC.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="AITools\Details\ValidationFlowLayoutPanelUserControlTitles.cs">
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationAccSeSpTitles.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\ValidationAccF1Score.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\ValidationAccPpvNpv.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\ValidationAccSeSp.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationOverallAccPpvNpvMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationOverallAccF1ScoreMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationOverallAccSeSpMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationOverallRawMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\Titles\ValidationRawMetricsTitles.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\RawVisItemUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="AITools\Details\ValidationItem\ValidationFlowLayoutPanelUserControl.cs">
+    <Compile Update="AITools\Details\ValidationItem\ValidationRawMetrics.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="AITools\ModelsFlowLayoutPanelItemUserControl.cs">

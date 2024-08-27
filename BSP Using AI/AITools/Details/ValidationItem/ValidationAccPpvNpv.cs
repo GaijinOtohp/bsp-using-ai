@@ -18,7 +18,7 @@ using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
 namespace BSP_Using_AI.AITools.Details
 {
-    public partial class ValidationFlowLayoutPanelUserControl : UserControl, DbStimulatorReportHolder, AIBackThreadReportHolder
+    public partial class ValidationAccPpvNpv : UserControl, DbStimulatorReportHolder, AIBackThreadReportHolder
     {
         public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
 
@@ -26,7 +26,7 @@ namespace BSP_Using_AI.AITools.Details
 
         private CustomArchiBaseModel _InnerObjectiveModel;
 
-        public ValidationFlowLayoutPanelUserControl(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, ObjectiveBaseModel objectiveModel, CustomArchiBaseModel innerObjectiveModel)
+        public ValidationAccPpvNpv(Dictionary<string, ObjectiveBaseModel> objectivesModelsDic, ObjectiveBaseModel objectiveModel, CustomArchiBaseModel innerObjectiveModel)
         {
             InitializeComponent();
 

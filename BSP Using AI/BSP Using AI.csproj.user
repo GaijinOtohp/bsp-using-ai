@@ -57,6 +57,9 @@
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\RawDataVis.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="AITools\Details\ValidationLogDetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="DetailsModify\Annotations\AnnotationItemUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
