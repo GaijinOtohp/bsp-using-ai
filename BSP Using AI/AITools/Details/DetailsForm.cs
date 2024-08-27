@@ -129,7 +129,9 @@ namespace BSP_Using_AI.AITools.Details
                 long remainingTime = processTime * _remainingSamples / (_totalSamples - _remainingSamples);
 
                 // Update timer waiting interval
-                TIME_INTERVAL_IN_MILLISECONDS += (int)(remainingTime - _remainingTime) * 10;
+                TIME_INTERVAL_IN_MILLISECONDS = (int)(remainingTime - _remainingTime);
+                if (5000 < TIME_INTERVAL_IN_MILLISECONDS || TIME_INTERVAL_IN_MILLISECONDS < 100)
+                    TIME_INTERVAL_IN_MILLISECONDS = 1000;
 
                 _remainingTime = remainingTime;
 

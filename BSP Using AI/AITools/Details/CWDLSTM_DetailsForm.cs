@@ -83,6 +83,8 @@ namespace BSP_Using_AI.AITools.Details
                 rlTotalTrainingSize += rlTrainingSamples.Count / (double)valModelsDataFolds.Count;
                 rlTotalValidationSize += rlValidationSamples.Count / (double)valModelsDataFolds.Count;
 
+                // Add one to _remainingSamples to keep the timer waiting for the LSTM model validation
+                _remainingSamples += 1;
                 // Update validation values with the new folding 
                 CWDReinforcementL_UpdateModelValidation(cwdLSTM.CWDReinforcementLModel, rlValidationSamples, rlTempModel);
 
@@ -105,6 +107,8 @@ namespace BSP_Using_AI.AITools.Details
                 // Update the remaining time computing values
                 _totalSamples += lstmFoldValidationSize;
                 _remainingSamples += lstmFoldValidationSize;
+                // Remove the previously added one
+                _remainingSamples -= 1;
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 CustomArchiBaseModel lstmTempModel = null;

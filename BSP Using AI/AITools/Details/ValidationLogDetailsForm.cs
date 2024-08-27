@@ -123,7 +123,7 @@ namespace BSP_Using_AI.AITools.Details
             validationOverallRawMetricsUserControl.overallTNLabel.Text = "Overall true negatives: " + overAllTN.ToString();
             validationOverallRawMetricsUserControl.overallFPLabel.Text = "Overall false positives: " + overallFP.ToString();
             validationOverallRawMetricsUserControl.overallFNLabel.Text = "Overall false negatives: " + overallFN.ToString();
-            validationOverallRawMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
+            validationOverallRawMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 4).ToString();
             this.Invoke(new MethodInvoker(delegate () { overallMetricsPanel.Controls.Add(validationOverallRawMetricsUserControl); }));
         }
 
@@ -177,10 +177,10 @@ namespace BSP_Using_AI.AITools.Details
 
             // Insert overall accuracy, sensitivity, specificity, and mase in their controls
             ValidationOverallAccSeSpMetrics validationOverallAccSeSpMetricsUserControl = new ValidationOverallAccSeSpMetrics();
-            validationOverallAccSeSpMetricsUserControl.overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAcc, 2).ToString();
-            validationOverallAccSeSpMetricsUserControl.overallSensitivityLabel.Text = "Overall sensitivity: " + Math.Round(overAllSe, 2).ToString();
-            validationOverallAccSeSpMetricsUserControl.overallSpecificityLabel.Text = "Overall specificity (recall): " + Math.Round(overallSp, 2).ToString();
-            validationOverallAccSeSpMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
+            validationOverallAccSeSpMetricsUserControl.overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAcc, 4).ToString();
+            validationOverallAccSeSpMetricsUserControl.overallSensitivityLabel.Text = "Overall sensitivity: " + Math.Round(overAllSe, 4).ToString();
+            validationOverallAccSeSpMetricsUserControl.overallSpecificityLabel.Text = "Overall specificity (recall): " + Math.Round(overallSp, 4).ToString();
+            validationOverallAccSeSpMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 4).ToString();
             this.Invoke(new MethodInvoker(delegate () { overallMetricsPanel.Controls.Add(validationOverallAccSeSpMetricsUserControl); }));
         }
 
@@ -234,10 +234,10 @@ namespace BSP_Using_AI.AITools.Details
 
             // Insert overall accuracy, sensitivity, specificity, and mase in their controls
             ValidationOverallAccPpvNpvMetrics validationOverallAccPpvNpvMetricsUserControl = new ValidationOverallAccPpvNpvMetrics();
-            validationOverallAccPpvNpvMetricsUserControl.overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAcc, 2).ToString();
-            validationOverallAccPpvNpvMetricsUserControl.overallPPVLabel.Text = "Overall positive predictive value (precision): " + Math.Round(overAllPPV, 2).ToString();
-            validationOverallAccPpvNpvMetricsUserControl.overallNPVLabel.Text = "Overall negative predictive value: " + Math.Round(overallNPV, 2).ToString();
-            validationOverallAccPpvNpvMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
+            validationOverallAccPpvNpvMetricsUserControl.overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAcc, 4).ToString();
+            validationOverallAccPpvNpvMetricsUserControl.overallPPVLabel.Text = "Overall positive predictive value (precision): " + Math.Round(overAllPPV, 4).ToString();
+            validationOverallAccPpvNpvMetricsUserControl.overallNPVLabel.Text = "Overall negative predictive value: " + Math.Round(overallNPV, 4).ToString();
+            validationOverallAccPpvNpvMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 4).ToString();
             this.Invoke(new MethodInvoker(delegate () { overallMetricsPanel.Controls.Add(validationOverallAccPpvNpvMetricsUserControl); }));
         }
 
@@ -290,9 +290,9 @@ namespace BSP_Using_AI.AITools.Details
 
             // Insert overall accuracy, sensitivity, specificity, and mase in their controls
             ValidationOverallAccF1ScoreMetrics validationOverallAccF1ScoreMetricsUserControl = new ValidationOverallAccF1ScoreMetrics();
-            validationOverallAccF1ScoreMetricsUserControl.overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAcc, 2).ToString();
-            validationOverallAccF1ScoreMetricsUserControl.overallF1ScoreLabel.Text = "Overall F1-Score: " + Math.Round(overAllF1Score, 2).ToString();
-            validationOverallAccF1ScoreMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 2).ToString();
+            validationOverallAccF1ScoreMetricsUserControl.overallAccuracyLabel.Text = "Overall accuracy: " + Math.Round(overallAcc, 4).ToString();
+            validationOverallAccF1ScoreMetricsUserControl.overallF1ScoreLabel.Text = "Overall F1-Score: " + Math.Round(overAllF1Score, 4).ToString();
+            validationOverallAccF1ScoreMetricsUserControl.overallMASELabel.Text = "Overall MASE: " + Math.Round(overallMASE, 4).ToString();
             this.Invoke(new MethodInvoker(delegate () { overallMetricsPanel.Controls.Add(validationOverallAccF1ScoreMetricsUserControl); }));
         }
     }
