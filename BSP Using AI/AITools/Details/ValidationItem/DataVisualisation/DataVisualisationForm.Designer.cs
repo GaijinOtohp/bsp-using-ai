@@ -101,6 +101,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.validationSaveButton.TabIndex = 50;
             this.validationSaveButton.Text = "Save changes";
             this.validationSaveButton.UseVisualStyleBackColor = true;
+            this.validationSaveButton.Click += new System.EventHandler(this.validationSaveButton_Click);
             // 
             // validationTitlesPanel
             // 

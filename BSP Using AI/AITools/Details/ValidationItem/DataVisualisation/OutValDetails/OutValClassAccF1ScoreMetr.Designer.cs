@@ -81,8 +81,9 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDe
             this.classificationThresholdTextBox.Name = "classificationThresholdTextBox";
             this.classificationThresholdTextBox.Size = new System.Drawing.Size(160, 23);
             this.classificationThresholdTextBox.TabIndex = 16;
+            this.classificationThresholdTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.classificationThresholdTextBox_KeyPress);
             // 
-            // OutValClassAccF1ScoreMetrics
+            // OutValClassAccF1ScoreMetr
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -91,7 +92,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDe
             this.Controls.Add(this.accuracyLabel);
             this.Controls.Add(this.outputLabel);
             this.Margin = new System.Windows.Forms.Padding(0);
-            this.Name = "OutValClassAccF1ScoreMetrics";
+            this.Name = "OutValClassAccF1ScoreMetr";
             this.Size = new System.Drawing.Size(683, 35);
             this.ResumeLayout(false);
             this.PerformLayout();

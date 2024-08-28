@@ -95,6 +95,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDe
             this.classificationThresholdTextBox.Name = "classificationThresholdTextBox";
             this.classificationThresholdTextBox.Size = new System.Drawing.Size(160, 23);
             this.classificationThresholdTextBox.TabIndex = 17;
+            this.classificationThresholdTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.classificationThresholdTextBox_KeyPress);
             // 
             // OutValClassAccSeSpMetrics
             // 

@@ -1,10 +1,12 @@
-﻿using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDetails;
+﻿using Biological_Signal_Processing_Using_AI.Garage;
+using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDetails;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDetails.Titles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 using static BSP_Using_AI.AITools.Details.DetailsForm;
 
@@ -12,6 +14,33 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     public partial class DataVisualisationForm
     {
+        private void validationSaveButton_Click(object sender, EventArgs e)
+        {
+            // Copy the thresholds from validationFlowLayoutPanel to _InnerObjectiveModel.OutputsThresholds
+            for (int iControl = 0; iControl < validationFlowLayoutPanel.Controls.Count; iControl++)
+            {
+                Control outPutValControl = validationFlowLayoutPanel.Controls[iControl];
+                double threshold = 0.5d;
+                string newThreshold = "";
+
+                if (outPutValControl is OutValClasAcPpNpMetr classAcPpNp) newThreshold = classAcPpNp.classificationThresholdTextBox.Text;
+                else if (outPutValControl is OutValClassAccF1ScoreMetr classAccF1Score) newThreshold = classAccF1Score.classificationThresholdTextBox.Text;
+                else if (outPutValControl is OutValClassAccSeSpMetrics classAccSeSp) newThreshold = classAccSeSp.classificationThresholdTextBox.Text;
+                else if (outPutValControl is OutValClassRawMetrics classRaw) newThreshold = classRaw.classificationThresholdTextBox.Text;
+                else if (outPutValControl is OutValRegrRawMetrics regrRaw) newThreshold = regrRaw.classificationThresholdTextBox.Text;
+
+                if (newThreshold.Length > 0)
+                    threshold = double.Parse(newThreshold);
+
+                _InnerObjectiveModel.OutputsThresholds[iControl]._threshold = threshold;
+            }
+
+            // Update the model with the new thresholds
+            DbStimulator dbStimulator = new DbStimulator();
+            dbStimulator.Update("models", new string[] { "the_model" },
+                new Object[] { GeneralTools.ObjectToByteArray(_ObjectiveModel.Clone()) }, _modelId, "DetailsForm");
+        }
+
         private void setValidationDetailsVisTab()
         {
             // List the evaluation techniques

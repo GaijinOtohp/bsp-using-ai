@@ -8,5 +8,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDe
         {
             InitializeComponent();
         }
+
+        private void classificationThresholdTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
+        }
     }
 }
