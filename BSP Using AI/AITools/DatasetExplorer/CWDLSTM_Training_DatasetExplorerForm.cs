@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
+using Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.RL_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
@@ -10,9 +11,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.AITools.RL_Objectives.CWD_RL;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
@@ -69,35 +70,35 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             if (matchedIntervalsList.Count > 0)
             {
                 foreach (CornerInterval cornInterval in matchedIntervalsList)
-                    if (cornInterval.Name.Equals(CWDNamigs.POnset))
+                    if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.POnset))
                         labels[0] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PPeak))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.PPeak))
                     {
                         labels[1] = 1;
                         dataBuilderMemory.currentPeakIsP = true;
                     }
-                    else if (cornInterval.Name.Equals(CWDNamigs.PEnd))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.PEnd))
                         labels[2] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.QPeak))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.QPeak))
                         labels[3] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.RPeak))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.RPeak))
                     {
                         labels[4] = 1;
                         dataBuilderMemory.currentPeakIsR = true;
                     }
-                    else if (cornInterval.Name.Equals(CWDNamigs.SPeak))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.SPeak))
                         labels[5] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.TOnset))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.TOnset))
                         labels[6] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.TPeak))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.TPeak))
                         labels[7] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.TEnd))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.TEnd))
                         labels[8] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.Other))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.Other))
                         labels[9] = 0;
-                    else if (cornInterval.Name.Equals(CWDNamigs.Normal))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.Normal))
                         labels[10] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.Abnormal))
+                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.Abnormal))
                         labels[11] = 1;
             }
             else
@@ -321,8 +322,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
             // Get the label of the selected scanned corner
             double[] labels = GetLabelsOfTheSample(dataBuilderMemory, matchedIntervalsList);
-            string[] labelsNamings = new string[] { CWDNamigs.POnset, CWDNamigs.PPeak, CWDNamigs.PEnd, CWDNamigs.QPeak, CWDNamigs.RPeak, CWDNamigs.SPeak,
-                                                    CWDNamigs.TOnset, CWDNamigs.TPeak, CWDNamigs.TEnd, CWDNamigs.Normal, CWDNamigs.Abnormal };
+            string[] labelsNamings = new string[] { CWDNamigs.PeaksLabelsOutputs.POnset, CWDNamigs.PeaksLabelsOutputs.PPeak, CWDNamigs.PeaksLabelsOutputs.PEnd, CWDNamigs.PeaksLabelsOutputs.QPeak, CWDNamigs.PeaksLabelsOutputs.RPeak, CWDNamigs.PeaksLabelsOutputs.SPeak,
+                                                    CWDNamigs.PeaksLabelsOutputs.TOnset, CWDNamigs.PeaksLabelsOutputs.TPeak, CWDNamigs.PeaksLabelsOutputs.TEnd, CWDNamigs.PeaksLabelsOutputs.Normal, CWDNamigs.PeaksLabelsOutputs.Abnormal };
 
             GetFeaturesOfTheSample(sample, dataBuilderMemory, scannedCorner);
             sample.insertOutputArray(labelsNamings, labels);
@@ -429,8 +430,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                                 {
                                     // Add the new scanned corner as "Other"
                                     // Create a dataset sequence sample for the current scanned corner
-                                    //matchedIntervalsList = matchedIntervalsList.Where(interval => interval.Name == CWDNamigs.Normal || interval.Name == CWDNamigs.Abnormal).ToList();
-                                    //matchedIntervalsList.Add(new CornerInterval() { Name = CWDNamigs.Other });
+                                    //matchedIntervalsList = matchedIntervalsList.Where(interval => interval.Name == CWDNamigs.PeaksLabelsOutputs.Normal || interval.Name == CWDNamigs.PeaksLabelsOutputs.Abnormal).ToList();
+                                    //matchedIntervalsList.Add(new CornerInterval() { Name = CWDNamigs.PeaksLabelsOutputs.Other });
                                     matchedIntervalsList = new List<CornerInterval>();
                                     UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
                                 }

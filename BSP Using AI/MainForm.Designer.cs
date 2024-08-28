@@ -1,6 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI;
 using System;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 
 namespace BSP_Using_AI
 {

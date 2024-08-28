@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation

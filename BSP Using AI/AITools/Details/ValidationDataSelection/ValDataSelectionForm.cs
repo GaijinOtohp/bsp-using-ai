@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.Garage;
+﻿using Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI;
 using BSP_Using_AI.Database;
 using System;
@@ -8,10 +9,11 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
 
 namespace Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection
 {

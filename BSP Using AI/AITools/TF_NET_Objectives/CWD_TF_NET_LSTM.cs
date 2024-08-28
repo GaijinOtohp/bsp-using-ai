@@ -8,9 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
@@ -104,10 +105,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             // Create the model object
             CWDLSTM cwdLSTM = new CWDLSTM();
             // One for tuning the peaks analyzer using deep Q learning
-            cwdLSTM.CWDReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, rlModelPath, inputDim: 8, outputDim: 2);
-            cwdLSTM.CWDCrazyReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyRLModelPath, inputDim: 8, outputDim: 2);
+            cwdLSTM.CWDReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, rlModelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
+            cwdLSTM.CWDCrazyReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyRLModelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
             // One for classifying the peaks
-            cwdLSTM.CWDLSTMModel = createTFNETLSTMModel(CWDNamigs.LSTMPeaksClassificationData, lstmModelPath, inputDim: 21, outputDim: 12);
+            cwdLSTM.CWDLSTMModel = createTFNETLSTMModel(CWDNamigs.LSTMPeaksClassificationData, lstmModelPath, inputDim: 26, outputDim: 12, CWDNamigs.PeaksLabelsOutputs.GetNames());
 
             cwdLSTM.ModelName = TFNETLSTMModel.ModelName;
             cwdLSTM.ObjectiveName = " for " + CharacteristicWavesDelineation.ObjectiveName + lstmModelIndx;
@@ -124,11 +125,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
                 _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new AIReport() { ReportType = AIReportType.CreateModel }, "AIToolsForm");
         }
 
-        public static TFNETLSTMModel createTFNETLSTMModel(string name, string path, int inputDim, int outputDim)
+        public static TFNETLSTMModel createTFNETLSTMModel(string name, string path, int inputDim, int outputDim, string[] outputNames)
         {
             int modelSequenceLength = 10;
             int layers = 1;
-            TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, modelSequenceLength, layers: layers) { Name = name, Type = ObjectiveType.Classification };
+            TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, outputNames, modelSequenceLength, layers: layers) { Name = name, Type = ObjectiveType.Classification };
 
             model.BaseModel.Session = TF_NET_LSTM.LSTMSession(model.BaseModel, modelSequenceLength, false, layers);
 

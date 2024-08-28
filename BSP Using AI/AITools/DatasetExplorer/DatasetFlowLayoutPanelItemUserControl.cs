@@ -5,6 +5,7 @@ using System;
 using System.Data;
 using System.Threading;
 using System.Windows.Forms;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;

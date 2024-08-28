@@ -4,18 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 
 namespace BSP_Using_AI.AITools.Details
 {
     public partial class DetailsForm
     {
-        private static class EvaluationTechnique
+        public static class EvaluationTechnique
         {
             public static string Raw = "Raw";
             public static string AccSeSp = "Acc, Se, Sp/Rec";
             public static string AccPpvNpv = "Acc, PPV/Pre, NPV";
             public static string AccF1Score = "Acc, F1-Score";
+
+            public static string[] GetNames()
+            {
+                return typeof(EvaluationTechnique).GetFields().Select(field => (string)field.GetValue(null)).ToArray();
+            }
         }
 
         private void refreshValidationData()

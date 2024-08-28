@@ -1,4 +1,4 @@
-﻿using Biological_Signal_Processing_Using_AI.AITools;
+﻿using Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
@@ -14,11 +14,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
@@ -82,7 +83,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
         private List<List<Sample>> SortDatasetSamples_CWDLSTM(DataTable dataTable)
         {
-            List<List<Sample>> trainingDataListSequences = DatasetExplorerForm.BuildLSTMTrainingSequences(dataTable.AsEnumerable().ToList(), ((CWDLSTM)_objectiveModel).CWDReinforcementLModel);
+            List<List<Sample>> trainingDataListSequences = DatasetExplorerForm.BuildLSTMTrainingSequences(dataTable.AsEnumerable().ToList(), ((CWDLSTM)_ObjectiveModel).CWDReinforcementLModel);
 
             return trainingDataListSequences;
         }
@@ -93,7 +94,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 return _InnerObjectiveModel;
 
             // Check which objective is selected
-            if (_objectiveModel.ObjectiveName.Contains(WPWSyndromeDetection.ObjectiveName))
+            if (_ObjectiveModel.ObjectiveName.Contains(WPWSyndromeDetection.ObjectiveName))
             {
                 // If yes then this is for WPW syndrome detection
 
@@ -108,17 +109,17 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 // Check which model is selected
                 if (_InnerObjectiveModel is KNNModel)
                     // If yes then this is for KNN models
-                    _InnerObjectiveModel = ARTHT_KNN.createKNNModel(_InnerObjectiveModel.Name, 3, inputDimension, outputDimension);
+                    _InnerObjectiveModel = ARTHT_KNN.createKNNModel(_InnerObjectiveModel.Name, 3, inputDimension, outputDimension, _InnerObjectiveModel.OutputsNames);
                 else if (_InnerObjectiveModel is NaiveBayesModel)
                     // If yes then this is for Naive Bayes models
-                    _InnerObjectiveModel = ARTHT_NaiveBayes.createNBModel(_InnerObjectiveModel.Name, inputDimension, outputDimension);
+                    _InnerObjectiveModel = ARTHT_NaiveBayes.createNBModel(_InnerObjectiveModel.Name, inputDimension, outputDimension, _InnerObjectiveModel.OutputsNames);
                 else if (_InnerObjectiveModel is TFNETNeuralNetworkModel)
                     // If yes then this is for Tensorflow.Net Neural Networks models
-                    _InnerObjectiveModel = ARTHT_TF_NET_NN.createTFNETNeuralNetModel(_InnerObjectiveModel.Name, ((TFNETNeuralNetworkModel)_InnerObjectiveModel).BaseModel.ModelPath, inputDimension, outputDimension);
+                    _InnerObjectiveModel = ARTHT_TF_NET_NN.createTFNETNeuralNetModel(_InnerObjectiveModel.Name, ((TFNETNeuralNetworkModel)_InnerObjectiveModel).BaseModel.ModelPath, inputDimension, outputDimension, _InnerObjectiveModel.OutputsNames);
 
-                ((ARTHTModels)_objectiveModel).ARTHTModelsDic[_InnerObjectiveModel.Name] = _InnerObjectiveModel;
+                ((ARTHTModels)_ObjectiveModel).ARTHTModelsDic[_InnerObjectiveModel.Name] = _InnerObjectiveModel;
             }
-            else if (_objectiveModel.ObjectiveName.Contains(CharacteristicWavesDelineation.ObjectiveName))
+            else if (_ObjectiveModel.ObjectiveName.Contains(CharacteristicWavesDelineation.ObjectiveName))
             {
                 // This is for characteristic waves dlineation
                 // Check which model is selected
@@ -134,11 +135,11 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                         inputDimension = dataList[0].getFeatures().Length;
                     int outputDimension = dataList[0].getOutputs().Length;
 
-                    _InnerObjectiveModel = CWD_RL_TFNET.createTFNETRLModel(_InnerObjectiveModel.Name, ((TFNETReinforcementL)_InnerObjectiveModel).BaseModel.ModelPath, inputDimension, outputDimension);
+                    _InnerObjectiveModel = CWD_RL_TFNET.createTFNETRLModel(_InnerObjectiveModel.Name, ((TFNETReinforcementL)_InnerObjectiveModel).BaseModel.ModelPath, inputDimension, outputDimension, _InnerObjectiveModel.OutputsNames);
                     
-                    if (_objectiveModel is CWDReinforcementL cwdRLModel)
+                    if (_ObjectiveModel is CWDReinforcementL cwdRLModel)
                         cwdRLModel.CWDReinforcementLModel = (TFNETReinforcementL)_InnerObjectiveModel;
-                    else if (_objectiveModel is CWDLSTM cwdLSTMModel)
+                    else if (_ObjectiveModel is CWDLSTM cwdLSTMModel)
                         cwdLSTMModel.CWDReinforcementLModel = (TFNETReinforcementL)_InnerObjectiveModel;
                 }
                 if (_InnerObjectiveModel is TFNETLSTMModel)
@@ -156,9 +157,9 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                         inputDimension = dataListSequences[0][0].getFeatures().Length;
                     int outputDimension = dataListSequences[0][0].getOutputs().Length;
 
-                    _InnerObjectiveModel = CWD_TF_NET_LSTM.createTFNETLSTMModel(_InnerObjectiveModel.Name, ((TFNETLSTMModel)_InnerObjectiveModel).BaseModel.ModelPath, inputDimension, outputDimension);
+                    _InnerObjectiveModel = CWD_TF_NET_LSTM.createTFNETLSTMModel(_InnerObjectiveModel.Name, ((TFNETLSTMModel)_InnerObjectiveModel).BaseModel.ModelPath, inputDimension, outputDimension, _InnerObjectiveModel.OutputsNames);
                     
-                    ((CWDLSTM)_objectiveModel).CWDLSTMModel = (TFNETLSTMModel)_InnerObjectiveModel;
+                    ((CWDLSTM)_ObjectiveModel).CWDLSTMModel = (TFNETLSTMModel)_InnerObjectiveModel;
                 }
             }
 
@@ -168,7 +169,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private void TrainTheModel(DataTable dataTable, string callingClassName)
         {
             // Check which objective is selected
-            if (_objectiveModel.ObjectiveName.Contains(WPWSyndromeDetection.ObjectiveName))
+            if (_ObjectiveModel.ObjectiveName.Contains(WPWSyndromeDetection.ObjectiveName))
             {
                 // If yes then this is for WPW syndrome detection
 
@@ -180,23 +181,23 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 if (_InnerObjectiveModel is KNNModel)
                 {
                     // If yes then this is for KNN models
-                    ARTHT_KNN ARTHTKNNTools = new ARTHT_KNN(_objectivesModelsDic, _ValidationItemUserControl);
-                    ARTHTKNNTools.fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataListsDict, _datasetSize, _modelId, "");
+                    ARTHT_KNN ARTHTKNNTools = new ARTHT_KNN(_ObjectivesModelsDic, _ValidationItemUserControl);
+                    ARTHTKNNTools.fit(_ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName, dataListsDict, _datasetSize, _modelId, "");
                 }
                 else if (_InnerObjectiveModel is NaiveBayesModel)
                 {
                     // If yes then this is for Naive Bayes models
-                    ARTHT_NaiveBayes ARTHTNaiveBayesTools = new ARTHT_NaiveBayes(_objectivesModelsDic, _ValidationItemUserControl);
-                    ARTHTNaiveBayesTools.fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataListsDict, _datasetSize, _modelId, "");
+                    ARTHT_NaiveBayes ARTHTNaiveBayesTools = new ARTHT_NaiveBayes(_ObjectivesModelsDic, _ValidationItemUserControl);
+                    ARTHTNaiveBayesTools.fit(_ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName, dataListsDict, _datasetSize, _modelId, "");
                 }
                 else if (_InnerObjectiveModel is TFNETNeuralNetworkModel)
                 {
                     // If yes then this is for Tensorflow.Net Neural Networks models
-                    ARTHT_TF_NET_NN ARTHTTFNETTools = new ARTHT_TF_NET_NN(_objectivesModelsDic, _ValidationItemUserControl);
-                    ARTHTTFNETTools.fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataListsDict, _datasetSize, _modelId, "");
+                    ARTHT_TF_NET_NN ARTHTTFNETTools = new ARTHT_TF_NET_NN(_ObjectivesModelsDic, _ValidationItemUserControl);
+                    ARTHTTFNETTools.fit(_ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName, dataListsDict, _datasetSize, _modelId, "");
                 }
             }
-            else if (_objectiveModel.ObjectiveName.Contains(CharacteristicWavesDelineation.ObjectiveName))
+            else if (_ObjectiveModel.ObjectiveName.Contains(CharacteristicWavesDelineation.ObjectiveName))
             {
                 // This is for characteristic waves dlineation
                 // Check which model is selected
@@ -206,18 +207,18 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
                     List<Sample> dataList = SortDatasetSamples_CWDReinforcementL(dataTable);
 
-                    if (_objectiveModel is CWDReinforcementL)
+                    if (_ObjectiveModel is CWDReinforcementL)
                     {
-                        CWD_RL_TFNET CWDRLTFNETTools = new CWD_RL_TFNET(_objectivesModelsDic, _ValidationItemUserControl);
-                        CWDRLTFNETTools.Fit(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataList, _datasetSize, _modelId);
+                        CWD_RL_TFNET CWDRLTFNETTools = new CWD_RL_TFNET(_ObjectivesModelsDic, _ValidationItemUserControl);
+                        CWDRLTFNETTools.Fit(_ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName, dataList, _datasetSize, _modelId);
                     }
-                    else if (_objectiveModel is CWDLSTM)
+                    else if (_ObjectiveModel is CWDLSTM)
                     {
-                        CWD_TF_NET_LSTM CWDLSTMTFNETTools = new CWD_TF_NET_LSTM(_objectivesModelsDic, _ValidationItemUserControl);
-                        CWDLSTMTFNETTools.FitOnRLModel(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataList);
+                        CWD_TF_NET_LSTM CWDLSTMTFNETTools = new CWD_TF_NET_LSTM(_ObjectivesModelsDic, _ValidationItemUserControl);
+                        CWDLSTMTFNETTools.FitOnRLModel(_ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName, dataList);
 
                         List<List<Sample>> dataListSequences = new List<List<Sample>>();
-                        CWDLSTMTFNETTools.FitOnLSTMModel(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataListSequences, _datasetSize, _modelId);
+                        CWDLSTMTFNETTools.FitOnLSTMModel(_ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName, dataListSequences, _datasetSize, _modelId);
                     }
                 }
                 if (_InnerObjectiveModel is TFNETLSTMModel)
@@ -226,8 +227,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
                     List<List<Sample>> dataListSequences = SortDatasetSamples_CWDLSTM(dataTable);
 
-                    CWD_TF_NET_LSTM CWDLSTMTFNETTools = new CWD_TF_NET_LSTM(_objectivesModelsDic, _ValidationItemUserControl);
-                    CWDLSTMTFNETTools.FitOnLSTMModel(_objectiveModel.ModelName + _objectiveModel.ObjectiveName, dataListSequences, _datasetSize, _modelId);
+                    CWD_TF_NET_LSTM CWDLSTMTFNETTools = new CWD_TF_NET_LSTM(_ObjectivesModelsDic, _ValidationItemUserControl);
+                    CWDLSTMTFNETTools.FitOnLSTMModel(_ObjectiveModel.ModelName + _ObjectiveModel.ObjectiveName, dataListSequences, _datasetSize, _modelId);
                 }
             }
         }

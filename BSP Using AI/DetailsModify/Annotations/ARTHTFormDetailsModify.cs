@@ -15,9 +15,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.DetailsModify
@@ -317,15 +317,15 @@ namespace BSP_Using_AI.DetailsModify
                         // Check if outputs should be predicted
                         if (_predictionOn)
                         {
-                            rPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
+                            rPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.PeaksScannerOutputs.ART, ARTHTNamings.PeaksScannerOutputs.HT },
                                 askForPrediction_ARTHT(rPeaksScanSamp.getFeatures(), ARTHTNamings.Step1RPeaksScanData));
                         }
                         else
-                            rPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
+                            rPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.PeaksScannerOutputs.ART, ARTHTNamings.PeaksScannerOutputs.HT },
                                 new double[2] { ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._art,
                                                     ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._ht });
-                        flowLayoutItems01.DropDownItems.Add(ARTHTNamings.ART + ": " + rPeaksScanSamp.getOutputByLabel(ARTHTNamings.ART));
-                        flowLayoutItems01.DropDownItems.Add(ARTHTNamings.HT + ": " + rPeaksScanSamp.getOutputByLabel(ARTHTNamings.HT));
+                        flowLayoutItems01.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.ART + ": " + rPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.ART));
+                        flowLayoutItems01.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.HT + ": " + rPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.HT));
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
@@ -337,8 +337,8 @@ namespace BSP_Using_AI.DetailsModify
                         // Refresh the signal to restore the original sampling rate from DWT effect
                         ApplyFilters();
                         // Set ART and HT of peaks analyzer
-                        ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(rPeaksScanSamp.getOutputByLabel(ARTHTNamings.ART));
-                        ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(rPeaksScanSamp.getOutputByLabel(ARTHTNamings.HT));
+                        ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(rPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.ART));
+                        ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(rPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.HT));
                         // Apply the filters for the next step
                         ApplyFilters();
                         _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
@@ -431,17 +431,17 @@ namespace BSP_Using_AI.DetailsModify
                             }
 
                             // Initialize the output as the R peak should be removed
-                            rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RemoveR },
+                            rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RSelectionOutputs.RemoveR },
                                                     new double[1] { 1 });
                             // Check if outputs should be predicted
                             if (_predictionOn)
                             {
-                                rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RemoveR },
+                                rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RSelectionOutputs.RemoveR },
                                     askForPrediction_ARTHT(rPeaksSelectionSamp.getFeatures(), ARTHTNamings.Step2RPeaksSelectionData));
 
                                 threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData].OutputsThresholds[0]._threshold;
                                 // Check if this R state is selected not to be removed
-                                if (rPeaksSelectionSamp.getOutputByLabel(ARTHTNamings.RemoveR) < threshold)
+                                if (rPeaksSelectionSamp.getOutputByLabel(ARTHTNamings.RSelectionOutputs.RemoveR) < threshold)
                                     // If yes then add current state as R
                                     _arthtFeatures.SignalBeats.Add(new Beat() { _rIndex = orderedRPeaks[i]._index });
                             }
@@ -459,7 +459,7 @@ namespace BSP_Using_AI.DetailsModify
                                         if (upScatPlot.DataPointLabels[j].Equals(SANamings.R))
                                         {
                                             // If yes then set the output to 0 (do not remove state)
-                                            rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RemoveR },
+                                            rPeaksSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.RSelectionOutputs.RemoveR },
                                                     new double[1] { 0d });
                                             // Set the selected R index and its beat's start and end indexex
                                             _arthtFeatures.SignalBeats.Add(new Beat() { _rIndex = orderedRPeaks[i]._index });
@@ -475,7 +475,7 @@ namespace BSP_Using_AI.DetailsModify
                             flowLayoutItems02.DropDownItems.Add(ARTHTNamings.RAmp + ": " + rPeaksSelectionSamp.getFeatureByLabel(ARTHTNamings.RAmp));
                             flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
                             flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
-                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.RemoveR + ": " + rPeaksSelectionSamp.getOutputByLabel(ARTHTNamings.RemoveR));
+                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.RSelectionOutputs.RemoveR + ": " + rPeaksSelectionSamp.getOutputByLabel(ARTHTNamings.RSelectionOutputs.RemoveR));
                             flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
                             featuresItems.DropDownItems.Add(flowLayoutItems01);
@@ -550,20 +550,20 @@ namespace BSP_Using_AI.DetailsModify
                         // Check if outputs should be predicted
                         if (_predictionOn)
                         {
-                            beatPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
+                            beatPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.PeaksScannerOutputs.ART, ARTHTNamings.PeaksScannerOutputs.HT },
                                 askForPrediction_ARTHT(beatPeaksScanSamp.getFeatures(), ARTHTNamings.Step3BeatPeaksScanData));
                             // Scan Q and S peaks with the predicted ART and HT parameters
-                            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.ART));
-                            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.HT));
+                            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.ART));
+                            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.HT));
                             ApplyFilters();
                         }
                         else
-                            beatPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.ART, ARTHTNamings.HT },
+                            beatPeaksScanSamp.insertOutputArray(new string[] { ARTHTNamings.PeaksScannerOutputs.ART, ARTHTNamings.PeaksScannerOutputs.HT },
                                 new double[2] { ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._art,
                                                     ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._ht });
 
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ART + ": " + beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.ART));
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.HT + ": " + beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.HT));
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.ART + ": " + beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.ART));
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.HT + ": " + beatPeaksScanSamp.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.HT));
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
@@ -695,38 +695,38 @@ namespace BSP_Using_AI.DetailsModify
                             flowLayoutItems03 = new ToolStripMenuItem(ARTHTNamings.Outputs);
                             int stateIndx = signalStates[i]._index + _arthtFeatures.SignalBeats[selectedBeatIndx]._startingIndex;
                             // Initialize the output as there are no P and T wave
-                            ptSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.PWave, ARTHTNamings.TWave },
+                            ptSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.PTSelectionOutputs.PWave, ARTHTNamings.PTSelectionOutputs.TWave },
                                                                   new double[] { 0, 0 });
                             // Check if outputs should be predicted
                             if (_predictionOn)
                             {
-                                ptSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.PWave, ARTHTNamings.TWave },
+                                ptSelectionSamp.insertOutputArray(new string[] { ARTHTNamings.PTSelectionOutputs.PWave, ARTHTNamings.PTSelectionOutputs.TWave },
                                                                   askForPrediction_ARTHT(ptSelectionSamp.getFeatures(), ARTHTNamings.Step4PTSelectionData));
                                 // Check if state is predicted as P or T peak
-                                if (ptSelectionSamp.getOutputByLabel(ARTHTNamings.PWave) > pProba)
+                                if (ptSelectionSamp.getOutputByLabel(ARTHTNamings.PTSelectionOutputs.PWave) > pProba)
                                 {
                                     // If yes then this one is selected as P peak
                                     // set its index in ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][1]
                                     _arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex = stateIndx;
-                                    pProba = ptSelectionSamp.getOutputByLabel(ARTHTNamings.PWave);
+                                    pProba = ptSelectionSamp.getOutputByLabel(ARTHTNamings.PTSelectionOutputs.PWave);
                                 }
-                                if (ptSelectionSamp.getOutputByLabel(ARTHTNamings.TWave) > tProba)
+                                if (ptSelectionSamp.getOutputByLabel(ARTHTNamings.PTSelectionOutputs.TWave) > tProba)
                                 {
                                     // If yes then this one is selected as T peak
                                     // set its index in ((List<int[]>)_featuresOrderedDictionary[0])[selectedBeatIndx][6]
                                     _arthtFeatures.SignalBeats[selectedBeatIndx]._tIndex = stateIndx;
-                                    tProba = ptSelectionSamp.getOutputByLabel(ARTHTNamings.TWave);
+                                    tProba = ptSelectionSamp.getOutputByLabel(ARTHTNamings.PTSelectionOutputs.TWave);
                                 }
                             }
                             else
                             {
                                 if ((stateIndx - 5) <= _arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex && _arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex <= (stateIndx + 5))
-                                    ptSelectionSamp.insertOutput(0, ARTHTNamings.PWave, 1);
+                                    ptSelectionSamp.insertOutput(0, ARTHTNamings.PTSelectionOutputs.PWave, 1);
                                 if ((stateIndx - 5) <= _arthtFeatures.SignalBeats[selectedBeatIndx]._tIndex && _arthtFeatures.SignalBeats[selectedBeatIndx]._tIndex <= (stateIndx + 5))
-                                    ptSelectionSamp.insertOutput(1, ARTHTNamings.TWave, 1);
+                                    ptSelectionSamp.insertOutput(1, ARTHTNamings.PTSelectionOutputs.TWave, 1);
                             }
-                            flowLayoutItems03.DropDownItems.Add("P wave: " + ptSelectionSamp.getOutputByLabel(ARTHTNamings.PWave));
-                            flowLayoutItems03.DropDownItems.Add("T wave: " + ptSelectionSamp.getOutputByLabel(ARTHTNamings.TWave));
+                            flowLayoutItems03.DropDownItems.Add("P wave: " + ptSelectionSamp.getOutputByLabel(ARTHTNamings.PTSelectionOutputs.PWave));
+                            flowLayoutItems03.DropDownItems.Add("T wave: " + ptSelectionSamp.getOutputByLabel(ARTHTNamings.PTSelectionOutputs.TWave));
                             flowLayoutItems02.DropDownItems.Add(flowLayoutItems03);
                             flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
                         }
@@ -788,23 +788,23 @@ namespace BSP_Using_AI.DetailsModify
                         // Set the outputs of the state
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
                         shortPRScanSamp.insertOutput(0,
-                                                    ARTHTNamings.ShortPR,
+                                                    ARTHTNamings.ShortPROutputs.ShortPR,
                                                     0);
                         // Check if P state exists
                         if (_arthtFeatures.SignalBeats[selectedBeatIndx]._pIndex != int.MinValue)
                         {
                             // Check if outputs should be predicted
                             if (_predictionOn)
-                                shortPRScanSamp.insertOutputArray(new string[] { ARTHTNamings.ShortPR },
+                                shortPRScanSamp.insertOutputArray(new string[] { ARTHTNamings.ShortPROutputs.ShortPR },
                                                              askForPrediction_ARTHT(shortPRScanSamp.getFeatures(), ARTHTNamings.Step5ShortPRScanData));
                             else
                                 shortPRScanSamp.insertOutput(0,
-                                                             ARTHTNamings.ShortPR,
+                                                             ARTHTNamings.ShortPROutputs.ShortPR,
                                                              ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare])._exists);
-                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPR + ": " + shortPRScanSamp.getOutputByLabel(ARTHTNamings.ShortPR));
+                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPROutputs.ShortPR + ": " + shortPRScanSamp.getOutputByLabel(ARTHTNamings.ShortPROutputs.ShortPR));
                         }
                         else
-                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPR + ": NaN");
+                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPROutputs.ShortPR + ": NaN");
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
 
@@ -834,7 +834,7 @@ namespace BSP_Using_AI.DetailsModify
                                 threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData].OutputsThresholds[0]._threshold;
                             // Get number of declared short PR
                             for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
-                                if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
+                                if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPROutputs.ShortPR) >= threshold)
                                 {
                                     if (shortPRBeatIndx == -1)
                                         shortPRBeatIndx = i;
@@ -886,7 +886,7 @@ namespace BSP_Using_AI.DetailsModify
                         shortPRBeatIndx = -1;
                         int nextShortPRBeatIndx = -1;
                         for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
-                            if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
+                            if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPROutputs.ShortPR) >= threshold)
                             {
                                 if (shortPRNmbr == _arthtFeatures.StepsDataDic[ARTHTNamings.Step6UpstrokesScanData].Samples.Count)
                                     shortPRBeatIndx = i;
@@ -919,17 +919,17 @@ namespace BSP_Using_AI.DetailsModify
                         {
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
-                            upstrokeScanSamp.insertOutputArray(new string[] { ARTHTNamings.TDT }, askForPrediction_ARTHT(upstrokeScanSamp.getFeatures(), ARTHTNamings.Step6UpstrokesScanData));
+                            upstrokeScanSamp.insertOutputArray(new string[] { ARTHTNamings.UpStrokeOutputs.TDT }, askForPrediction_ARTHT(upstrokeScanSamp.getFeatures(), ARTHTNamings.Step6UpstrokesScanData));
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
                             //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
                             // Set the selected _tdtThresholdRatio
-                            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetTDT(upstrokeScanSamp.getOutputByLabel(ARTHTNamings.TDT));
+                            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetTDT(upstrokeScanSamp.getOutputByLabel(ARTHTNamings.UpStrokeOutputs.TDT));
                             // Apply peaks scan with the new tangent deviation threshold parameter
                             ApplyFilters();
                         }
                         else
-                            upstrokeScanSamp.insertOutput(0, ARTHTNamings.TDT, ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._tdt);
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.TDT + ": " + upstrokeScanSamp.getOutputByLabel(ARTHTNamings.TDT));
+                            upstrokeScanSamp.insertOutput(0, ARTHTNamings.UpStrokeOutputs.TDT, ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer])._tdt);
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.UpStrokeOutputs.TDT + ": " + upstrokeScanSamp.getOutputByLabel(ARTHTNamings.UpStrokeOutputs.TDT));
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
@@ -968,7 +968,7 @@ namespace BSP_Using_AI.DetailsModify
                             shortPRBeatIndx = -1;
                             shortPRNmbr = 0;
                             for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
-                                if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
+                                if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPROutputs.ShortPR) >= threshold)
                                 {
                                     if (shortPRBeatIndx == -1)
                                         shortPRBeatIndx = i;
@@ -1000,7 +1000,7 @@ namespace BSP_Using_AI.DetailsModify
                         shortPRBeatIndx = -1;
                         nextShortPRBeatIndx = -1;
                         for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
-                            if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
+                            if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPROutputs.ShortPR) >= threshold)
                             {
                                 if (shortPRNmbr == _arthtFeatures.StepsDataDic[ARTHTNamings.Step7DeltaExaminationData].Samples.Count)
                                     shortPRBeatIndx = i;
@@ -1033,11 +1033,11 @@ namespace BSP_Using_AI.DetailsModify
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
                         // Check if outputs should be predicted
                         if (_predictionOn)
-                            deltaExamSamp.insertOutputArray(new string[] { ARTHTNamings.WPWPattern }, askForPrediction_ARTHT(deltaExamSamp.getFeatures(), ARTHTNamings.Step7DeltaExaminationData));
+                            deltaExamSamp.insertOutputArray(new string[] { ARTHTNamings.DeltaExamOutputs.WPWPattern }, askForPrediction_ARTHT(deltaExamSamp.getFeatures(), ARTHTNamings.Step7DeltaExaminationData));
                         else
-                            deltaExamSamp.insertOutput(0, ARTHTNamings.WPWPattern,
+                            deltaExamSamp.insertOutput(0, ARTHTNamings.DeltaExamOutputs.WPWPattern,
                                                        ((ExistenceDeclare)_FilteringTools._FiltersDic[ARTHTFiltersNames.ExistenceDeclare])._exists);
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.WPWPattern + ": " + deltaExamSamp.getOutputByLabel(ARTHTNamings.WPWPattern));
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.DeltaExamOutputs.WPWPattern + ": " + deltaExamSamp.getOutputByLabel(ARTHTNamings.DeltaExamOutputs.WPWPattern));
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
@@ -1046,7 +1046,7 @@ namespace BSP_Using_AI.DetailsModify
                         if (_predictionOn)
                             threshold = arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData].OutputsThresholds[0]._threshold;
                         // Set WPW syndrome index if existed
-                        if (deltaExamSamp.getOutputByLabel(ARTHTNamings.WPWPattern) > threshold)
+                        if (deltaExamSamp.getOutputByLabel(ARTHTNamings.DeltaExamOutputs.WPWPattern) > threshold)
                             _arthtFeatures.SignalBeats[shortPRBeatIndx]._wpwDetected = true;
 
                         // Check if there exist next beat
@@ -1103,10 +1103,10 @@ namespace BSP_Using_AI.DetailsModify
                 if (statesLabelProperty.GetValue(null) is string statesLabel)
                     GeneralTools.loadXYInChart(signalChart, _Plots[statesLabel], null, null, null, 0, true, "ARTHTFormDetailsModify");
             ((BubblePlot)_Plots[SANamings.Selection]).Clear();
-            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(ARTHTSample.getOutputByLabel(ARTHTNamings.ART));
-            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(ARTHTSample.getOutputByLabel(ARTHTNamings.HT));
+            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(ARTHTSample.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.ART));
+            ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(ARTHTSample.getOutputByLabel(ARTHTNamings.PeaksScannerOutputs.HT));
             if (TDTSample != null)
-                ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetTDT(TDTSample.getOutputByLabel(ARTHTNamings.TDT));
+                ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetTDT(TDTSample.getOutputByLabel(ARTHTNamings.UpStrokeOutputs.TDT));
             // Apply changes
             ApplyFilters();
 
@@ -1251,7 +1251,7 @@ namespace BSP_Using_AI.DetailsModify
                     int shortPRNmbr = 0;
                     int previousShortPRBeatIndx = -1;
                     for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
-                        if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
+                        if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPROutputs.ShortPR) >= threshold)
                         {
                             if (shortPRNmbr == _arthtFeatures.StepsDataDic[ARTHTNamings.Step7DeltaExaminationData].Samples.Count)
                                 previousShortPRBeatIndx = i;
@@ -1277,7 +1277,7 @@ namespace BSP_Using_AI.DetailsModify
                     shortPRNmbr = 0;
                     previousShortPRBeatIndx = -1;
                     for (int i = 0; i < _arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples.Count; i++)
-                        if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPR) >= threshold)
+                        if (_arthtFeatures.StepsDataDic[ARTHTNamings.Step5ShortPRScanData].Samples[i].getOutputByLabel(ARTHTNamings.ShortPROutputs.ShortPR) >= threshold)
                         {
                             if (shortPRNmbr == _arthtFeatures.StepsDataDic[ARTHTNamings.Step7DeltaExaminationData].Samples.Count)
                                 previousShortPRBeatIndx = i;
@@ -1447,8 +1447,8 @@ namespace BSP_Using_AI.DetailsModify
                     ((AbsoluteSignalUserControl)absolute._FilterControl).Enabled = false;
 
                     // Set the peaks analyzer with the parameters selected from the first step
-                    ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(_arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData].getOutputByLabel(0, ARTHTNamings.ART));
-                    ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(_arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData].getOutputByLabel(0, ARTHTNamings.HT));
+                    ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetART(_arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData].getOutputByLabel(0, ARTHTNamings.PeaksScannerOutputs.ART));
+                    ((PeaksAnalyzer)_FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]).SetHT(_arthtFeatures.StepsDataDic[ARTHTNamings.Step1RPeaksScanData].getOutputByLabel(0, ARTHTNamings.PeaksScannerOutputs.HT));
                     _FilteringTools._FiltersDic[ARTHTFiltersNames.PeaksAnalyzer]._FilterControl.Enabled = false;
 
                     // Disable showing results in chart
@@ -1564,8 +1564,8 @@ namespace BSP_Using_AI.DetailsModify
                     featuresItems.DropDownItems.Add(flowLayoutItems01);
                     // get signal states viewer user control and set the features output
                     flowLayoutItems01 = new ToolStripMenuItem(ARTHTNamings.Outputs);
-                    flowLayoutItems01.DropDownItems.Add(ARTHTNamings.ART + ": " + outputs[0]);
-                    flowLayoutItems01.DropDownItems.Add(ARTHTNamings.HT + ": " + outputs[1]);
+                    flowLayoutItems01.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.ART + ": " + outputs[0]);
+                    flowLayoutItems01.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.HT + ": " + outputs[1]);
 
                     featuresItems.DropDownItems.Add(flowLayoutItems01);
                 }
@@ -1584,7 +1584,7 @@ namespace BSP_Using_AI.DetailsModify
                         flowLayoutItems02.DropDownItems.Add(ARTHTNamings.RAmp + ": " + inputs[1]);
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.RemoveR + ": " + outputs[0]);
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.RSelectionOutputs.RemoveR + ": " + outputs[0]);
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
@@ -1608,8 +1608,8 @@ namespace BSP_Using_AI.DetailsModify
                         flowLayoutItems02.DropDownItems.Add(ARTHTNamings.IQR + ": " + inputs[4]);
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ART + ": " + outputs[0]);
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.HT + ": " + outputs[1]);
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.ART + ": " + outputs[0]);
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.PeaksScannerOutputs.HT + ": " + outputs[1]);
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
@@ -1656,8 +1656,8 @@ namespace BSP_Using_AI.DetailsModify
                         flowLayoutItems02.DropDownItems.Add(flowLayoutItems03);
                         // Set the ooutputs of the state
                         flowLayoutItems03 = new ToolStripMenuItem(ARTHTNamings.Outputs);
-                        flowLayoutItems03.DropDownItems.Add(ARTHTNamings.PWave + ": " + outputs[0]);
-                        flowLayoutItems03.DropDownItems.Add(ARTHTNamings.TWave + ": " + outputs[1]);
+                        flowLayoutItems03.DropDownItems.Add(ARTHTNamings.PTSelectionOutputs.PWave + ": " + outputs[0]);
+                        flowLayoutItems03.DropDownItems.Add(ARTHTNamings.PTSelectionOutputs.TWave + ": " + outputs[1]);
                         flowLayoutItems02.DropDownItems.Add(flowLayoutItems03);
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
@@ -1694,9 +1694,9 @@ namespace BSP_Using_AI.DetailsModify
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
                         // Check if P state exists
                         if (outputs != null)
-                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPR + ": " + outputs[0]);
+                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPROutputs.ShortPR + ": " + outputs[0]);
                         else
-                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPR + ": NaN");
+                            flowLayoutItems02.DropDownItems.Add(ARTHTNamings.ShortPROutputs.ShortPR + ": NaN");
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
                     }
@@ -1725,7 +1725,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Set the outputs of the state
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.TDT + ": " + outputs[0]);
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.UpStrokeOutputs.TDT + ": " + outputs[0]);
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);
@@ -1755,7 +1755,7 @@ namespace BSP_Using_AI.DetailsModify
 
                         // Set the outputs of the state
                         flowLayoutItems02 = new ToolStripMenuItem(ARTHTNamings.Outputs);
-                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.WPWPattern + ": " + outputs[0]);
+                        flowLayoutItems02.DropDownItems.Add(ARTHTNamings.DeltaExamOutputs.WPWPattern + ": " + outputs[0]);
                         flowLayoutItems01.DropDownItems.Add(flowLayoutItems02);
 
                         featuresItems.DropDownItems.Add(flowLayoutItems01);

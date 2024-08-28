@@ -8,9 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValDataSelectionForm;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -101,7 +101,7 @@ namespace BSP_Using_AI.AITools.Details
 
         private CustomArchiBaseModel CWDReinforcementL_CreateTempModel(TFNETReinforcementL cwdReinforcementLModel, List<Sample> trainingSamples)
         {
-            CustomArchiBaseModel tempModel = CWD_RL_TFNET.createTFNETRLModel(cwdReinforcementLModel.Name, "", cwdReinforcementLModel._inputDim, cwdReinforcementLModel._outputDim);
+            CustomArchiBaseModel tempModel = CWD_RL_TFNET.createTFNETRLModel(cwdReinforcementLModel.Name, "", cwdReinforcementLModel._inputDim, cwdReinforcementLModel._outputDim, cwdReinforcementLModel.OutputsNames);
             tempModel._pcaActive = cwdReinforcementLModel._pcaActive;
             if (tempModel._pcaActive)
                 tempModel.PCA = DataVisualisationForm.getPCA(trainingSamples); ;

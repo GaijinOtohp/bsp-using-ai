@@ -4,9 +4,10 @@ using BSP_Using_AI.AITools;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using System;
 using System.Collections.Generic;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 
@@ -89,13 +90,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives
             // 2 for delta deteciton (Acceleration threshold, delta existence) }
             ARTHTModels arthtModels = new ARTHTModels();
             // Create a KNN models structure with the initial optimum K, which is "3"
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createNBModel(ARTHTNamings.Step1RPeaksScanData, 15, 2); // (15, 2) For R peaks detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createNBModel(ARTHTNamings.Step2RPeaksSelectionData, 2, 1); // (2, 1) For R selection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createNBModel(ARTHTNamings.Step3BeatPeaksScanData, 5, 2); // (5, 2) For beat peaks detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createNBModel(ARTHTNamings.Step4PTSelectionData, 3, 2); // (3, 2) For P and T detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createNBModel(ARTHTNamings.Step5ShortPRScanData, 1, 1); // (1, 1) For short PR detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createNBModel(ARTHTNamings.Step6UpstrokesScanData, 6, 1); // (6, 1) For delta detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createNBModel(ARTHTNamings.Step7DeltaExaminationData, 6, 1); // (6, 1) For WPW syndrome declaration
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createNBModel(ARTHTNamings.Step1RPeaksScanData, 15, 2, ARTHTNamings.PeaksScannerOutputs.GetNames()); // (15, 2) For R peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createNBModel(ARTHTNamings.Step2RPeaksSelectionData, 2, 1, ARTHTNamings.RSelectionOutputs.GetNames()); // (2, 1) For R selection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createNBModel(ARTHTNamings.Step3BeatPeaksScanData, 5, 2, ARTHTNamings.PeaksScannerOutputs.GetNames()); // (5, 2) For beat peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createNBModel(ARTHTNamings.Step4PTSelectionData, 3, 2, ARTHTNamings.PTSelectionOutputs.GetNames()); // (3, 2) For P and T detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createNBModel(ARTHTNamings.Step5ShortPRScanData, 1, 1, ARTHTNamings.ShortPROutputs.GetNames()); // (1, 1) For short PR detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createNBModel(ARTHTNamings.Step6UpstrokesScanData, 6, 1, ARTHTNamings.UpStrokeOutputs.GetNames()); // (6, 1) For delta detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createNBModel(ARTHTNamings.Step7DeltaExaminationData, 6, 1, ARTHTNamings.DeltaExamOutputs.GetNames()); // (6, 1) For WPW syndrome declaration
 
             // Insert models in _targetsModelsHashtable
             int modelIndx = 0;
@@ -123,38 +124,62 @@ namespace Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives
             if (pcaActive)
                 // If yes then compute PCA loading scores
                 pca = DataVisualisationForm.getPCA(dataList);
-            int input;
+            int input = pca.Count > 0 ? pca.Count : 0;
             int output;
+            string[] outputNames;
 
             if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData))
-                input = 15;
+            {
+                if (input == 0) input = 15;
+                outputNames = ARTHTNamings.PeaksScannerOutputs.GetNames();
+            }
             else if (stepName.Equals(ARTHTNamings.Step2RPeaksSelectionData))
-                input = 2;
+            {
+                if (input == 0) input = 2;
+                outputNames = ARTHTNamings.RSelectionOutputs.GetNames();
+            }
             else if (stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData))
-                input = 5;
+            {
+                if (input == 0) input = 5;
+                outputNames = ARTHTNamings.PeaksScannerOutputs.GetNames();
+            }
             else if (stepName.Equals(ARTHTNamings.Step4PTSelectionData))
-                input = 3;
+            {
+                if (input == 0) input = 3;
+                outputNames = ARTHTNamings.PTSelectionOutputs.GetNames();
+            }
             else if (stepName.Equals(ARTHTNamings.Step5ShortPRScanData))
-                input = 1;
+            {
+                if (input == 0) input = 1;
+                outputNames = ARTHTNamings.ShortPROutputs.GetNames();
+            }
+            else if (stepName.Equals(ARTHTNamings.Step6UpstrokesScanData))
+            {
+                if (input == 0) input = 6;
+                outputNames = ARTHTNamings.UpStrokeOutputs.GetNames();
+            }
             else
-                input = 6;
+            {
+                if (input == 0) input = 6;
+                outputNames = ARTHTNamings.DeltaExamOutputs.GetNames();
+            }
 
             if (stepName.Equals(ARTHTNamings.Step1RPeaksScanData) || stepName.Equals(ARTHTNamings.Step3BeatPeaksScanData) || stepName.Equals(ARTHTNamings.Step4PTSelectionData))
                 output = 2;
             else
                 output = 1;
 
-            NaiveBayesModel tempModel = createNBModel(stepName, input, output);
+            NaiveBayesModel tempModel = createNBModel(stepName, input, output, outputNames);
             tempModel._pcaActive = pcaActive;
             tempModel.PCA = pca;
 
             return tempModel;
         }
 
-        public static NaiveBayesModel createNBModel(string name, int inputDim, int outputDim)
+        public static NaiveBayesModel createNBModel(string name, int inputDim, int outputDim, string[] outputNames)
         {
             // Create a KNN model structure with the initial optimum K
-            NaiveBayesModel model = new NaiveBayesModel(inputDim, outputDim) { Name = name};
+            NaiveBayesModel model = new NaiveBayesModel(inputDim, outputDim, outputNames) { Name = name};
             if (name.Equals(ARTHTNamings.Step1RPeaksScanData) || name.Equals(ARTHTNamings.Step3BeatPeaksScanData) || name.Equals(ARTHTNamings.Step6UpstrokesScanData))
                 model.Type = ObjectiveType.Regression;
             else

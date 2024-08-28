@@ -39,6 +39,36 @@
     <Compile Update="AITools\Details\DatasetFlowLayoutPanelItem2UserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValClassAccF1ScoreMetr.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValClasAcPpNpMetr.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValClassAccSeSpMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValClassRawMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValRegrRawMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutClasAcF1STit.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutClasAcPpNpTit.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutClasAcSeSpTit.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutRegrRawTit.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutClasRawTit.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="AITools\Details\ValidationItem\Titles\ValidationAccF1ScoreTitles.cs">
       <SubType>UserControl</SubType>
     </Compile>

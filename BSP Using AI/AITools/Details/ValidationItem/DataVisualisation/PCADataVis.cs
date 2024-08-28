@@ -1,4 +1,4 @@
-﻿using Biological_Signal_Processing_Using_AI.AITools;
+﻿using Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
@@ -12,9 +12,9 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
@@ -146,15 +146,15 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             // Qurey for signals features in all last selected intervals from dataset
             List<IdInterval> allDataIdsIntervalsList = new List<IdInterval>();
-            foreach (List<IdInterval> trainingIntervalsList in _objectiveModel.DataIdsIntervalsList)
+            foreach (List<IdInterval> trainingIntervalsList in _ObjectiveModel.DataIdsIntervalsList)
                 allDataIdsIntervalsList.AddRange(trainingIntervalsList);
 
             // Check which objective is this data for
-            if (_objectiveModel is ARTHTModels)
+            if (_ObjectiveModel is ARTHTModels)
                 queryForSelectedDataset_ARTHT(allDataIdsIntervalsList);
-            else if (_objectiveModel is CWDReinforcementL || (_objectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETReinforcementL))
+            else if (_ObjectiveModel is CWDReinforcementL || (_ObjectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETReinforcementL))
                 queryForSelectedDataset_CWD(allDataIdsIntervalsList, "CWDReinforcementL");
-            else if (_objectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETLSTMModel)
+            else if (_ObjectiveModel is CWDLSTM && _InnerObjectiveModel is TFNETLSTMModel)
                 queryForSelectedDataset_CWD(allDataIdsIntervalsList, "CWDLSTM");
         }
 
@@ -167,6 +167,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 if (PCA.Count > 0)
                     // If yes then just return
                     return;
+            if (DataList.Count == 0)
+                return;
 
             PCA = getPCA(DataList);
 

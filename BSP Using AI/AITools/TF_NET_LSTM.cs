@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tensorflow;
 using Tensorflow.NumPy;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 using static Tensorflow.Binding;

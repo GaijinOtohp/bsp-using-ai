@@ -9,11 +9,11 @@ using System.Runtime.Serialization;
 using System.Threading;
 using Tensorflow;
 using Tensorflow.NumPy;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
-namespace Biological_Signal_Processing_Using_AI.AITools
+namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
 {
     public class AIModels
     {
@@ -130,11 +130,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public OutputThresholdItem[] OutputsThresholds { get; set; }
             [DataMember]
+            public string[] OutputsNames { get; set; }
+            [DataMember]
             public ValidationData ValidationData { get; set; }
 
             protected virtual CustomArchiBaseModel CreateCloneInstance()
             {
-                return new CustomArchiBaseModel(_inputDim, _outputDim);
+                return new CustomArchiBaseModel(_inputDim, _outputDim, OutputsNames);
             }
             public virtual CustomArchiBaseModel Clone()
             {
@@ -145,7 +147,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 baseArchiModelClone._pcaActive = _pcaActive;
 
                 foreach (PCAitem pcLoadingScores in PCA)
-                    baseArchiModelClone.PCA.Add((PCAitem)pcLoadingScores.Clone());
+                    baseArchiModelClone.PCA.Add(pcLoadingScores.Clone());
 
                 if (OutputsThresholds != null)
                 {
@@ -158,10 +160,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 return baseArchiModelClone;
             }
 
-            public CustomArchiBaseModel(int inputDim, int outputDim)
+            public CustomArchiBaseModel(int inputDim, int outputDim, string[] outputNames)
             {
                 _inputDim = inputDim;
                 _outputDim = outputDim;
+                OutputsNames = outputNames;
                 ValidationData = new ValidationData(outputDim);
             }
         }
@@ -180,7 +183,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new KNNModel(_inputDim, _outputDim);
+                return new KNNModel(_inputDim, _outputDim, OutputsNames);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -190,7 +193,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 return knnModel;
             }
 
-            public KNNModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            public KNNModel(int inputDim, int outputDim, string[] outputNames) : base(inputDim, outputDim, outputNames)
             {
 
             }
@@ -217,12 +220,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public static string ModelName = "Keras.NET Neural network";
             [DataMember]
             public string ModelPath;
-            [IgnoreDataMemberAttribute]
+            [IgnoreDataMember]
             public BaseModel Model = new Sequential();
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new KerasNETNeuralNetworkModel(_inputDim, _outputDim);
+                return new KerasNETNeuralNetworkModel(_inputDim, _outputDim, OutputsNames);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -232,7 +235,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 return neuralNetworkModel;
             }
 
-            public KerasNETNeuralNetworkModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            public KerasNETNeuralNetworkModel(int inputDim, int outputDim, string[] outputNames) : base(inputDim, outputDim, outputNames)
             {
 
             }
@@ -277,7 +280,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new NaiveBayesModel(_inputDim, _outputDim);
+                return new NaiveBayesModel(_inputDim, _outputDim, OutputsNames);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -296,7 +299,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 return naiveBayesModel;
             }
 
-            public NaiveBayesModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            public NaiveBayesModel(int inputDim, int outputDim, string[] outputNames) : base(inputDim, outputDim, outputNames)
             {
 
             }
@@ -362,11 +365,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public int _inputDim { get; set; }
             [DataMember]
             public int _outputDim { get; set; }
-            [IgnoreDataMemberAttribute]
+            [IgnoreDataMember]
             public Dictionary<string, NDArray> _AssignedValsDict;
-            [IgnoreDataMemberAttribute]
+            [IgnoreDataMember]
             public Dictionary<string, Operation> _InitAssignmentsOpDict;
-            [IgnoreDataMemberAttribute]
+            [IgnoreDataMember]
             public Session Session;
 
             public TFNETBaseModel(string modelpath, ref int inputDim, ref int outputDim)
@@ -385,14 +388,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public TFNETBaseModel BaseModel;
 
-            public TFNETNeuralNetworkModel(string modelpath, int inputDim, int outputDim) : base(inputDim, outputDim)
+            public TFNETNeuralNetworkModel(string modelpath, int inputDim, int outputDim, string[] outputNames) : base(inputDim, outputDim, outputNames)
             {
                 BaseModel = new TFNETBaseModel(modelpath, ref _inputDim, ref _outputDim);
             }
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFNETNeuralNetworkModel(BaseModel.ModelPath, _inputDim, _outputDim);
+                return new TFNETNeuralNetworkModel(BaseModel.ModelPath, _inputDim, _outputDim, OutputsNames);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -415,7 +418,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public List<RLDimension> _DimensionsList;
 
-            public TFNETReinforcementL(string modelpath, int inputDim, int outputDim, List<RLDimension> dimensionsList) : base(inputDim, outputDim)
+            public TFNETReinforcementL(string modelpath, int inputDim, int outputDim, string[] outputNames, List<RLDimension> dimensionsList) : base(inputDim, outputDim, outputNames)
             {
                 BaseModel = new TFNETBaseModel(modelpath, ref _inputDim, ref _outputDim);
                 _DimensionsList = dimensionsList;
@@ -423,7 +426,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFNETReinforcementL(BaseModel.ModelPath, _inputDim, _outputDim, _DimensionsList);
+                return new TFNETReinforcementL(BaseModel.ModelPath, _inputDim, _outputDim, OutputsNames, _DimensionsList);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -453,7 +456,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             [DataMember]
             public int _layers = 1;
 
-            public TFNETLSTMModel(string modelpath, int inputDim, int outputDim, int modelSequenceLength, bool bidirectional = false, int layers = 1) : base(inputDim, outputDim)
+            public TFNETLSTMModel(string modelpath, int inputDim, int outputDim, string[] outputNames, int modelSequenceLength, bool bidirectional = false, int layers = 1) : base(inputDim, outputDim, outputNames)
             {
                 BaseModel = new TFNETBaseModel(modelpath, ref _inputDim, ref _outputDim);
                 _modelSequenceLength = modelSequenceLength;
@@ -463,7 +466,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFNETLSTMModel(BaseModel.ModelPath, _inputDim, _outputDim, _modelSequenceLength, _bidirectional, _layers);
+                return new TFNETLSTMModel(BaseModel.ModelPath, _inputDim, _outputDim, OutputsNames, _modelSequenceLength, _bidirectional, _layers);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -486,12 +489,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             public static string ModelName = "TF.Keras Neural network";
             [DataMember]
             public string ModelPath;
-            [IgnoreDataMemberAttribute]
+            [IgnoreDataMember]
             public Tensorflow.Keras.Engine.IModel Model;
 
             protected override CustomArchiBaseModel CreateCloneInstance()
             {
-                return new TFKerasNeuralNetworkModel(_inputDim, _outputDim);
+                return new TFKerasNeuralNetworkModel(_inputDim, _outputDim, OutputsNames);
             }
             public override CustomArchiBaseModel Clone()
             {
@@ -501,7 +504,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 return tfKerasNeuralNetworkModel;
             }
 
-            public TFKerasNeuralNetworkModel(int inputDim, int outputDim) : base(inputDim, outputDim)
+            public TFKerasNeuralNetworkModel(int inputDim, int outputDim, string[] outputNames) : base(inputDim, outputDim, outputNames)
             {
 
             }

@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.RL_Objectives.CWD_RL;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
@@ -23,23 +23,23 @@ namespace BSP_Using_AI.DetailsModify
             string annoName = "";
 
             if (annoIndex == 0)
-                annoName = CWDNamigs.POnset;
+                annoName = CWDNamigs.PeaksLabelsOutputs.POnset;
             else if (annoIndex == 1)
-                annoName = CWDNamigs.PPeak;
+                annoName = CWDNamigs.PeaksLabelsOutputs.PPeak;
             else if (annoIndex == 2)
-                annoName = CWDNamigs.PEnd;
+                annoName = CWDNamigs.PeaksLabelsOutputs.PEnd;
             else if (annoIndex == 3)
-                annoName = CWDNamigs.QPeak;
+                annoName = CWDNamigs.PeaksLabelsOutputs.QPeak;
             else if (annoIndex == 4)
-                annoName = CWDNamigs.RPeak;
+                annoName = CWDNamigs.PeaksLabelsOutputs.RPeak;
             else if (annoIndex == 5)
-                annoName = CWDNamigs.SPeak;
+                annoName = CWDNamigs.PeaksLabelsOutputs.SPeak;
             else if (annoIndex == 6)
-                annoName = CWDNamigs.TOnset;
+                annoName = CWDNamigs.PeaksLabelsOutputs.TOnset;
             else if (annoIndex == 7)
-                annoName = CWDNamigs.TPeak;
+                annoName = CWDNamigs.PeaksLabelsOutputs.TPeak;
             else if (annoIndex == 8)
-                annoName = CWDNamigs.TEnd;
+                annoName = CWDNamigs.PeaksLabelsOutputs.TEnd;
 
             return annoName;
         }
@@ -54,36 +54,36 @@ namespace BSP_Using_AI.DetailsModify
                                                                .Select(tuple => tuple.index).ToList();
 
             if (predictionOutput[0] >= outputThresholds[0]._threshold)
-                cornerName += CWDNamigs.POnset + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.POnset + ", ";
             if (predictionOutput[1] >= outputThresholds[1]._threshold)
             {
-                cornerName += CWDNamigs.PPeak + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.PPeak + ", ";
                 DataBuilderMemory.currentPeakIsP = true;
             }
             if (predictionOutput[2] >= outputThresholds[2]._threshold)
-                cornerName += CWDNamigs.PEnd + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.PEnd + ", ";
             if (predictionOutput[3] >= outputThresholds[3]._threshold)
-                cornerName += CWDNamigs.QPeak + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.QPeak + ", ";
             if (predictionOutput[4] >= outputThresholds[4]._threshold)
             {
-                cornerName += CWDNamigs.RPeak + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.RPeak + ", ";
                 DataBuilderMemory.currentPeakIsR = true;
             }
             if (predictionOutput[5] >= outputThresholds[5]._threshold)
-                cornerName += CWDNamigs.SPeak + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.SPeak + ", ";
             if (predictionOutput[6] >= outputThresholds[6]._threshold)
-                cornerName += CWDNamigs.TOnset + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.TOnset + ", ";
             if (predictionOutput[7] >= outputThresholds[7]._threshold)
-                cornerName += CWDNamigs.TPeak + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.TPeak + ", ";
             if (predictionOutput[8] >= outputThresholds[8]._threshold)
-                cornerName += CWDNamigs.TEnd + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.TEnd + ", ";
             if (predictionOutput[9] >= outputThresholds[9]._threshold)
-                cornerName += CWDNamigs.Other + ", ";
+                cornerName += CWDNamigs.PeaksLabelsOutputs.Other + ", ";
 
             if (predictionOutput[10] >= outputThresholds[10]._threshold)
-                regularity = CWDNamigs.Normal + ", ";
+                regularity = CWDNamigs.PeaksLabelsOutputs.Normal + ", ";
             if (predictionOutput[11] >= outputThresholds[11]._threshold)
-                regularity += CWDNamigs.Abnormal + ", ";
+                regularity += CWDNamigs.PeaksLabelsOutputs.Abnormal + ", ";
 
             return (cornerName, regularity, selectedLabelsIndecies);
         }

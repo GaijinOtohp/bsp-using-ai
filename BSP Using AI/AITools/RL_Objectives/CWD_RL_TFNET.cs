@@ -9,9 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tensorflow;
 using Tensorflow.NumPy;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
@@ -87,8 +88,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             // Create the model object
             CWDReinforcementL cwdReinforcementL = new CWDReinforcementL();
-            cwdReinforcementL.CWDReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, modelPath, inputDim: 8, outputDim: 2);
-            cwdReinforcementL.CWDCrazyReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyModelPath, inputDim: 8, outputDim: 2);
+            cwdReinforcementL.CWDReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, modelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
+            cwdReinforcementL.CWDCrazyReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyModelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
 
             cwdReinforcementL.ModelName = TFNETReinforcementL.ModelName;
             cwdReinforcementL.ObjectiveName = " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx;
@@ -105,13 +106,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 _aiBackThreadReportHolderForAIToolsForm.holdAIReport(new AIReport() { ReportType = AIReportType.CreateModel }, "AIToolsForm");
         }
 
-        public static TFNETReinforcementL createTFNETRLModel(string name, string path, int inputDim, int outputDim)
+        public static TFNETReinforcementL createTFNETRLModel(string name, string path, int inputDim, int outputDim, string[] outputNames)
         {
             List<RLDimension> dimensionsList = new List<RLDimension>(2);
-            dimensionsList.Add(new RLDimension(name: CWDNamigs.AT, size: 60, min: 1, max: 40));
-            dimensionsList.Add(new RLDimension(name: CWDNamigs.ART, size: 60, min: 0, max: 0.3d));
+            dimensionsList.Add(new RLDimension(name: CWDNamigs.CornersScanOutputs.AT, size: 60, min: 1, max: 40));
+            dimensionsList.Add(new RLDimension(name: CWDNamigs.CornersScanOutputs.ART, size: 60, min: 0, max: 0.3d));
 
-            TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim, dimensionsList) { Name = name, Type = ObjectiveType.Regression };
+            TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim, outputNames, dimensionsList) { Name = name, Type = ObjectiveType.Regression };
 
             model.BaseModel.Session = createTFNETNeuralNetModelSession(model.BaseModel);
 

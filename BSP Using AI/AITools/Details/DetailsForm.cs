@@ -1,4 +1,4 @@
-﻿using Biological_Signal_Processing_Using_AI.AITools;
+﻿using Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection;
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
@@ -12,10 +12,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValDataSelectionForm;
 
 namespace BSP_Using_AI.AITools.Details
@@ -54,7 +54,7 @@ namespace BSP_Using_AI.AITools.Details
             }
 
             // List the evaluation techniques
-            metricsComboBox.DataSource = typeof(EvaluationTechnique).GetFields().Select(field => field.GetValue(null)).ToList();
+            metricsComboBox.DataSource = EvaluationTechnique.GetNames();
         }
 
         //*******************************************************************************************************//

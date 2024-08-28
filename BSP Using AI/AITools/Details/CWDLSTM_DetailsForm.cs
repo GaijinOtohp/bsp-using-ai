@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValDataSelectionForm;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
@@ -146,7 +146,7 @@ namespace BSP_Using_AI.AITools.Details
 
         private CustomArchiBaseModel LSTM_CreateTempModel(TFNETLSTMModel cwdLSTMModel, List<List<Sample>> trainingSequences)
         {
-            CustomArchiBaseModel tempModel = CWD_TF_NET_LSTM.createTFNETLSTMModel(cwdLSTMModel.Name, "", cwdLSTMModel._inputDim, cwdLSTMModel._outputDim);
+            CustomArchiBaseModel tempModel = CWD_TF_NET_LSTM.createTFNETLSTMModel(cwdLSTMModel.Name, "", cwdLSTMModel._inputDim, cwdLSTMModel._outputDim, cwdLSTMModel.OutputsNames);
             tempModel._pcaActive = cwdLSTMModel._pcaActive;
             if (tempModel._pcaActive)
                 tempModel.PCA = DataVisualisationForm.getPCA(trainingSequences.SelectMany(seqSamples => seqSamples).ToList());

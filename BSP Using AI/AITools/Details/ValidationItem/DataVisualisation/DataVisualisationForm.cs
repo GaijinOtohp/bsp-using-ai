@@ -4,18 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     public partial class DataVisualisationForm : Form
     {
-        public Dictionary<string, ObjectiveBaseModel> _objectivesModelsDic = null;
+        public Dictionary<string, ObjectiveBaseModel> _ObjectivesModelsDic = null;
 
-        private ObjectiveBaseModel _objectiveModel;
+        private ObjectiveBaseModel _ObjectiveModel;
 
         private CustomArchiBaseModel _InnerObjectiveModel;
 
@@ -33,8 +33,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             InitializeComponent();
 
-            _objectivesModelsDic = objectivesModelsDic;
-            _objectiveModel = objectiveModel;
+            _ObjectivesModelsDic = objectivesModelsDic;
+            _ObjectiveModel = objectiveModel;
             _InnerObjectiveModel = innerObjectiveModel;
             _modelId = modelId;
             DataList = dataList;
@@ -42,6 +42,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
             setRawVisTab();
             setPCAVisTab();
+            setValidationDetailsVisTab();
         }
 
         //*******************************************************************************************************//
@@ -81,6 +82,12 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private void button1_Click(object sender, EventArgs e)
         {
             GeneralTools.saveChartAsImage(rawChart);
+        }
+
+        private void metricsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.IsHandleCreated)
+                refreshValidationData();
         }
     }
 }

@@ -8,9 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.ReinforcementLearning.Environment;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
@@ -182,8 +182,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
         public Data DeepFitRLData(double[] samples, int samplingRate, AnnotationData annoData, TFNETReinforcementL CWDCrazyReinforcementLModel)
         {
-            RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.AT)).ToList()[0];
-            RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.ART)).ToList()[0];
+            RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.AT)).ToList()[0];
+            RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.ART)).ToList()[0];
             // Include the signal infos
             // Rescale samples to be in an amplitude interval of 4
             _RescaledSamples = GeneralTools.rescaleSignal(samples, 4);
@@ -233,8 +233,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                     {
                         // Then train the crazy model with the new sample
                         // Include the best state as output to the sample
-                        EpisodeSample.insertOutput(0, CWDNamigs.AT, bestAT);
-                        EpisodeSample.insertOutput(1, CWDNamigs.ART, bestART);
+                        EpisodeSample.insertOutput(0, CWDNamigs.CornersScanOutputs.AT, bestAT);
+                        EpisodeSample.insertOutput(1, CWDNamigs.CornersScanOutputs.ART, bestART);
 
                         List<Sample> trainingSamplesList = new List<Sample>() { EpisodeSample };
                         TF_NET_NN.fit(CWDCrazyReinforcementLModel, CWDCrazyReinforcementLModel.BaseModel, trainingSamplesList, null, saveModel: false, epochsMax: 1);
@@ -253,8 +253,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 // Take the state with the highest reward
                 int[] segmentBestState = ReinforcementLearning.Environment.String2IntArray(acceptableStates.Max().state);
 
-                SegmentSample.insertOutput(0, CWDNamigs.AT, (segmentBestState[0] * atDim._step) / (atDim._max - atDim._min));
-                SegmentSample.insertOutput(1, CWDNamigs.ART, (segmentBestState[1] * artDim._step) / (artDim._max - artDim._min));
+                SegmentSample.insertOutput(0, CWDNamigs.CornersScanOutputs.AT, (segmentBestState[0] * atDim._step) / (atDim._max - atDim._min));
+                SegmentSample.insertOutput(1, CWDNamigs.CornersScanOutputs.ART, (segmentBestState[1] * artDim._step) / (artDim._max - artDim._min));
             }
 
             return GlobalCornersScanData;
@@ -298,11 +298,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 // Include the best state for the corners scan as outputs
                 Sample chunkSample = GetFeaturesOfTheSamples(CornersScanData);
 
-                RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.AT)).ToList()[0];
-                RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.ART)).ToList()[0];
+                RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.AT)).ToList()[0];
+                RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.ART)).ToList()[0];
 
-                chunkSample.insertOutput(0, CWDNamigs.AT, (bestState[0] * atDim._step) / (atDim._max - atDim._min)); // Normalize the value to be from 0 to 1 by dividing with 360 (the max angle)
-                chunkSample.insertOutput(1, CWDNamigs.ART, (bestState[1] * artDim._step) / (artDim._max - artDim._min)); // art is already between 0 and 1
+                chunkSample.insertOutput(0, CWDNamigs.CornersScanOutputs.AT, (bestState[0] * atDim._step) / (atDim._max - atDim._min)); // Normalize the value to be from 0 to 1 by dividing with 360 (the max angle)
+                chunkSample.insertOutput(1, CWDNamigs.CornersScanOutputs.ART, (bestState[1] * artDim._step) / (artDim._max - artDim._min)); // art is already between 0 and 1
             }
 
             return CornersScanData;

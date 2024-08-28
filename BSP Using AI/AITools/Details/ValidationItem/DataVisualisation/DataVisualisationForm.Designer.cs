@@ -30,6 +30,12 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private void InitializeComponent()
         {
             this.tabControl = new System.Windows.Forms.TabControl();
+            this.valDetailsTabPage = new System.Windows.Forms.TabPage();
+            this.validationSaveButton = new System.Windows.Forms.Button();
+            this.validationTitlesPanel = new System.Windows.Forms.Panel();
+            this.metricsComboBox = new System.Windows.Forms.ComboBox();
+            this.validationFlowLayoutPanel = new BSP_Using_AI.CustomFlowLayoutPanel();
+            this.outpValResultsLabel = new System.Windows.Forms.Label();
             this.rawVisTabPage = new System.Windows.Forms.TabPage();
             this.button1 = new System.Windows.Forms.Button();
             this.xInputFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
@@ -41,7 +47,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.rawChart = new ScottPlot.FormsPlot();
             this.pcaVisTabPage = new System.Windows.Forms.TabPage();
             this.saveAsImageButton = new System.Windows.Forms.Button();
-            this.saveChangesButton = new System.Windows.Forms.Button();
+            this.pcaSaveChangesButton = new System.Windows.Forms.Button();
             this.pcFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.selectedPricipalComponentsLabel = new System.Windows.Forms.Label();
             this.pcaChart = new ScottPlot.FormsPlot();
@@ -49,6 +55,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.umapVisTabPage = new System.Windows.Forms.TabPage();
             this.stepLabel = new System.Windows.Forms.Label();
             this.tabControl.SuspendLayout();
+            this.valDetailsTabPage.SuspendLayout();
             this.rawVisTabPage.SuspendLayout();
             this.pcaVisTabPage.SuspendLayout();
             this.SuspendLayout();
@@ -58,6 +65,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl.Controls.Add(this.valDetailsTabPage);
             this.tabControl.Controls.Add(this.rawVisTabPage);
             this.tabControl.Controls.Add(this.pcaVisTabPage);
             this.tabControl.Controls.Add(this.tsneVisTabPage);
@@ -68,6 +76,70 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tabControl.SelectedIndex = 0;
             this.tabControl.Size = new System.Drawing.Size(1262, 802);
             this.tabControl.TabIndex = 0;
+            // 
+            // valDetailsTabPage
+            // 
+            this.valDetailsTabPage.Controls.Add(this.validationSaveButton);
+            this.valDetailsTabPage.Controls.Add(this.validationTitlesPanel);
+            this.valDetailsTabPage.Controls.Add(this.metricsComboBox);
+            this.valDetailsTabPage.Controls.Add(this.validationFlowLayoutPanel);
+            this.valDetailsTabPage.Controls.Add(this.outpValResultsLabel);
+            this.valDetailsTabPage.Location = new System.Drawing.Point(4, 24);
+            this.valDetailsTabPage.Name = "valDetailsTabPage";
+            this.valDetailsTabPage.Size = new System.Drawing.Size(1254, 774);
+            this.valDetailsTabPage.TabIndex = 4;
+            this.valDetailsTabPage.Text = "Validation details";
+            this.valDetailsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // validationSaveButton
+            // 
+            this.validationSaveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.validationSaveButton.Location = new System.Drawing.Point(619, 640);
+            this.validationSaveButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.validationSaveButton.Name = "validationSaveButton";
+            this.validationSaveButton.Size = new System.Drawing.Size(111, 27);
+            this.validationSaveButton.TabIndex = 50;
+            this.validationSaveButton.Text = "Save changes";
+            this.validationSaveButton.UseVisualStyleBackColor = true;
+            // 
+            // validationTitlesPanel
+            // 
+            this.validationTitlesPanel.Location = new System.Drawing.Point(17, 166);
+            this.validationTitlesPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.validationTitlesPanel.Name = "validationTitlesPanel";
+            this.validationTitlesPanel.Size = new System.Drawing.Size(683, 35);
+            this.validationTitlesPanel.TabIndex = 49;
+            // 
+            // metricsComboBox
+            // 
+            this.metricsComboBox.FormattingEnabled = true;
+            this.metricsComboBox.Location = new System.Drawing.Point(599, 141);
+            this.metricsComboBox.Name = "metricsComboBox";
+            this.metricsComboBox.Size = new System.Drawing.Size(131, 23);
+            this.metricsComboBox.TabIndex = 48;
+            this.metricsComboBox.SelectedIndexChanged += new System.EventHandler(this.metricsComboBox_SelectedIndexChanged);
+            // 
+            // validationFlowLayoutPanel
+            // 
+            this.validationFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.validationFlowLayoutPanel.AutoScroll = true;
+            this.validationFlowLayoutPanel.Location = new System.Drawing.Point(17, 207);
+            this.validationFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.validationFlowLayoutPanel.Name = "validationFlowLayoutPanel";
+            this.validationFlowLayoutPanel.Size = new System.Drawing.Size(713, 427);
+            this.validationFlowLayoutPanel.TabIndex = 47;
+            // 
+            // outpValResultsLabel
+            // 
+            this.outpValResultsLabel.AutoSize = true;
+            this.outpValResultsLabel.Location = new System.Drawing.Point(22, 144);
+            this.outpValResultsLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.outpValResultsLabel.Name = "outpValResultsLabel";
+            this.outpValResultsLabel.Size = new System.Drawing.Size(142, 15);
+            this.outpValResultsLabel.TabIndex = 46;
+            this.outpValResultsLabel.Text = "Outputs validation results";
             // 
             // rawVisTabPage
             // 
@@ -85,7 +157,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.rawVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.rawVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.rawVisTabPage.TabIndex = 0;
-            this.rawVisTabPage.Text = "Raw visualisation tab";
+            this.rawVisTabPage.Text = "Raw visualisation";
             this.rawVisTabPage.UseVisualStyleBackColor = true;
             // 
             // button1
@@ -175,7 +247,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // pcaVisTabPage
             // 
             this.pcaVisTabPage.Controls.Add(this.saveAsImageButton);
-            this.pcaVisTabPage.Controls.Add(this.saveChangesButton);
+            this.pcaVisTabPage.Controls.Add(this.pcaSaveChangesButton);
             this.pcaVisTabPage.Controls.Add(this.pcFlowLayoutPanel);
             this.pcaVisTabPage.Controls.Add(this.selectedPricipalComponentsLabel);
             this.pcaVisTabPage.Controls.Add(this.pcaChart);
@@ -185,7 +257,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.pcaVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.pcaVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.pcaVisTabPage.TabIndex = 1;
-            this.pcaVisTabPage.Text = "PCA visualisation tab";
+            this.pcaVisTabPage.Text = "PCA visualisation";
             this.pcaVisTabPage.UseVisualStyleBackColor = true;
             // 
             // saveAsImageButton
@@ -200,17 +272,17 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.saveAsImageButton.UseVisualStyleBackColor = true;
             this.saveAsImageButton.Click += new System.EventHandler(this.saveAsImageButton_Click);
             // 
-            // saveChangesButton
+            // pcaSaveChangesButton
             // 
-            this.saveChangesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.saveChangesButton.Location = new System.Drawing.Point(1107, 329);
-            this.saveChangesButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.saveChangesButton.Name = "saveChangesButton";
-            this.saveChangesButton.Size = new System.Drawing.Size(111, 27);
-            this.saveChangesButton.TabIndex = 10;
-            this.saveChangesButton.Text = "Save changes";
-            this.saveChangesButton.UseVisualStyleBackColor = true;
-            this.saveChangesButton.Click += new System.EventHandler(this.saveChangesButton_Click);
+            this.pcaSaveChangesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.pcaSaveChangesButton.Location = new System.Drawing.Point(1107, 329);
+            this.pcaSaveChangesButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.pcaSaveChangesButton.Name = "pcaSaveChangesButton";
+            this.pcaSaveChangesButton.Size = new System.Drawing.Size(111, 27);
+            this.pcaSaveChangesButton.TabIndex = 10;
+            this.pcaSaveChangesButton.Text = "Save changes";
+            this.pcaSaveChangesButton.UseVisualStyleBackColor = true;
+            this.pcaSaveChangesButton.Click += new System.EventHandler(this.saveChangesButton_Click);
             // 
             // pcFlowLayoutPanel
             // 
@@ -244,8 +316,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.pcaChart.Size = new System.Drawing.Size(617, 448);
             this.pcaChart.TabIndex = 1;
             this.pcaChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseDown);
-            this.pcaChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseUp);
             this.pcaChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseMove);
+            this.pcaChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pcaChart_MouseUp);
             // 
             // tsneVisTabPage
             // 
@@ -255,7 +327,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tsneVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tsneVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.tsneVisTabPage.TabIndex = 2;
-            this.tsneVisTabPage.Text = "t-SNE visualisation tab";
+            this.tsneVisTabPage.Text = "t-SNE visualisation";
             this.tsneVisTabPage.UseVisualStyleBackColor = true;
             // 
             // umapVisTabPage
@@ -266,7 +338,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.umapVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.umapVisTabPage.Size = new System.Drawing.Size(1254, 774);
             this.umapVisTabPage.TabIndex = 3;
-            this.umapVisTabPage.Text = "UMAP visualisation tab";
+            this.umapVisTabPage.Text = "UMAP visualisation";
             this.umapVisTabPage.UseVisualStyleBackColor = true;
             // 
             // stepLabel
@@ -290,6 +362,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.Name = "DataVisualisationForm";
             this.Text = "DataVisualisationForm";
             this.tabControl.ResumeLayout(false);
+            this.valDetailsTabPage.ResumeLayout(false);
+            this.valDetailsTabPage.PerformLayout();
             this.rawVisTabPage.ResumeLayout(false);
             this.rawVisTabPage.PerformLayout();
             this.pcaVisTabPage.ResumeLayout(false);
@@ -315,10 +389,16 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private ScottPlot.FormsPlot pcaChart;
         private System.Windows.Forms.FlowLayoutPanel pcFlowLayoutPanel;
         private System.Windows.Forms.Label selectedPricipalComponentsLabel;
-        private System.Windows.Forms.Button saveChangesButton;
+        private System.Windows.Forms.Button pcaSaveChangesButton;
         private System.Windows.Forms.FlowLayoutPanel xInputFlowLayoutPanel;
         private System.Windows.Forms.FlowLayoutPanel yInputFlowLayoutPanel;
         public System.Windows.Forms.Button button1;
         public System.Windows.Forms.Button saveAsImageButton;
+        private System.Windows.Forms.TabPage valDetailsTabPage;
+        private System.Windows.Forms.Panel validationTitlesPanel;
+        private System.Windows.Forms.ComboBox metricsComboBox;
+        private CustomFlowLayoutPanel validationFlowLayoutPanel;
+        private System.Windows.Forms.Label outpValResultsLabel;
+        private System.Windows.Forms.Button validationSaveButton;
     }
 }

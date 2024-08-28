@@ -8,9 +8,9 @@ using System.Threading;
 using Tensorflow;
 using Tensorflow.Keras.Engine;
 using Tensorflow.NumPy;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures;
-using static Biological_Signal_Processing_Using_AI.AITools.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
 using static BSP_Using_AI.AITools.AIBackThreadReportHolder;
 using static Tensorflow.Binding;
@@ -179,13 +179,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // 1 for short PR detection,
             // 2 for delta deteciton (Acceleration threshold, delta existence) }
             ARTHTModels arthtModels = new ARTHTModels();
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step1RPeaksScanData, modelPath + 0, 15, 2); // For R peaks detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createTFKerasNeuralNetModel(ARTHTNamings.Step2RPeaksSelectionData, modelPath + 1, 2, 1); // For R selection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step3BeatPeaksScanData, modelPath + 2, 5, 2); // For beat peaks detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createTFKerasNeuralNetModel(ARTHTNamings.Step4PTSelectionData, modelPath + 3, 3, 2); // For P and T detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step5ShortPRScanData, modelPath + 4, 1, 1); // For short PR detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step6UpstrokesScanData, modelPath + 5, 6, 1); // For delta detection
-            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createTFKerasNeuralNetModel(ARTHTNamings.Step7DeltaExaminationData, modelPath + 6, 6, 1); // For WPW syndrome declaration
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step1RPeaksScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step1RPeaksScanData, modelPath + 0, 15, 2, ARTHTNamings.PeaksScannerOutputs.GetNames()); // For R peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step2RPeaksSelectionData] = createTFKerasNeuralNetModel(ARTHTNamings.Step2RPeaksSelectionData, modelPath + 1, 2, 1, ARTHTNamings.RSelectionOutputs.GetNames()); // For R selection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step3BeatPeaksScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step3BeatPeaksScanData, modelPath + 2, 5, 2, ARTHTNamings.PeaksScannerOutputs.GetNames()); // For beat peaks detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step4PTSelectionData] = createTFKerasNeuralNetModel(ARTHTNamings.Step4PTSelectionData, modelPath + 3, 3, 2, ARTHTNamings.PTSelectionOutputs.GetNames()); // For P and T detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step5ShortPRScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step5ShortPRScanData, modelPath + 4, 1, 1, ARTHTNamings.ShortPROutputs.GetNames()); // For short PR detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step6UpstrokesScanData] = createTFKerasNeuralNetModel(ARTHTNamings.Step6UpstrokesScanData, modelPath + 5, 6, 1, ARTHTNamings.UpStrokeOutputs.GetNames()); // For delta detection
+            arthtModels.ARTHTModelsDic[ARTHTNamings.Step7DeltaExaminationData] = createTFKerasNeuralNetModel(ARTHTNamings.Step7DeltaExaminationData, modelPath + 6, 6, 1, ARTHTNamings.DeltaExamOutputs.GetNames()); // For WPW syndrome declaration
 
             arthtModels.ModelName = TFKerasNeuralNetworkModel.ModelName;// + " for WPW syndrome detection" + modelIndx;
             arthtModels.ObjectiveName = " for WPW syndrome detection";
@@ -206,18 +206,18 @@ namespace Biological_Signal_Processing_Using_AI.AITools
 
         public static TFKerasNeuralNetworkModel createTFKerasNeuralNetModel(string stepName, List<Sample> dataList, bool pcaActive, string modelPath)
         {
-            (int inputDim, int outputDim, List<PCAitem> pca) = GetStepDimensions(stepName, dataList, pcaActive);
+            (int inputDim, int outputDim, string[] outputsNames, List<PCAitem> pca) = GetStepDimensions(stepName, dataList, pcaActive);
 
-            TFKerasNeuralNetworkModel tempModel = createTFKerasNeuralNetModel(stepName, modelPath, inputDim, outputDim);
+            TFKerasNeuralNetworkModel tempModel = createTFKerasNeuralNetModel(stepName, modelPath, inputDim, outputDim, outputsNames);
             tempModel._pcaActive = pcaActive;
             tempModel.PCA = pca;
 
             return tempModel;
         }
 
-        public static TFKerasNeuralNetworkModel createTFKerasNeuralNetModel(string name, string path, int inputDim, int outputDim)
+        public static TFKerasNeuralNetworkModel createTFKerasNeuralNetModel(string name, string path, int inputDim, int outputDim, string[] outputsNames)
         {
-            TFKerasNeuralNetworkModel model = new TFKerasNeuralNetworkModel(inputDim, outputDim) { Name = name, ModelPath = path };
+            TFKerasNeuralNetworkModel model = new TFKerasNeuralNetworkModel(inputDim, outputDim, outputsNames) { Name = name, ModelPath = path };
 
             model.Model = createTFKerasNeuralNetModel(inputDim, outputDim);
 
