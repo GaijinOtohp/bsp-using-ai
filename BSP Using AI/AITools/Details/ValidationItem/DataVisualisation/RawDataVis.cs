@@ -11,6 +11,15 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
     partial class DataVisualisationForm
     {
         private bool _ignoreEvent = false;
+
+        //*******************************************************************************************************//
+        //********************************************EVENT HANDLERS*********************************************//
+
+        private void rawScatterPlotSaveImageButton_Click(object sender, EventArgs e)
+        {
+            GeneralTools.saveChartAsImage(rawChart);
+        }
+
         //*******************************************************************************************************//
         //********************************************CLASS FUNCTIONS********************************************//
         private void setRawVisTab()

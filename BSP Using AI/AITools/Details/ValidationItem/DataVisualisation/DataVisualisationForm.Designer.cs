@@ -31,6 +31,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             this.tabControl = new System.Windows.Forms.TabControl();
             this.valDetailsTabPage = new System.Windows.Forms.TabPage();
+            this.ConfMatSaveImageButton = new System.Windows.Forms.Button();
             this.confusionMatrixPlot = new ScottPlot.FormsPlot();
             this.validationSaveButton = new System.Windows.Forms.Button();
             this.validationTitlesPanel = new System.Windows.Forms.Panel();
@@ -38,7 +39,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.validationFlowLayoutPanel = new BSP_Using_AI.CustomFlowLayoutPanel();
             this.outpValResultsLabel = new System.Windows.Forms.Label();
             this.rawVisTabPage = new System.Windows.Forms.TabPage();
-            this.button1 = new System.Windows.Forms.Button();
+            this.rawScatterPlotSaveImageButton = new System.Windows.Forms.Button();
             this.xInputFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.yInputFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.outputFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
@@ -47,7 +48,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.yInputLabel = new System.Windows.Forms.Label();
             this.rawChart = new ScottPlot.FormsPlot();
             this.pcaVisTabPage = new System.Windows.Forms.TabPage();
-            this.saveAsImageButton = new System.Windows.Forms.Button();
+            this.pcaSaveAsImageButton = new System.Windows.Forms.Button();
             this.pcaSaveChangesButton = new System.Windows.Forms.Button();
             this.pcFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.selectedPricipalComponentsLabel = new System.Windows.Forms.Label();
@@ -80,6 +81,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // valDetailsTabPage
             // 
+            this.valDetailsTabPage.Controls.Add(this.ConfMatSaveImageButton);
             this.valDetailsTabPage.Controls.Add(this.confusionMatrixPlot);
             this.valDetailsTabPage.Controls.Add(this.validationSaveButton);
             this.valDetailsTabPage.Controls.Add(this.validationTitlesPanel);
@@ -92,6 +94,19 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.valDetailsTabPage.TabIndex = 4;
             this.valDetailsTabPage.Text = "Validation details";
             this.valDetailsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // ConfMatSaveImageButton
+            // 
+            this.ConfMatSaveImageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ConfMatSaveImageButton.Location = new System.Drawing.Point(1127, 141);
+            this.ConfMatSaveImageButton.Margin = new System.Windows.Forms.Padding(2);
+            this.ConfMatSaveImageButton.Name = "ConfMatSaveImageButton";
+            this.ConfMatSaveImageButton.Size = new System.Drawing.Size(102, 23);
+            this.ConfMatSaveImageButton.TabIndex = 52;
+            this.ConfMatSaveImageButton.Text = "Save as image";
+            this.ConfMatSaveImageButton.UseVisualStyleBackColor = true;
+            this.ConfMatSaveImageButton.Visible = false;
+            this.ConfMatSaveImageButton.Click += new System.EventHandler(this.ConfMatSaveImageButton_Click);
             // 
             // confusionMatrixPlot
             // 
@@ -157,7 +172,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // rawVisTabPage
             // 
-            this.rawVisTabPage.Controls.Add(this.button1);
+            this.rawVisTabPage.Controls.Add(this.rawScatterPlotSaveImageButton);
             this.rawVisTabPage.Controls.Add(this.xInputFlowLayoutPanel);
             this.rawVisTabPage.Controls.Add(this.yInputFlowLayoutPanel);
             this.rawVisTabPage.Controls.Add(this.outputFlowLayoutPanel);
@@ -174,17 +189,17 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.rawVisTabPage.Text = "Raw visualisation";
             this.rawVisTabPage.UseVisualStyleBackColor = true;
             // 
-            // button1
+            // rawScatterPlotSaveImageButton
             // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(803, 92);
-            this.button1.Margin = new System.Windows.Forms.Padding(2);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(102, 23);
-            this.button1.TabIndex = 32;
-            this.button1.Text = "Save as image";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.rawScatterPlotSaveImageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.rawScatterPlotSaveImageButton.Location = new System.Drawing.Point(782, 104);
+            this.rawScatterPlotSaveImageButton.Margin = new System.Windows.Forms.Padding(2);
+            this.rawScatterPlotSaveImageButton.Name = "rawScatterPlotSaveImageButton";
+            this.rawScatterPlotSaveImageButton.Size = new System.Drawing.Size(102, 23);
+            this.rawScatterPlotSaveImageButton.TabIndex = 32;
+            this.rawScatterPlotSaveImageButton.Text = "Save as image";
+            this.rawScatterPlotSaveImageButton.UseVisualStyleBackColor = true;
+            this.rawScatterPlotSaveImageButton.Click += new System.EventHandler(this.rawScatterPlotSaveImageButton_Click);
             // 
             // xInputFlowLayoutPanel
             // 
@@ -260,7 +275,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // pcaVisTabPage
             // 
-            this.pcaVisTabPage.Controls.Add(this.saveAsImageButton);
+            this.pcaVisTabPage.Controls.Add(this.pcaSaveAsImageButton);
             this.pcaVisTabPage.Controls.Add(this.pcaSaveChangesButton);
             this.pcaVisTabPage.Controls.Add(this.pcFlowLayoutPanel);
             this.pcaVisTabPage.Controls.Add(this.selectedPricipalComponentsLabel);
@@ -274,17 +289,17 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.pcaVisTabPage.Text = "PCA visualisation";
             this.pcaVisTabPage.UseVisualStyleBackColor = true;
             // 
-            // saveAsImageButton
+            // pcaSaveAsImageButton
             // 
-            this.saveAsImageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.saveAsImageButton.Location = new System.Drawing.Point(834, 133);
-            this.saveAsImageButton.Margin = new System.Windows.Forms.Padding(2);
-            this.saveAsImageButton.Name = "saveAsImageButton";
-            this.saveAsImageButton.Size = new System.Drawing.Size(102, 23);
-            this.saveAsImageButton.TabIndex = 32;
-            this.saveAsImageButton.Text = "Save as image";
-            this.saveAsImageButton.UseVisualStyleBackColor = true;
-            this.saveAsImageButton.Click += new System.EventHandler(this.saveAsImageButton_Click);
+            this.pcaSaveAsImageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.pcaSaveAsImageButton.Location = new System.Drawing.Point(812, 147);
+            this.pcaSaveAsImageButton.Margin = new System.Windows.Forms.Padding(2);
+            this.pcaSaveAsImageButton.Name = "pcaSaveAsImageButton";
+            this.pcaSaveAsImageButton.Size = new System.Drawing.Size(102, 23);
+            this.pcaSaveAsImageButton.TabIndex = 32;
+            this.pcaSaveAsImageButton.Text = "Save as image";
+            this.pcaSaveAsImageButton.UseVisualStyleBackColor = true;
+            this.pcaSaveAsImageButton.Click += new System.EventHandler(this.saveAsImageButton_Click);
             // 
             // pcaSaveChangesButton
             // 
@@ -406,8 +421,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private System.Windows.Forms.Button pcaSaveChangesButton;
         private System.Windows.Forms.FlowLayoutPanel xInputFlowLayoutPanel;
         private System.Windows.Forms.FlowLayoutPanel yInputFlowLayoutPanel;
-        public System.Windows.Forms.Button button1;
-        public System.Windows.Forms.Button saveAsImageButton;
+        public System.Windows.Forms.Button rawScatterPlotSaveImageButton;
+        public System.Windows.Forms.Button pcaSaveAsImageButton;
         private System.Windows.Forms.TabPage valDetailsTabPage;
         private System.Windows.Forms.Panel validationTitlesPanel;
         private System.Windows.Forms.ComboBox metricsComboBox;
@@ -415,5 +430,6 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private System.Windows.Forms.Label outpValResultsLabel;
         private System.Windows.Forms.Button validationSaveButton;
         private ScottPlot.FormsPlot confusionMatrixPlot;
+        public System.Windows.Forms.Button ConfMatSaveImageButton;
     }
 }

@@ -16,10 +16,24 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     public partial class DataVisualisationForm
     {
+        //*******************************************************************************************************//
+        //********************************************EVENT HANDLERS*********************************************//
+        private void metricsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.IsHandleCreated)
+                refreshValidationData();
+        }
+
+        private void ConfMatSaveImageButton_Click(object sender, EventArgs e)
+        {
+            GeneralTools.saveChartAsImage(confusionMatrixPlot);
+        }
+
         private void SetConfusionMatrix()
         {
             // Show the confusion matrix
             confusionMatrixPlot.Visible = true;
+            ConfMatSaveImageButton.Visible = true;
             // Set axis labels
             confusionMatrixPlot.Plot.TopAxis.Label("Target");
             confusionMatrixPlot.Plot.LeftAxis.Label("Predicted");

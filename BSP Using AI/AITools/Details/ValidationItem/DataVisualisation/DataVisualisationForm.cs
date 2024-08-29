@@ -75,19 +75,5 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 
             return checkBox;
         }
-
-        //*******************************************************************************************************//
-        //********************************************EVENT HANDLERS*********************************************//
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            GeneralTools.saveChartAsImage(rawChart);
-        }
-
-        private void metricsComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (this.IsHandleCreated)
-                refreshValidationData();
-        }
     }
 }
