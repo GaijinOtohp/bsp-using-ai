@@ -67,6 +67,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
             public double _validationDatasetSize { get; set; }
             [DataMember]
             public OutputMetrics[] _ModelOutputsValidMetrics { get; set; }
+            [DataMember]
+            public double[][] _ConfusionMatrix { get; set; }
 
             public ValidationData Clone()
             {
@@ -75,6 +77,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                 validationData._trainingDatasetSize = _trainingDatasetSize;
                 validationData._validationDatasetSize = _validationDatasetSize;
                 validationData._ModelOutputsValidMetrics = _ModelOutputsValidMetrics.Select(outputMetrics => outputMetrics.Clone()).ToArray();
+                validationData._ConfusionMatrix = new double[_ConfusionMatrix.GetLength(0)][];
+                for (int col = 0; col < _ConfusionMatrix.GetLength(0); col++)
+                {
+                    validationData._ConfusionMatrix[col] = (double[])_ConfusionMatrix[col].Clone();
+                }
+
                 return validationData;
             }
 
@@ -83,6 +91,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                 _ModelOutputsValidMetrics = new OutputMetrics[outputDim];
                 for (int i = 0; i < outputDim; i++)
                     _ModelOutputsValidMetrics[i] = new OutputMetrics();
+                _ConfusionMatrix = new double[outputDim][];
+                for (int col = 0; col < outputDim; col++)
+                    _ConfusionMatrix[col] = new double[outputDim];
             }
         }
         //_______________________________________________________//

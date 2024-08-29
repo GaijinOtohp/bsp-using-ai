@@ -1,8 +1,10 @@
 ﻿using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDetails;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDetails.Titles;
+using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +16,41 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
 {
     public partial class DataVisualisationForm
     {
+        private void SetConfusionMatrix()
+        {
+            // Set axis labels
+            confusionMatrixPlot.Plot.TopAxis.Label("Target");
+            confusionMatrixPlot.Plot.LeftAxis.Label("Predicted");
+
+            // Include the heatmap
+            double[,] confusionMatrix = MatrixTools.Vecs2Mat(_InnerObjectiveModel.ValidationData._ConfusionMatrix);
+            Heatmap confusionMatrixHeatmap = confusionMatrixPlot.Plot.AddHeatmap(confusionMatrix, lockScales: false);
+            Colorbar colorBar = confusionMatrixPlot.Plot.AddColorbar(confusionMatrixHeatmap);
+
+            // The values of the heatmap as texts
+            int matDimSize = _InnerObjectiveModel.ValidationData._ConfusionMatrix.Length;
+            for (int col = 0; col < matDimSize; col++)
+                for (int row = 0; row < matDimSize; row++)
+                {
+                    // Since the heatmap is reversed horizontally with no reason, I had to reverse the values of the confusion matrix as well on the heatmap
+                    Text pixelText = confusionMatrixPlot.Plot.AddText(_InnerObjectiveModel.ValidationData._ConfusionMatrix[col][row].ToString(), col, matDimSize - row);
+                    pixelText.Font.Color = confusionMatrixHeatmap.Colormap.Reversed().GetColor(_InnerObjectiveModel.ValidationData._ConfusionMatrix[col][row] / colorBar.MaxValue);
+                }
+
+            // Include the labels of the model outputs
+            for (int iOutput = 0; iOutput < matDimSize; iOutput++)
+            {
+                Text targetOutputsText = confusionMatrixPlot.Plot.AddText(_InnerObjectiveModel.OutputsNames[iOutput], iOutput + 1, matDimSize, color: Color.Black);
+                targetOutputsText.Alignment = ScottPlot.Alignment.LowerLeft;
+                targetOutputsText.Rotation = -90;
+
+                Text predictedOutputsText = confusionMatrixPlot.Plot.AddText(_InnerObjectiveModel.OutputsNames[iOutput], -2, matDimSize - 1 - iOutput, color: Color.Black);
+                predictedOutputsText.Alignment = ScottPlot.Alignment.LowerLeft;
+            }
+
+            confusionMatrixPlot.Refresh();
+        }
+
         private void validationSaveButton_Click(object sender, EventArgs e)
         {
             // Copy the thresholds from validationFlowLayoutPanel to _InnerObjectiveModel.OutputsThresholds
@@ -48,6 +85,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 metricsComboBox.DataSource = EvaluationTechnique.GetNames();
 
             refreshValidationData();
+            SetConfusionMatrix();
         }
 
         private void refreshValidationData()

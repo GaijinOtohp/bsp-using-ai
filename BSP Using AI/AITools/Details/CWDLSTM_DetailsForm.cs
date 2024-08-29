@@ -247,6 +247,14 @@ namespace BSP_Using_AI.AITools.Details
                                 outputMetrics[i]._falsePositive++;
                         }
                     }
+
+                // Set the confusion matrix
+                foreach ((RefDouble[] predicted, double[] actual) predicPair in prediActualOutputsPairsList)
+                    for (int col = 0; col < predicPair.actual.Length; col++)
+                        if (predicPair.actual[col] == 1)
+                            for (int row = 0; row < predicPair.predicted.Length; row++)
+                                if (predicPair.predicted[row].value >= outThresholds[row]._threshold)
+                                    selectedModel.ValidationData._ConfusionMatrix[col][row]++;
             }
         }
     }

@@ -31,6 +31,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             this.tabControl = new System.Windows.Forms.TabControl();
             this.valDetailsTabPage = new System.Windows.Forms.TabPage();
+            this.confusionMatrixPlot = new ScottPlot.FormsPlot();
             this.validationSaveButton = new System.Windows.Forms.Button();
             this.validationTitlesPanel = new System.Windows.Forms.Panel();
             this.metricsComboBox = new System.Windows.Forms.ComboBox();
@@ -79,6 +80,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // valDetailsTabPage
             // 
+            this.valDetailsTabPage.Controls.Add(this.confusionMatrixPlot);
             this.valDetailsTabPage.Controls.Add(this.validationSaveButton);
             this.valDetailsTabPage.Controls.Add(this.validationTitlesPanel);
             this.valDetailsTabPage.Controls.Add(this.metricsComboBox);
@@ -91,9 +93,19 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.valDetailsTabPage.Text = "Validation details";
             this.valDetailsTabPage.UseVisualStyleBackColor = true;
             // 
+            // confusionMatrixPlot
+            // 
+            this.confusionMatrixPlot.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.confusionMatrixPlot.Location = new System.Drawing.Point(729, 157);
+            this.confusionMatrixPlot.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.confusionMatrixPlot.Name = "confusionMatrixPlot";
+            this.confusionMatrixPlot.Size = new System.Drawing.Size(521, 521);
+            this.confusionMatrixPlot.TabIndex = 51;
+            // 
             // validationSaveButton
             // 
-            this.validationSaveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.validationSaveButton.Location = new System.Drawing.Point(619, 640);
             this.validationSaveButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.validationSaveButton.Name = "validationSaveButton";
@@ -401,5 +413,6 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private CustomFlowLayoutPanel validationFlowLayoutPanel;
         private System.Windows.Forms.Label outpValResultsLabel;
         private System.Windows.Forms.Button validationSaveButton;
+        private ScottPlot.FormsPlot confusionMatrixPlot;
     }
 }

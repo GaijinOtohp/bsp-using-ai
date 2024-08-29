@@ -249,6 +249,13 @@ namespace BSP_Using_AI.AITools.Details
                                         outputMetrics[i]._falseNegative++; // Since this selected peak is not the right one and should be negative (so false negative)
                                         outputMetrics[i]._trueNegative += (currentBeatSamples - 2);
                                     }
+
+                                // Set the confusion matrix
+                                for (int col = 0; col < ptPrediction.Length; col++)
+                                    if (ptPrediction[col].actual == 1)
+                                        for (int row = 0; row < ptPrediction.Length; row++)
+                                            if (ptPrediction[row].predicted >= outThresholds[row]._threshold)
+                                                selectedModel.ValidationData._ConfusionMatrix[col][row]++;
                             }
 
                             // Initialize values for next beat
@@ -290,6 +297,13 @@ namespace BSP_Using_AI.AITools.Details
                                     outputMetrics[i]._falsePositive++;
                             }
                         }
+
+                        // Set the confusion matrix
+                        for (int col = 0; col < actualOutput.Length; col++)
+                            if (actualOutput[col] == 1)
+                                for (int row = 0; row < predictedOutput.Length; row++)
+                                    if (predictedOutput[row] >= outThresholds[row]._threshold)
+                                        selectedModel.ValidationData._ConfusionMatrix[col][row]++;
                     }
                 }
             }
