@@ -18,6 +18,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
     {
         private void SetConfusionMatrix()
         {
+            // Show the confusion matrix
+            confusionMatrixPlot.Visible = true;
             // Set axis labels
             confusionMatrixPlot.Plot.TopAxis.Label("Target");
             confusionMatrixPlot.Plot.LeftAxis.Label("Predicted");
@@ -85,7 +87,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 metricsComboBox.DataSource = EvaluationTechnique.GetNames();
 
             refreshValidationData();
-            SetConfusionMatrix();
+            if (_InnerObjectiveModel.Type == ObjectiveType.Classification)
+                SetConfusionMatrix();
         }
 
         private void refreshValidationData()

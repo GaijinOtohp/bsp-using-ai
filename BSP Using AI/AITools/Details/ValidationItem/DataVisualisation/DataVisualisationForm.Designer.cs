@@ -103,6 +103,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.confusionMatrixPlot.Name = "confusionMatrixPlot";
             this.confusionMatrixPlot.Size = new System.Drawing.Size(521, 521);
             this.confusionMatrixPlot.TabIndex = 51;
+            this.confusionMatrixPlot.Visible = false;
             // 
             // validationSaveButton
             // 
