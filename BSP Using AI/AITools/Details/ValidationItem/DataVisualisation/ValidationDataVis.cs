@@ -46,7 +46,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 targetOutputsText.Alignment = ScottPlot.Alignment.LowerLeft;
                 targetOutputsText.Rotation = -90;
 
-                Text predictedOutputsText = confusionMatrixPlot.Plot.AddText(_InnerObjectiveModel.OutputsNames[iOutput], -2, matDimSize - 1 - iOutput, color: Color.Black);
+                Text predictedOutputsText = confusionMatrixPlot.Plot.AddText(_InnerObjectiveModel.OutputsNames[iOutput], matDimSize, matDimSize - 1 - iOutput, color: Color.Black);
                 predictedOutputsText.Alignment = ScottPlot.Alignment.LowerLeft;
             }
 
