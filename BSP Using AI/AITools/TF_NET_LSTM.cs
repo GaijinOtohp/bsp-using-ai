@@ -31,6 +31,58 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             }
         }
 
+        private static List<SequenceBatches> GetSeqBatches(List<List<Sample>> dataListSequences, int suggestedBatchSize)
+        {
+            // Count the number of batches
+            int batchesCount = (dataListSequences.Count / suggestedBatchSize) + (dataListSequences.Count % suggestedBatchSize > 0 ? 1 : 0);
+            List<SequenceBatches> lstmSequenceBatchesList = new List<SequenceBatches>(batchesCount);
+
+            // Build sequences of batches
+            int featuresCount = dataListSequences[0][0].getFeatures().Length;
+            int outputsCount = dataListSequences[0][0].getOutputs().Length;
+            for (int iBatch1stSeq = 0; iBatch1stSeq < dataListSequences.Count; iBatch1stSeq += suggestedBatchSize)
+            {
+                // Compute the right batch size
+                int batchSize = iBatch1stSeq + suggestedBatchSize <= dataListSequences.Count ? suggestedBatchSize : dataListSequences.Count - iBatch1stSeq;
+
+                // Get the longest sequence in the selected batch
+                int batchLongestSequence = dataListSequences.Where((dataList, index) => iBatch1stSeq <= index && index < iBatch1stSeq + batchSize).Max(dataList => dataList.Count);
+
+                for (int iBatchSequence = iBatch1stSeq; iBatchSequence - iBatch1stSeq < batchSize; iBatchSequence++)
+                {
+                    // Create the sequence of batches
+                    SequenceBatches sequenceBatches = new SequenceBatches(batchLongestSequence);
+                    // Create the batches for the sequence
+                    for (int iTimeStep = 0; iTimeStep < sequenceBatches._SequenceLength; iTimeStep++)
+                    {
+                        // Create the new batches
+                        float[,] inputBatch = new float[batchSize, featuresCount];
+                        float[,] outputBatch = new float[batchSize, outputsCount];
+
+                        // Get iBatchSequence sample inouts and outputs
+                        if (dataListSequences[iBatchSequence].Count > iTimeStep)
+                        {
+                            double[] features = dataListSequences[iBatchSequence][iTimeStep].getFeatures();
+                            double[] outputs = dataListSequences[iBatchSequence][iTimeStep].getOutputs();
+                            // Copy the inputs to inputBatch
+                            for (int a = 0; a < featuresCount; a++)
+                                inputBatch[iBatchSequence - iBatch1stSeq, a] = (float)features[a];
+                            // Copy the outputs to outputBatch
+                            for (int a = 0; a < outputsCount; a++)
+                                outputBatch[iBatchSequence - iBatch1stSeq, a] = (float)outputs[a];
+                        }
+
+                        sequenceBatches.inputBatches.Add(inputBatch);
+                        sequenceBatches.outputBatches.Add(outputBatch);
+                    }
+                    // Insert the newly created sequences of batches to their lists
+                    lstmSequenceBatchesList.Add(sequenceBatches);
+                }
+            }
+
+            return lstmSequenceBatchesList;
+        }
+
         public static TFNETLSTMModel Fit(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences, FittingProgAIReportDelegate fittingProgAIReportDelegate, bool saveModel = false, int suggestedBatchSize = 4)
         {
             if (lstmModel._pcaActive)
@@ -44,53 +96,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 session.as_default();
                 //________________________________________________________________________________________________________________________________________//
                 //________________________________________________________________________________________________________________________________________//
+                // Sort data into batches
+                List<SequenceBatches> lstmSequenceBatchesList = GetSeqBatches(dataListSequences, suggestedBatchSize);
 
-                // Count the number of batches
-                int batchesCount = (dataListSequences.Count / suggestedBatchSize) + (dataListSequences.Count % suggestedBatchSize > 0 ? 1 : 0);
-                List<SequenceBatches> lstmSequenceBatchesList = new List<SequenceBatches>(batchesCount);
-
-                // Build sequences of batches
-                int featuresCount = dataListSequences[0][0].getFeatures().Length;
-                int outputsCount = dataListSequences[0][0].getOutputs().Length;
-                for (int iBatch1stSeq = 0; iBatch1stSeq < dataListSequences.Count; iBatch1stSeq += suggestedBatchSize)
-                {
-                    // Compute the right batch size
-                    int batchSize = iBatch1stSeq + suggestedBatchSize <= dataListSequences.Count ? suggestedBatchSize : dataListSequences.Count - iBatch1stSeq;
-
-                    // Get the longest sequence in the selected batch
-                    int batchLongestSequence = dataListSequences.Where((dataList, index) => iBatch1stSeq <= index && index < iBatch1stSeq + batchSize).Max(dataList => dataList.Count);
-
-                    for (int iBatchSequence = iBatch1stSeq; iBatchSequence - iBatch1stSeq < batchSize; iBatchSequence++)
-                    {
-                        // Create the sequence of batches
-                        SequenceBatches sequenceBatches = new SequenceBatches(batchLongestSequence);
-                        // Create the batches for the sequence
-                        for (int iTimeStep = 0; iTimeStep < sequenceBatches._SequenceLength; iTimeStep++)
-                        {
-                            // Create the new batches
-                            float[,] inputBatch = new float[batchSize, featuresCount];
-                            float[,] outputBatch = new float[batchSize, outputsCount];
-
-                            // Get iBatchSequence sample inouts and outputs
-                            if (dataListSequences[iBatchSequence].Count > iTimeStep)
-                            {
-                                double[] features = dataListSequences[iBatchSequence][iTimeStep].getFeatures();
-                                double[] outputs = dataListSequences[iBatchSequence][iTimeStep].getOutputs();
-                                // Copy the inputs to inputBatch
-                                for (int a = 0; a < featuresCount; a++)
-                                    inputBatch[iBatchSequence - iBatch1stSeq, a] = (float)features[a];
-                                // Copy the outputs to outputBatch
-                                for (int a = 0; a < outputsCount; a++)
-                                    outputBatch[iBatchSequence - iBatch1stSeq, a] = (float)outputs[a];
-                            }
-
-                            sequenceBatches.inputBatches.Add(inputBatch);
-                            sequenceBatches.outputBatches.Add(outputBatch);
-                        }
-                        // Insert the newly created sequences of batches to their lists
-                        lstmSequenceBatchesList.Add(sequenceBatches);
-                    }
-                }
                 //________________________________________________________________________________________________________________________________________//
                 //________________________________________________________________________________________________________________________________________//
 

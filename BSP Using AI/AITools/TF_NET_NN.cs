@@ -18,6 +18,43 @@ namespace Biological_Signal_Processing_Using_AI.AITools
     public class TF_NET_NN
     {
         public delegate Session ModelArchitectureDelegate(TFNETBaseModel baseModel, Dictionary<string, NDArray> initVarsVals = null);
+
+        private static (List<float[,]> inputBatches, List<float[,]> outputBatches) GetBatches(List<Sample> dataList, int suggestedBatchSize)
+        {
+            int batchesCount = (dataList.Count / suggestedBatchSize) + (dataList.Count % suggestedBatchSize > 0 ? 1 : 0);
+            List<float[,]> inputBatches = new List<float[,]>(batchesCount);
+            List<float[,]> outputBatches = new List<float[,]>(batchesCount);
+
+            int featuresCount = dataList[0].getFeatures().Length;
+            int outputsCount = dataList[0].getOutputs().Length;
+            for (int i = 0; i < dataList.Count; i += suggestedBatchSize)
+            {
+                // Compute the right batch size
+                int batchSize = i + suggestedBatchSize <= dataList.Count ? suggestedBatchSize : dataList.Count - i;
+                // Create the new batches
+                float[,] inputBatch = new float[batchSize, featuresCount];
+                float[,] outputBatch = new float[batchSize, outputsCount];
+                for (int k = i; k - i < batchSize; k++)
+                {
+                    // Get k sample inouts and outputs
+                    double[] features = dataList[k].getFeatures();
+                    double[] outputs = dataList[k].getOutputs();
+                    // Copy the inputs to inputBatch
+                    for (int a = 0; a < featuresCount; a++)
+                        inputBatch[k - i, a] = (float)features[a];
+                    // Copy the outputs to outputBatch
+                    for (int a = 0; a < outputsCount; a++)
+                        outputBatch[k - i, a] = (float)outputs[a];
+                }
+
+                // Insert the newly created batches to their lists
+                inputBatches.Add(inputBatch);
+                outputBatches.Add(outputBatch);
+            }
+
+            return (inputBatches, outputBatches);
+        }
+
         public static CustomArchiBaseModel fit(CustomArchiBaseModel model, TFNETBaseModel baseModel, List<Sample> dataList,
             FittingProgAIReportDelegate fittingProgAIReportDelegate, float earlyStopThreshold = 0.0001f, float learningRate = 0.1f, bool saveModel = false, int suggestedBatchSize = 4, int epochsMax = 1000)
         {
@@ -31,36 +68,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 session.as_default();
 
                 // Sort data into batches
-                int batchesCount = (dataList.Count / suggestedBatchSize) + (dataList.Count % suggestedBatchSize > 0 ? 1 : 0);
-                List<float[,]> inputBatches = new List<float[,]>(batchesCount);
-                List<float[,]> outputBatches = new List<float[,]>(batchesCount);
-
-                int featuresCount = dataList[0].getFeatures().Length;
-                int outputsCount = dataList[0].getOutputs().Length;
-                for (int i = 0; i < dataList.Count; i += suggestedBatchSize)
-                {
-                    // Compute the right batch size
-                    int batchSize = i + suggestedBatchSize <= dataList.Count ? suggestedBatchSize : dataList.Count - i;
-                    // Create the new batches
-                    float[,] inputBatch = new float[batchSize, featuresCount];
-                    float[,] outputBatch = new float[batchSize, outputsCount];
-                    for (int k = i; k - i < batchSize; k++)
-                    {
-                        // Get k sample inouts and outputs
-                        double[] features = dataList[k].getFeatures();
-                        double[] outputs = dataList[k].getOutputs();
-                        // Copy the inputs to inputBatch
-                        for (int a = 0; a < featuresCount; a++)
-                            inputBatch[k - i, a] = (float)features[a];
-                        // Copy the outputs to outputBatch
-                        for (int a = 0; a < outputsCount; a++)
-                            outputBatch[k - i, a] = (float)outputs[a];
-                    }
-
-                    // Insert the newly created batches to their lists
-                    inputBatches.Add(inputBatch);
-                    outputBatches.Add(outputBatch);
-                }
+                (List<float[,]> inputBatches, List<float[,]> outputBatches) = GetBatches(dataList, suggestedBatchSize);
 
                 // Start training
                 // Get the necessary nodes for training from the model graph
