@@ -131,7 +131,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             int layers = 1;
             TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, outputNames, modelSequenceLength, layers: layers) { Name = name, Type = ObjectiveType.Classification };
 
-            model.BaseModel.Session = TF_NET_LSTM.LSTMSession(model.BaseModel, modelSequenceLength, false, layers);
+            model.BaseModel.Session = TF_NET_LSTM.LSTMSession(model);
 
             // Save the model
             if (path.Length > 0)

@@ -48,17 +48,17 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 // Get the longest sequence in the selected batch
                 int batchLongestSequence = dataListSequences.Where((dataList, index) => iBatch1stSeq <= index && index < iBatch1stSeq + batchSize).Max(dataList => dataList.Count);
 
-                for (int iBatchSequence = iBatch1stSeq; iBatchSequence - iBatch1stSeq < batchSize; iBatchSequence++)
+                // Create the sequence of batches
+                SequenceBatches sequenceBatches = new SequenceBatches(batchLongestSequence);
+                // Create the batches for the sequence
+                for (int iTimeStep = 0; iTimeStep < sequenceBatches._SequenceLength; iTimeStep++)
                 {
-                    // Create the sequence of batches
-                    SequenceBatches sequenceBatches = new SequenceBatches(batchLongestSequence);
-                    // Create the batches for the sequence
-                    for (int iTimeStep = 0; iTimeStep < sequenceBatches._SequenceLength; iTimeStep++)
-                    {
-                        // Create the new batches
-                        float[,] inputBatch = new float[batchSize, featuresCount];
-                        float[,] outputBatch = new float[batchSize, outputsCount];
+                    // Create the new batche of the current time step
+                    float[,] inputBatch = new float[batchSize, featuresCount];
+                    float[,] outputBatch = new float[batchSize, outputsCount];
 
+                    for (int iBatchSequence = iBatch1stSeq; iBatchSequence - iBatch1stSeq < batchSize; iBatchSequence++)
+                    {
                         // Get iBatchSequence sample inouts and outputs
                         if (dataListSequences[iBatchSequence].Count > iTimeStep)
                         {
@@ -71,13 +71,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                             for (int a = 0; a < outputsCount; a++)
                                 outputBatch[iBatchSequence - iBatch1stSeq, a] = (float)outputs[a];
                         }
-
-                        sequenceBatches.inputBatches.Add(inputBatch);
-                        sequenceBatches.outputBatches.Add(outputBatch);
                     }
-                    // Insert the newly created sequences of batches to their lists
-                    lstmSequenceBatchesList.Add(sequenceBatches);
+
+                    sequenceBatches.inputBatches.Add(inputBatch);
+                    sequenceBatches.outputBatches.Add(outputBatch);
                 }
+
+                // Insert the newly created sequences of batches to their lists
+                lstmSequenceBatchesList.Add(sequenceBatches);
             }
 
             return lstmSequenceBatchesList;
@@ -421,7 +422,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             return predictedSequenceList;
         }
 
-        public static Session LSTMSession(TFNETBaseModel baseModel, int timeSteps = 1, bool bidirectional = false, int hiddenLayers = 1, Dictionary<string, NDArray> initVarsVals = null)
+        public static Session LSTMSession(TFNETLSTMModel lstmModel, Dictionary<string, NDArray> initVarsVals = null)
         {
             // Disable eager mode to enable storing new nodes to the default graph automatically
             tf.compat.v1.disable_eager_execution();
@@ -431,8 +432,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             Graph graph = new Graph().as_default();
 
             // Define the input and output placeholders
-            int inputDim = baseModel._inputDim;
-            int outputDim = baseModel._outputDim;
+            int inputDim = lstmModel._inputDim;
+            int outputDim = lstmModel._outputDim;
+            int timeSteps = lstmModel._modelSequenceLength;
+            bool bidirectional = lstmModel._bidirectional;
+            int hiddenLayers = lstmModel._layers;
+
             Tensor sartingOutput = tf.placeholder(tf.float32, (-1, outputDim), name: "cells_startingOutput");
             Tensor startingState = tf.placeholder(tf.float32, (-1, outputDim), name: "cells_startingState");
             List<Tensor> sequenceCellsInputs = new List<Tensor>(timeSteps);
@@ -463,8 +468,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             // Assign values to the graph variables
             (Dictionary<string, Operation> initAssignmentsDict, initVarsVals) = TF_NET_NN.AssignValsToVars(session, initVarsVals);
             // Store initVarsVals and their assignments in baseModel
-            baseModel._AssignedValsDict = initVarsVals;
-            baseModel._InitAssignmentsOpDict = initAssignmentsDict;
+            lstmModel.BaseModel._AssignedValsDict = initVarsVals;
+            lstmModel.BaseModel._InitAssignmentsOpDict = initAssignmentsDict;
             // Insert the cost function operation to the graph of the model
             Tensor costFunc = null;
             if (timeSteps > 1)
@@ -566,7 +571,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             }
 
             // Create a new session for the model
-            Session session = LSTMSession(lstmModel.BaseModel, lstmModel._modelSequenceLength, lstmModel._bidirectional, lstmModel._layers, initVarsVals);
+            Session session = LSTMSession(lstmModel, initVarsVals);
 
             return session;
         }
