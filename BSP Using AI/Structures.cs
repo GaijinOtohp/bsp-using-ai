@@ -53,6 +53,7 @@ namespace Biological_Signal_Processing_Using_AI
             public static string Signal { get; } = "Signal";
             public static string AllPeaks { get; } = "All peaks";
             public static string Selection { get; } = "Selection";
+            public static string ShiftSelection { get; } = "Shift selection";
             public static string PointHorizSpan { get; } = "Pointing horizontal span";
             public static string IntervalHorizSpan { get; } = "Interval horizontal span";
 

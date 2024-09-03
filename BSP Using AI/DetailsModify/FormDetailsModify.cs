@@ -59,6 +59,7 @@ namespace BSP_Using_AI.DetailsModify
             _Plots.Add(SANamings.ScatterPlotsNames.DownPeaks, GeneralTools.AddScatterPlot(signalChart, Color.Red, label: SANamings.ScatterPlotsNames.DownPeaks));
             _Plots.Add(SANamings.ScatterPlotsNames.StableStates, GeneralTools.AddScatterPlot(signalChart, Color.Black, label: SANamings.ScatterPlotsNames.StableStates));
             _Plots.Add(SANamings.Selection, signalChart.Plot.AddBubblePlot());
+            _Plots.Add(SANamings.ShiftSelection, signalChart.Plot.AddBubblePlot());
             _Plots.Add(SANamings.ScatterPlotsNames.Labels, GeneralTools.AddScatterPlot(signalChart, Color.Blue, label: SANamings.ScatterPlotsNames.Labels));
             _Plots.Add(SANamings.ScatterPlotsNames.SpanAnnotations, GeneralTools.AddScatterPlot(signalChart, Color.Transparent, label: SANamings.ScatterPlotsNames.SpanAnnotations));
             _Plots.Add(SANamings.PointHorizSpan, GeneralTools.AddHorizontalSpan(signalChart, Color.Blue, label: SANamings.PointHorizSpan, HorizSpan_Dragged));

@@ -34,6 +34,7 @@ namespace BSP_Using_AI.DetailsModify
         private int _lowestPointInTimeSpanIndex = 0;
 
         private List<int> _SelectedPointsList = new List<int>();
+        private List<int> _ShiftSelectedPointsList = new List<int>();
 
         public int _lastSelectedItem_shift = -1;
 
@@ -96,7 +97,7 @@ namespace BSP_Using_AI.DetailsModify
             ClearSelection();
 
             // Check if Ctrl is clicked for labeling any point from the signal
-            if (_AnnoKeys.ctrl && _MouseCursor != null)
+            if ((_AnnoKeys.ctrl || _AnnoKeys.shift) && _MouseCursor != null)
                 SelectPointCloseToCursor();
 
             SelectHighlightedSpanPoints();
@@ -132,13 +133,11 @@ namespace BSP_Using_AI.DetailsModify
             selectionBubble.Add(index / signalPlot.SampleRate + signalPlot.OffsetX, signalPlot.Ys[index], 5, Color.Red, 2, ForeColor);
         }
 
-        private void SelectPointCloseToCursor()
+        private (int nearestPointIndex, bool cursorIsClose) IsCursorCloseToSignal()
         {
             // Get the plots
             Plot chartPlot = signalChart.Plot;
             SignalPlot signalPlot = (SignalPlot)_Plots[SANamings.Signal];
-            ScatterPlot labelsScatPlot = (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.Labels];
-            BubblePlot selectionBubble = (BubblePlot)_Plots[SANamings.Selection];
 
             // Get the cursor coordinates
             (double curXCor, double curYCor) = chartPlot.GetCoordinate(_MouseCursor.X, _MouseCursor.Y);
@@ -151,8 +150,45 @@ namespace BSP_Using_AI.DetailsModify
 
             // Check if the nearest state is less than 20 pixels from the cursor
             if (Math.Abs(_MouseCursor.X - xPix) < 20 && Math.Abs(_MouseCursor.Y - yPix) < 20)
+                return (sigIndx, true);
+            else
+                return (-1, false);
+        }
+
+        private void ShiftSelectPoint()
+        {
+            // Check if the cursor is closer to the signal
+            (int nearestPointIndex, bool cursorIsClose) = IsCursorCloseToSignal();
+
+            if (!cursorIsClose)
+                return;
+
+            // Get the plots
+            SignalPlot signalPlot = (SignalPlot)_Plots[SANamings.Signal];
+            BubblePlot shiftSelectionBubble = (BubblePlot)_Plots[SANamings.ShiftSelection];
+
+            // Check if the selected point exists in _ShiftSelectedPointsList
+            if (_ShiftSelectedPointsList.Contains(nearestPointIndex))
+                // If yes then remove the point
+                _ShiftSelectedPointsList.Remove(nearestPointIndex);
+            else
+                _ShiftSelectedPointsList.Add(nearestPointIndex);
+
+            // Refrech the shift selection bubbles
+            shiftSelectionBubble.Clear();
+
+            foreach (int pointIndex in _ShiftSelectedPointsList)
+                shiftSelectionBubble.Add(pointIndex / signalPlot.SampleRate + signalPlot.OffsetX, signalPlot.Ys[pointIndex], 5, Color.LightSkyBlue, 2, ForeColor);
+        }
+
+        private void SelectPointCloseToCursor()
+        {
+            // Check if the cursor is closer to the signal
+            (int nearestPointIndex, bool cursorIsClose) = IsCursorCloseToSignal();
+
+            if (cursorIsClose)
                 // If yes then insert the new selection
-                SelectPoint(sigIndx);
+                SelectPoint(nearestPointIndex);
         }
 
         private void SelectCorners()
@@ -193,6 +229,7 @@ namespace BSP_Using_AI.DetailsModify
                                                     "Press \"H\" for labeling the highest point in the highlighted time span.\n" +
                                                     "Press \"L\" for labeling the lowest point in the highlighted time span.\n" +
                                                     "Press \"C\" for labeling the corner points in the highlighted time span.\n" +
+                                                    "Press \"Shift\" for selecting/unselecting multiple points, then \"Shift+Double click\" for labeling the selection at once\n" +
                                                     "Press \"S\" for labeling the highlighted time span from the signal.\n" +
                                                     "Left-click for annotating the selection, and right-click for deleting the selection from the list.\n" +
                                                     "Press \"finish\" after finishing annotating the signal.";
@@ -222,7 +259,7 @@ namespace BSP_Using_AI.DetailsModify
             if (e.KeyCode == Keys.ControlKey && _AnnoKeys.ctrl != keyDown)
                 updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.ctrl, keyDown); // Control key is clicked (for labeling any point from the signal)
             if (e.KeyCode == Keys.ShiftKey && _AnnoKeys.shift != keyDown)
-                _AnnoKeys.shift = keyDown; // Shift key is clicked (for selecting multiple point to be deleted)
+                updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.shift, keyDown); // Shift key is clicked (for selecting multiple point to be deleted)
             if (e.KeyCode.ToString().ToUpper().Equals("H") && _AnnoKeys.h != keyDown)
                 updatePointsSpan = ChangeKeyStatus(ref _AnnoKeys.h, keyDown); // H key is clicked (for labeling the highest point in the highlighted time span)
             if (e.KeyCode.ToString().ToUpper().Equals("L") && _AnnoKeys.l != keyDown)
@@ -255,14 +292,56 @@ namespace BSP_Using_AI.DetailsModify
         private void signalExhibitor_MouseMove_CWD(object sender, MouseEventArgs e)
         {
             _MouseCursor = e;
-            if (_AnnoKeys.ctrl)
+            if (_AnnoKeys.ctrl || _AnnoKeys.shift)
                 SelectAllTypesPoints();
+        }
+
+        private void signalChart_DoubleClick_CWD(object sender, EventArgs e)
+        {
+            // Check if the cursor is not the dragging cursor
+            // and if the shift key is clicked
+            if ((sender as FormsPlot).Cursor != Cursors.SizeWE && _AnnoKeys.shift)
+            {
+                List<AnnotationItemUserControl> newAnnoItemsList = new List<AnnotationItemUserControl>(_ShiftSelectedPointsList.Count);
+                // Create the new shift annotations
+                foreach (int annoIndex in _ShiftSelectedPointsList)
+                {
+                    // Create the new annotation item and add it in featuresTableLayoutPanel
+                    AnnotationECG annoECG = _AnnotationData.InsertAnnotation("label", AnnotationType.Point, annoIndex, 0);
+
+                    AnnotationItemUserControl newAnnoItem = new AnnotationItemUserControl(annoECG, this);
+                    featuresTableLayoutPanel.Controls.Add(newAnnoItem);
+                    // Order the new item according to _AnnotationData's order
+                    featuresTableLayoutPanel.Controls.SetChildIndex(newAnnoItem, annoIndex);
+
+                    newAnnoItemsList.Add(newAnnoItem);
+                }
+
+                // Update the annotations in the plots
+                UpdateAnnotationsPlots();
+
+                // Show annotation modify form if onlly one annotation was selected
+                AnnotationModify annotationModify = new AnnotationModify(newAnnoItemsList);
+                annotationModify.Show();
+
+                // Set all annotation keys to false
+                foreach (FieldInfo field in _AnnoKeys.GetType().GetFields())
+                    field.SetValue(_AnnoKeys, false);
+
+                // Clear _SelectedPointsLists
+                ((BubblePlot)_Plots[SANamings.Selection]).Clear();
+                ((BubblePlot)_Plots[SANamings.ShiftSelection]).Clear();
+                _SelectedPointsList.Clear();
+                _ShiftSelectedPointsList.Clear();
+            }
         }
 
         private void signalChart_MouseClick_CWD(object sender, MouseEventArgs e)
         {
             // Check if the cursor is not the dragging cursor
             // and if any annotation key is clicked
+            if ((sender as FormsPlot).Cursor != Cursors.SizeWE && _AnnoKeys.shift)
+                ShiftSelectPoint();
             if ((sender as FormsPlot).Cursor != Cursors.SizeWE &&
                 (_AnnoKeys.ctrl || _AnnoKeys.h || _AnnoKeys.l || _AnnoKeys.c || _AnnoKeys.s))
             {

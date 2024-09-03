@@ -71,6 +71,7 @@
             this.signalChart.Name = "signalChart";
             this.signalChart.Size = new System.Drawing.Size(730, 194);
             this.signalChart.TabIndex = 1;
+            this.signalChart.DoubleClick += new System.EventHandler(this.signalChart_DoubleClick);
             this.signalChart.MouseDown += new System.Windows.Forms.MouseEventHandler(this.signalChart_MouseClick);
             this.signalChart.MouseMove += new System.Windows.Forms.MouseEventHandler(this.signalExhibitor_MouseMove);
             this.signalChart.MouseUp += new System.Windows.Forms.MouseEventHandler(this.signalChart_MouseUp);

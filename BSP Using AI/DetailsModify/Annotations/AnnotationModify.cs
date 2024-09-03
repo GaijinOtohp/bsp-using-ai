@@ -18,8 +18,27 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
     public partial class AnnotationModify : Form, DbStimulatorReportHolder
     {
         AnnotationItemUserControl _AnnoItem;
+        List<AnnotationItemUserControl> _AnnoItemsList;
 
         AnnotationECG _Anno;
+
+        public AnnotationModify(List<AnnotationItemUserControl> annoItemsList)
+        {
+            InitializeComponent();
+
+            _AnnoItemsList = annoItemsList;
+            _Anno = _AnnoItemsList[0]._Anno;
+
+            SetAnnotaionDataSource();
+
+            startingIndexLabel.Visible = false;
+            startingIndexTextBox.Visible = false;
+            endingIndexLabel.Visible = false;
+            endingIndexTextBox.Visible = false;
+
+            // Set the focus to AnnotationTypeLabel
+            this.ActiveControl = AnnotationTypeLabel;
+        }
 
         public AnnotationModify(AnnotationItemUserControl annoItem)
         {
@@ -28,6 +47,26 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
             _AnnoItem = annoItem;
             _Anno = annoItem._Anno;
 
+            SetAnnotaionDataSource();
+
+            startingIndexTextBox.Text = _Anno.GetIndexes().starting.ToString();
+            endingIndexTextBox.Text = _Anno.GetIndexes().ending.ToString();
+
+            // Change the starting index's label according to the type of the annotation
+            if (_Anno.GetAnnotationType().Equals(AnnotationType.Point))
+            {
+                AnnotationTypeLabel.Text = "Point annotation";
+                startingIndexLabel.Text = "Index";
+                endingIndexLabel.Visible = false;
+                endingIndexTextBox.Visible = false;
+            }
+
+            // Set the focus to AnnotationTypeLabel
+            this.ActiveControl = AnnotationTypeLabel;
+        }
+
+        private void SetAnnotaionDataSource()
+        {
             // Fill the name combobox with suggestions
             // From current _AnnotationData
             List<string> nameSource = _Anno.ParentAnnoData.GetAnnotations().GroupBy(anno => anno.Name).Select(anno => anno.Key).ToList();
@@ -45,20 +84,6 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
 
             // Present the annotation values
             nameComboBox.Text = _Anno.Name;
-            startingIndexTextBox.Text = _Anno.GetIndexes().starting.ToString();
-            endingIndexTextBox.Text = _Anno.GetIndexes().ending.ToString();
-
-            // Change the starting index's label according to the type of the annotation
-            if (_Anno.GetAnnotationType().Equals(AnnotationType.Point))
-            {
-                AnnotationTypeLabel.Text = "Point annotation";
-                startingIndexLabel.Text = "Index";
-                endingIndexLabel.Visible = false;
-                endingIndexTextBox.Visible = false;
-            }
-
-            // Set the focus to AnnotationTypeLabel
-            this.ActiveControl = AnnotationTypeLabel;
         }
 
         private void startingIndexTextBox_KeyPress(object sender, KeyPressEventArgs e)
@@ -72,7 +97,12 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
             DialogResult dialogResult = MessageBox.Show("Are you sure about removing the annotation \"" + _Anno.Name + "\"?", "Action confirmation", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
-                _AnnoItem.Remove();
+                if (_AnnoItem != null)
+                    _AnnoItem.Remove();
+                else if (_AnnoItemsList != null)
+                    foreach (var item in _AnnoItemsList)
+                        item.Remove();
+
                 this.Dispose();
             }
         }
@@ -81,14 +111,23 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
         {
             // Copy data from the text boxes into _Anno
             string name = nameComboBox.Text;
-            int startingIndex = 0;
-            int endngIndex = 0;
-            if (startingIndexTextBox.Text.Length > 0)
-                startingIndex = int.Parse(startingIndexTextBox.Text);
-            if (_Anno.GetAnnotationType().Equals(AnnotationType.Interval) && endingIndexTextBox.Text.Length > 0)
-                endngIndex = int.Parse(endingIndexTextBox.Text);
+            if (_AnnoItem != null)
+            {
+                int startingIndex = 0;
+                int endngIndex = 0;
+                if (startingIndexTextBox.Text.Length > 0)
+                    startingIndex = int.Parse(startingIndexTextBox.Text);
+                if (_Anno.GetAnnotationType().Equals(AnnotationType.Interval) && endingIndexTextBox.Text.Length > 0)
+                    endngIndex = int.Parse(endingIndexTextBox.Text);
 
-            _AnnoItem.SetNewVals(name, startingIndex, endngIndex);
+                _AnnoItem.SetNewVals(name, startingIndex, endngIndex);
+            }
+            else if (_AnnoItemsList != null)
+                foreach (var item in _AnnoItemsList)
+                {
+                    (int startingIndex, int endngIndex) = item._Anno.GetIndexes();
+                    item.SetNewVals(name, startingIndex, endngIndex);
+                }
 
             this.Close();
         }
@@ -110,7 +149,10 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
             nameSource = nameSource.GroupBy(name => name).Select(name => name.Key).ToList();
 
             // Copy suggestions to DataSource
-            _AnnoItem.Invoke(new MethodInvoker(delegate () { nameComboBox.DataSource = nameSource; }));
+            if (_AnnoItem != null)
+                _AnnoItem.Invoke(new MethodInvoker(delegate () { nameComboBox.DataSource = nameSource; }));
+            else if (_AnnoItemsList != null)
+                _AnnoItemsList[0].Invoke(new MethodInvoker(delegate () { nameComboBox.DataSource = nameSource; }));
         }
     }
 }

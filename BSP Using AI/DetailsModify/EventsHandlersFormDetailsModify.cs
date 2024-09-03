@@ -48,6 +48,12 @@ namespace BSP_Using_AI.DetailsModify
             signalChart_MouseClick_Anno(sender, e);
         }
 
+        private void signalChart_DoubleClick(object sender, EventArgs e)
+        {
+            // Send event to Annotations tools
+            signalChart_DoubleClick_Anno(sender, e);
+        }
+
         private void nextButton_Click(object sender, EventArgs e)
         {
             // Send event to Annotations tools

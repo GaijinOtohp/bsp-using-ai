@@ -45,9 +45,15 @@ namespace BSP_Using_AI.DetailsModify
 
             // Get the annotation data from _CWDAnnotationData
             List<AnnotationECG> annotationsList = _AnnotationData.GetAnnotations();
-            double[] xValues = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Point).Select(anno => anno.GetIndexes().starting / signalPlot.SampleRate).ToArray();
-            double[] yValues = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Point).Select(anno => signalPlot.Ys[anno.GetIndexes().starting]).ToArray();
-            string[] labels = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Point).Select(anno => anno.Name).ToArray();
+            // Group the points annotations by index
+            (int index, string anno)[] shortAnnoECG = annotationsList.Where(anno => anno.GetAnnotationType() == AnnotationType.Point).
+                                                                      GroupBy(anno => anno.GetIndexes().starting).
+                                                                      Select(group => (group.Key, String.Join("\n", group.ToArray().
+                                                                                                        Select(groupItem => groupItem.Name)))).
+                                                                      ToArray();
+            double[] xValues = shortAnnoECG.Select(anno => anno.index / signalPlot.SampleRate).ToArray();
+            double[] yValues = shortAnnoECG.Select(anno => signalPlot.Ys[anno.index]).ToArray();
+            string[] labels = shortAnnoECG.Select(anno => anno.anno).ToArray();
 
             // Plot innotation data
             GeneralTools.loadXYInChart(signalChart, (ScatterPlot)_Plots[SANamings.ScatterPlotsNames.Labels], xValues, yValues, labels, signalPlot.OffsetX, false, "EventsHAnnotationsFormDetailsModify");
@@ -185,6 +191,18 @@ namespace BSP_Using_AI.DetailsModify
                 else if (aiGoalComboBox.SelectedItem.Equals(ArrhythmiaClassification.ObjectiveName))
                     // Send event to ArrhyCla AI tools
                     signalChart_MouseClick_ArrhyCla(sender, e);
+            }
+        }
+
+        private void signalChart_DoubleClick_Anno(object sender, EventArgs e)
+        {
+            // Check if AI tool is activated
+            if (discardButton.Enabled && !saveButton.Enabled)
+            {
+                // Check which objective is selected
+                if (aiGoalComboBox.SelectedItem.Equals(CharacteristicWavesDelineation.ObjectiveName))
+                    // Send event to CWD AI tools
+                    signalChart_DoubleClick_CWD(sender, e);
             }
         }
 
