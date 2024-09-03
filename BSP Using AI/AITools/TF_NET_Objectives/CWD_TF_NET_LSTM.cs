@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Tensorflow;
+using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
@@ -67,7 +69,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             CWDLSTM cwdLSTM = (CWDLSTM)_objectivesModelsDic[modelName];
 
             // Fit features in model
-            TF_NET_LSTM.Fit(cwdLSTM.CWDLSTMModel, dataListSequences, UpdateFittingProgress, true);
+            TF_NET_LSTM_Recur.Fit(cwdLSTM.CWDLSTMModel, dataListSequences, UpdateFittingProgress, true);
             UpdateThresholds(cwdLSTM.CWDLSTMModel, dataListSequences);
 
             // Update model in models table
@@ -131,11 +133,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             int layers = 1;
             TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, outputNames, modelSequenceLength, layers: layers) { Name = name, Type = ObjectiveType.Classification };
 
-            model.BaseModel.Session = TF_NET_LSTM.LSTMSession(model);
+            model.BaseModel.Session = TF_NET_LSTM_Recur.LSTMSession(model);
 
             // Save the model
             if (path.Length > 0)
-                TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path, TF_NET_LSTM.GetOutputCellsNames(model));
+                TF_NET_NN.SaveModelVariables(model.BaseModel.Session, path, TF_NET_LSTM_Recur.GetOutputCellsNames(model));
 
             // Set initial thresholds for output decisions
             model.OutputsThresholds = new OutputThresholdItem[outputDim];
@@ -157,7 +159,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             cwdLSTM.CWDCrazyReinforcementLModel = crazyRLModel;
 
             TFNETLSTMModel lstmModel = (TFNETLSTMModel)cwdLSTM.CWDLSTMModel.Clone();
-            lstmModel.BaseModel.Session = TF_NET_LSTM.LoadLSTMModelVariables(lstmModel);
+            lstmModel.BaseModel.Session = TF_NET_LSTM_Recur.LoadLSTMModelVariables(lstmModel);
             cwdLSTM.CWDLSTMModel = lstmModel;
 
             _objectivesModelsDic.Add(cwdLSTM.ModelName + cwdLSTM.ObjectiveName, cwdLSTM);
@@ -180,9 +182,18 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
             Queue<double[]> InputSeqQueue;
 
+            List<double[]> predictedSequenceList;
+            List<NDArray> layersLatestOutputsVals = null, layersLatestStatesVals = null;
+            (List<Tensor> sequenceCellsInputsPlaceHolders, List<Tensor> sequenceCellsOutputs) = TF_NET_LSTM_Recur.GetInputOutputPlaceHolders(lstmModel, lstmModel.BaseModel.Session);
+            (List<Tensor> layersSartingOutputs, List<Tensor> layersStartingStates) = TF_NET_LSTM_Recur.GetLayersStartingOutputsAndStates(lstmModel);
+            (List<Tensor> layersLatestOutputs, List<Tensor> layersLatestStates) = TF_NET_LSTM_Recur.GetLayersLatestOutputsAndStates(lstmModel);
+
             foreach (List<Sample> samplesSeq in dataListSequences)
             {
                 InputSeqQueue = new Queue<double[]>(lstmModel._modelSequenceLength + 1);
+
+                layersLatestOutputsVals = null;
+                layersLatestStatesVals = null;
                 foreach (Sample sample in samplesSeq)
                 {
                     // Enqueue the new features in InputSeqQueue
@@ -192,9 +203,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
                         InputSeqQueue.Dequeue();
 
                     // Feed the queue sequence into the LSTM model for prediction
-                    List<double[]> output = TF_NET_LSTM.Predict(InputSeqQueue.ToList(), lstmModel);
+                    (predictedSequenceList, layersLatestOutputsVals, layersLatestStatesVals) = TF_NET_LSTM_Recur.PredictSequenciallyFast(InputSeqQueue.ToList(), lstmModel,
+                                                                                      layersLatestOutputsVals, layersLatestStatesVals,
+                                                                                      sequenceCellsInputsPlaceHolders, sequenceCellsOutputs,
+                                                                                      layersSartingOutputs, layersStartingStates,
+                                                                                      layersLatestOutputs, layersLatestStates);
 
-                    if (output.Count == 0)
+                    if (predictedSequenceList.Count == 0)
                         continue;
 
                     // Update the threshold _highOutputAv and _lowOutputAv
@@ -205,13 +220,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
                         if (outputaVal > 0)
                         {
                             lstmModel.OutputsThresholds[iOutput]._highOutputAv = (lstmModel.OutputsThresholds[iOutput]._highOutputAv * highOutputsCount[iOutput] +
-                                                                                 output[output.Count - 1][iOutput]) / (highOutputsCount[iOutput] + 1);
+                                                                                 predictedSequenceList[0][iOutput]) / (highOutputsCount[iOutput] + 1);
                             highOutputsCount[iOutput] += 1;
                         }
                         else
                         {
                             lstmModel.OutputsThresholds[iOutput]._lowOutputAv = (lstmModel.OutputsThresholds[iOutput]._lowOutputAv * lowOutputsCount[iOutput] +
-                                                                                 output[output.Count - 1][iOutput]) / (lowOutputsCount[iOutput] + 1);
+                                                                                 predictedSequenceList[0][iOutput]) / (lowOutputsCount[iOutput] + 1);
                             lowOutputsCount[iOutput] += 1;
                         }
                     }

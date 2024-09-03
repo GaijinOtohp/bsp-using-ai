@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Tensorflow;
+using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
 using static Biological_Signal_Processing_Using_AI.AITools.Details.ValidationDataSelection.ValDataSelectionForm;
@@ -152,7 +154,7 @@ namespace BSP_Using_AI.AITools.Details
                 tempModel.PCA = DataVisualisationForm.getPCA(trainingSequences.SelectMany(seqSamples => seqSamples).ToList());
 
             // Fit features
-            tempModel = TF_NET_LSTM.Fit((TFNETLSTMModel)tempModel, trainingSequences, null);
+            tempModel = TF_NET_LSTM_Recur.Fit((TFNETLSTMModel)tempModel, trainingSequences, null);
             CWD_TF_NET_LSTM.UpdateThresholds((TFNETLSTMModel)tempModel, trainingSequences);
 
             return tempModel;
@@ -174,11 +176,20 @@ namespace BSP_Using_AI.AITools.Details
 
             Queue<double[]> InputSeqQueue;
 
+            List<double[]> predictedSequenceList;
+            List<NDArray> layersLatestOutputsVals = null, layersLatestStatesVals = null;
+            (List<Tensor> sequenceCellsInputsPlaceHolders, List<Tensor> sequenceCellsOutputs) = TF_NET_LSTM_Recur.GetInputOutputPlaceHolders(tempModel, tempModel.BaseModel.Session);
+            (List<Tensor> layersSartingOutputs, List<Tensor> layersStartingStates) = TF_NET_LSTM_Recur.GetLayersStartingOutputsAndStates(tempModel);
+            (List<Tensor> layersLatestOutputs, List<Tensor> layersLatestStates) = TF_NET_LSTM_Recur.GetLayersLatestOutputsAndStates(tempModel);
+
             foreach (List<Sample> samplesSeq in validationSequences)
             {
                 prediActualOutputsPairsList = new List<(RefDouble[] predictedRefOutput, double[] actualOutput)>(samplesSeq.Count);
 
                 InputSeqQueue = new Queue<double[]>(tempModel._modelSequenceLength + 1);
+
+                layersLatestOutputsVals = null;
+                layersLatestStatesVals = null;
                 foreach (Sample sample in samplesSeq)
                 {
                     actualOutput = sample.getOutputs();
@@ -190,12 +201,16 @@ namespace BSP_Using_AI.AITools.Details
                         InputSeqQueue.Dequeue();
 
                     // Feed the queue sequence into the LSTM model for prediction
-                    List<double[]> output = TF_NET_LSTM.Predict(InputSeqQueue.ToList(), tempModel);
+                    (predictedSequenceList, layersLatestOutputsVals, layersLatestStatesVals) = TF_NET_LSTM_Recur.PredictSequenciallyFast(InputSeqQueue.ToList(), tempModel,
+                                                                                      layersLatestOutputsVals, layersLatestStatesVals,
+                                                                                      sequenceCellsInputsPlaceHolders, sequenceCellsOutputs,
+                                                                                      layersSartingOutputs, layersStartingStates,
+                                                                                      layersLatestOutputs, layersLatestStates);
                     _remainingSamples--;
 
-                    if (output.Count == 0)
+                    if (predictedSequenceList.Count == 0)
                         continue;
-                    predictedOutput = output[output.Count - 1];
+                    predictedOutput = predictedSequenceList[0];
 
                     predictedRefOutput = new RefDouble[predictedOutput.Length];
                     for (int iDouble = 0; iDouble < predictedOutput.Length; iDouble++)
