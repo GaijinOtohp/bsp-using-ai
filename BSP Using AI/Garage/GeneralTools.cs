@@ -297,18 +297,31 @@ namespace Biological_Signal_Processing_Using_AI.Garage
 
             Array.Sort(samples);
 
-            int mid_indx = medianIndex(0, samples.Length);
-            double Q1 = samples[medianIndex(0, mid_indx)];
-            double Q3 = samples[medianIndex(mid_indx + 1, samples.Length)];
+            (int medianPreIndex, int medianPostIndex) = medianIndex(0, samples.Length - 1);
+
+            int lowerHalfEnd = medianPreIndex;
+            int upperHalfStart = medianPostIndex;
+            if (lowerHalfEnd == upperHalfStart && samples.Length > 1)
+            {
+                lowerHalfEnd--;
+                upperHalfStart++;
+            }
+
+            (int Q1PreIndex, int Q1PostIndex) = medianIndex(0, lowerHalfEnd);
+
+            (int Q3PreIndex, int Q3PostIndex) = medianIndex(upperHalfStart, samples.Length - 1);
+
+            double Q1 = (samples[Q1PreIndex] + samples[Q1PostIndex]) / 2;
+            double Q3 = (samples[Q3PreIndex] + samples[Q3PostIndex]) / 2;
 
             return Q3 - Q1;
         }
 
-        public static int medianIndex(int left, int right)
+        public static (int preIndex, int postIndex) medianIndex(int left, int right)
         {
-            int median = right - left + 1;
-            median = (median + 1) / 2 - 1;
-            return median + left;
+            double medianPreIndex = (double)(left + right) / 2d;
+            int medianPostIndex = (int)(medianPreIndex + (medianPreIndex % 1 > 0 ? 1 : 0));
+            return ((int)medianPreIndex, medianPostIndex);
         }
 
         //*******************************************************************************************************//
