@@ -212,7 +212,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
             double[] filteredSamples = new double[samples.Length];
 
             for (int i = 0; i < samples.Length; i++)
-                filteredSamples[i] = (samples[i] - meanMinMax.min) * scalingRatio;
+                filteredSamples[i] = samples[i] * scalingRatio;
 
             return filteredSamples;
         }
