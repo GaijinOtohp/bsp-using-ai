@@ -81,13 +81,13 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
             if (_Anno.GetAnnotationType() == AnnotationType.Point)
             {
                 // If yes then add a new bubble as a point annotation selection
-                selectionBubble.Add(starting / signalPlot.SampleRate, signalPlot.Ys[starting], 5, Color.Red, 2, ForeColor);
+                selectionBubble.Add(starting / signalPlot.SampleRate + signalPlot.OffsetX, signalPlot.Ys[starting], 5, Color.Red, 2, ForeColor);
                 _FormDetailsModify.signalChart.Refresh();
             }
             else
             {
-                intervalSpan.X1 = starting / signalPlot.SampleRate;
-                intervalSpan.X2 = ending / signalPlot.SampleRate;
+                intervalSpan.X1 = starting / signalPlot.SampleRate + signalPlot.OffsetX;
+                intervalSpan.X2 = ending / signalPlot.SampleRate + signalPlot.OffsetX;
                 GeneralTools.TimeSpanVisibility(_FormDetailsModify.signalChart, intervalSpan, true);
             }
         }
