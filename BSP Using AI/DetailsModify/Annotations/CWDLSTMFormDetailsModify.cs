@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Tensorflow;
+using Tensorflow.NumPy;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.CharacteristicWavesDelineation;
@@ -13,81 +15,12 @@ using static Biological_Signal_Processing_Using_AI.AITools.RL_Objectives.CWD_RL;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Annotations.AnnotationsStructures;
 using static Biological_Signal_Processing_Using_AI.DetailsModify.Filters.CornersScanner;
 using static BSP_Using_AI.AITools.DatasetExplorer.DatasetExplorerForm;
+using static BSP_Using_AI.AITools.Details.DetailsForm;
 
 namespace BSP_Using_AI.DetailsModify
 {
     public partial class FormDetailsModify
     {
-        private string GetAnnoNameByIndex(int annoIndex)
-        {
-            string annoName = "";
-
-            if (annoIndex == 0)
-                annoName = CWDNamigs.PeaksLabelsOutputs.POnset;
-            else if (annoIndex == 1)
-                annoName = CWDNamigs.PeaksLabelsOutputs.PPeak;
-            else if (annoIndex == 2)
-                annoName = CWDNamigs.PeaksLabelsOutputs.PEnd;
-            else if (annoIndex == 3)
-                annoName = CWDNamigs.PeaksLabelsOutputs.QPeak;
-            else if (annoIndex == 4)
-                annoName = CWDNamigs.PeaksLabelsOutputs.RPeak;
-            else if (annoIndex == 5)
-                annoName = CWDNamigs.PeaksLabelsOutputs.SPeak;
-            else if (annoIndex == 6)
-                annoName = CWDNamigs.PeaksLabelsOutputs.TOnset;
-            else if (annoIndex == 7)
-                annoName = CWDNamigs.PeaksLabelsOutputs.TPeak;
-            else if (annoIndex == 8)
-                annoName = CWDNamigs.PeaksLabelsOutputs.TEnd;
-
-            return annoName;
-        }
-
-        private (string cornerName, string regularity, List<int> selectedLabelsIndecies) GetLabelsOfPrediction(double[] predictionOutput, LSTMDataBuilderMemory DataBuilderMemory, OutputThresholdItem[] outputThresholds)
-        {
-            // Get the annotation of the prediction (the prediction should be at least higher than 0.5 for a valid annotaion)
-            string cornerName = "";
-            string regularity = "";
-            List<int> selectedLabelsIndecies = predictionOutput.Select((proba, index) => (proba, index))
-                                                               .Where(tuple => tuple.proba >= outputThresholds[tuple.index]._threshold && tuple.index < 9)
-                                                               .Select(tuple => tuple.index).ToList();
-
-            if (predictionOutput[0] >= outputThresholds[0]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.POnset + ", ";
-            if (predictionOutput[1] >= outputThresholds[1]._threshold)
-            {
-                cornerName += CWDNamigs.PeaksLabelsOutputs.PPeak + ", ";
-                DataBuilderMemory.currentPeakIsP = true;
-            }
-            if (predictionOutput[2] >= outputThresholds[2]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.PEnd + ", ";
-            if (predictionOutput[3] >= outputThresholds[3]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.QPeak + ", ";
-            if (predictionOutput[4] >= outputThresholds[4]._threshold)
-            {
-                cornerName += CWDNamigs.PeaksLabelsOutputs.RPeak + ", ";
-                DataBuilderMemory.currentPeakIsR = true;
-            }
-            if (predictionOutput[5] >= outputThresholds[5]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.SPeak + ", ";
-            if (predictionOutput[6] >= outputThresholds[6]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.TOnset + ", ";
-            if (predictionOutput[7] >= outputThresholds[7]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.TPeak + ", ";
-            if (predictionOutput[8] >= outputThresholds[8]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.TEnd + ", ";
-            if (predictionOutput[9] >= outputThresholds[9]._threshold)
-                cornerName += CWDNamigs.PeaksLabelsOutputs.Other + ", ";
-
-            if (predictionOutput[10] >= outputThresholds[10]._threshold)
-                regularity = CWDNamigs.PeaksLabelsOutputs.Normal + ", ";
-            if (predictionOutput[11] >= outputThresholds[11]._threshold)
-                regularity += CWDNamigs.PeaksLabelsOutputs.Abnormal + ", ";
-
-            return (cornerName, regularity, selectedLabelsIndecies);
-        }
-
         private void predictButton_Click_CWDLSTM(string modelNameProblem)
         {
             // Get the selected model
@@ -96,173 +29,114 @@ namespace BSP_Using_AI.DetailsModify
             TFNETLSTMModel CWDLSTMModel = cwdLSTM.CWDLSTMModel;
 
             // Scan for the corners using the selected deep Q-learning model with the rescaled segments list
-            (List<CornerSample> scannedCorners, List<SignalSegment> rescSegmentsList) = RLAutoCornersScanner(CWDReinforcementLModel);
+            (List<CornerSample> scannedCorners, List<SignalSegment> rescSegmentsList) = RLAutoCornersScanner(CWDReinforcementLModel, _FilteringTools._FilteredSamples, _FilteringTools._samplingRate);
 
             // Rescale samples to be in an amplitude interval of 4
             double globalAmpInterval = 4d;
             double[] RescaledSamples = GeneralTools.rescaleSignal(_FilteringTools._FilteredSamples, globalAmpInterval);
 
             // Create the data builder memory for generating the input data
-            LSTMDataBuilderMemory DataBuilderMemory = new LSTMDataBuilderMemory();
-            // Update dataBuilderMemory with the global samples
-            DataBuilderMemory.globalMin = GeneralTools.MeanMinMax(RescaledSamples).min;
-            DataBuilderMemory.globalAmpInterval = globalAmpInterval;
-            DataBuilderMemory.samplingRate = _FilteringTools._samplingRate;
-            DataBuilderMemory.latestPeakToClassifyProba = new double[CWDLSTMModel._outputDim];
+            LSTMDataBuilderMemory dataBuilderMemory = new LSTMDataBuilderMemory();
+
+            dataBuilderMemory.OutputsLabels = CWDNamigs.PeaksLabelsOutputs.GetNames();
+            //dataBuilderMemory.FeaturesLabels = CWDNamigs.PeaksLabelsFeatures.GetNames();
+            dataBuilderMemory.FeaturesLabels = new string[106];
+            for (int i = 0; i < 106; i++)
+                dataBuilderMemory.FeaturesLabels[i] = "Feature " + i;
+            dataBuilderMemory.samplingRate = _FilteringTools._samplingRate;
+            dataBuilderMemory.ProbingIntervals[0] = _FilteringTools._samplingRate;
+            dataBuilderMemory.globalAmpInterval = globalAmpInterval;
+
+            double[] predictedOutput;
+            // The following is used for rectifying predicted outputs
+            RefDouble[] predictedRefOutput;
+            (RefDouble[] refOutput, int[] indecies) latestClassified = (null, new int[dataBuilderMemory.OutputsLabels.Length]);
+            List<RefDouble[]> predictedRefOutputList = new List<RefDouble[]>(scannedCorners.Count);
+            List<CornerInterval> matchedIntrvsList;
 
             // Create the queue for building the input sequence of the LSTM model
             Queue<double[]> InputSeqQueue = new Queue<double[]>(CWDLSTMModel._modelSequenceLength + 1);
 
-            // Create the annotation data
-            _AnnotationData = new AnnotationData(CharacteristicWavesDelineation.ObjectiveName);
-            List<CornerSample> AnnotatedCornsList = new List<CornerSample>();
+            List<double[]> predictedSequenceList;
+            List<NDArray> layersLatestOutputsVals = null, layersLatestStatesVals = null;
+            (List<Tensor> sequenceCellsInputsPlaceHolders, List<Tensor> sequenceCellsOutputs) = TF_NET_LSTM_Recur.GetInputOutputPlaceHolders(CWDLSTMModel, CWDLSTMModel.BaseModel.Session);
+            (List<Tensor> layersSartingOutputs, List<Tensor> layersStartingStates) = TF_NET_LSTM_Recur.GetLayersStartingOutputsAndStates(CWDLSTMModel);
+            (List<Tensor> layersLatestOutputs, List<Tensor> layersLatestStates) = TF_NET_LSTM_Recur.GetLayersLatestOutputsAndStates(CWDLSTMModel);
 
-            foreach (SignalSegment segment in rescSegmentsList)
+            foreach (CornerSample scannedCorner in scannedCorners)
             {
-                List<CornerSample> segScannedCornsList = scannedCorners.Where(corn => segment.startingIndex <= corn._index && corn._index <= segment.endingIndex).ToList();
+                // Get the features of the selected corner
+                double[] features = DatasetExplorerForm.GetCornerFeatures(null, dataBuilderMemory, scannedCorner._index, RescaledSamples, rescSegmentsList);
+                // Enqueue the new features in InputSeqQueue
+                InputSeqQueue.Enqueue(features);
+                // Check if the queue has exceeded the sequence length of the model
+                if (InputSeqQueue.Count > CWDLSTMModel._modelSequenceLength)
+                    InputSeqQueue.Dequeue();
 
-                // Update dataBuilderMemory with the segment samples
-                (_, double rescSegmentMin, double rescSegmentMax) = GeneralTools.MeanMinMax(segment.SegmentSamples);
-                DataBuilderMemory.segmentMin = rescSegmentMin;
-                DataBuilderMemory.segmentAmpInterval = rescSegmentMax - rescSegmentMin;
+                // Feed the queue sequence into the LSTM model for prediction
+                (predictedSequenceList, layersLatestOutputsVals, layersLatestStatesVals) = TF_NET_LSTM_Recur.PredictSequenciallyFast(InputSeqQueue.ToList(), CWDLSTMModel,
+                                                                                  layersLatestOutputsVals, layersLatestStatesVals,
+                                                                                  sequenceCellsInputsPlaceHolders, sequenceCellsOutputs,
+                                                                                  layersSartingOutputs, layersStartingStates,
+                                                                                  layersLatestOutputs, layersLatestStates);
 
-                // Feed each corner features into the LSTM model
-                foreach (CornerSample scannedCorner in segScannedCornsList)
-                {
-                    // The new corner should be after the latest peak
-                    if (DataBuilderMemory.LatestPeak != null)
-                        if (scannedCorner._index <= DataBuilderMemory.LatestPeak._index)
-                            continue;
+                if (predictedSequenceList.Count == 0)
+                    continue;
+                predictedOutput = predictedSequenceList[0];
 
-                    // Get the next and previous corners that are in the range of 0.2 sec froward and backward
-                    double nearbyCornersTempIntervalRange = 0.3d;
-                    DataBuilderMemory.nextCorners = segScannedCornsList.Where(corner => Math.Abs(corner._index - scannedCorner._index) / (double)DataBuilderMemory.samplingRate <= nearbyCornersTempIntervalRange && corner._index > scannedCorner._index).ToList();
-                    DataBuilderMemory.prevCorners = segScannedCornsList.Where(corner => Math.Abs(corner._index - scannedCorner._index) / (double)DataBuilderMemory.samplingRate <= nearbyCornersTempIntervalRange && corner._index < scannedCorner._index).ToList();
+                predictedRefOutput = new RefDouble[predictedOutput.Length];
+                for (int iDouble = 0; iDouble < predictedOutput.Length; iDouble++)
+                    predictedRefOutput[iDouble] = new RefDouble(predictedOutput[iDouble]);
 
-                    double nearbySamplesTempIntervalRange = 0.3d;
-                    DataBuilderMemory.nextRescSamples = RescaledSamples.Where((value, index) => scannedCorner._index <= index && index <= scannedCorner._index + (nearbySamplesTempIntervalRange * DataBuilderMemory.samplingRate)).ToArray();
-                    DataBuilderMemory.prevRescSamplesReversed = RescaledSamples.Where((value, index) => scannedCorner._index - (nearbySamplesTempIntervalRange * DataBuilderMemory.samplingRate) <= index && index <= scannedCorner._index).ToArray();
-                    DataBuilderMemory.prevRescSamplesReversed = DataBuilderMemory.prevRescSamplesReversed.Reverse().ToArray();
+                predictedRefOutputList.Add(predictedRefOutput);
 
-                    // Get the features of the selected corner
-                    double[] features = DatasetExplorerForm.GetFeaturesOfTheSample(null, DataBuilderMemory, scannedCorner);
-                    // Enqueue the new features in InputSeqQueue
-                    InputSeqQueue.Enqueue(features);
-                    // Check if the queue has exceeded the sequence length of the model
-                    if (InputSeqQueue.Count > CWDLSTMModel._modelSequenceLength)
-                        InputSeqQueue.Dequeue();
+                matchedIntrvsList = new List<CornerInterval>(predictedOutput.Length);
 
-                    // Feed the queue sequence into the LSTM model for prediction
-                    List<double[]> output = TF_NET_LSTM.Predict(InputSeqQueue.ToList(), CWDLSTMModel);
+                // Update latestClassifiedRefOutput
+                if (latestClassified.refOutput == null)
+                    latestClassified.refOutput = predictedRefOutput;
 
-                    if (output.Count == 0)
-                        continue;
-
-                    (string cornerName, string regularity, List<int> selectedLabelsIndecies) = GetLabelsOfPrediction(output[output.Count - 1], DataBuilderMemory, CWDLSTMModel.OutputsThresholds);
-
-                    // Set the probabilities of the non selected labels at DataBuilderMemory.latestPeakToClassifyProba to 0
-                    for (int iLabelIndex = 0; iLabelIndex < 9; iLabelIndex++)
-                        if (!selectedLabelsIndecies.Contains(iLabelIndex))
-                            DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] = 0;
-
-                    // Iterate through each selected label in selectedLabelsIndecies
-                    // and set the name of the new corner
-                    string cornerNewName = "";
-                    foreach (int iLabelIndex in selectedLabelsIndecies)
+                for (int iPredOutput = 0; iPredOutput < predictedRefOutput.Length; iPredOutput++)
+                    if (predictedRefOutput[iPredOutput].value >= CWDLSTMModel.OutputsThresholds[iPredOutput]._threshold)
                     {
-                        // Check if the selected label was already selected previously
-                        if (DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] > 0)
-                        {
-                            // If yes then check if the new selection is more certain than the previous one
-                            if (output[output.Count - 1][iLabelIndex] >= DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex])
+                        // If this is a new peak label then set the data to update dataBuilderMemory
+                        if (latestClassified.refOutput[iPredOutput].value == 0)
+                            matchedIntrvsList.Add(new CornerInterval()
                             {
-                                // If yes then swap the previous selection with the new one
-                                // I mean like remove the label from the previous peak and add it to the new one
-                                List<AnnotationECG> annosList = _AnnotationData.GetAnnotations();
-                                string prevAnnoName = annosList[annosList.Count - 1].Name;
-                                (int prevAnnoIndex, _) = annosList[annosList.Count - 1].GetIndexes();
-                                string prevNewAnnoName = prevAnnoName.Replace(GetAnnoNameByIndex(iLabelIndex) + ", ", "");
+                                Name = dataBuilderMemory.OutputsLabels[iPredOutput],
+                                cornerIndex = scannedCorner._index
+                            });
 
-                                if (prevNewAnnoName.Length > 0)
-                                    annosList[annosList.Count - 1].SetNewVals(prevNewAnnoName, prevAnnoIndex, 0);
-                                else
-                                    annosList[annosList.Count - 1].Remove();
-
-                                // Set its label into cornerNewName
-                                cornerNewName += GetAnnoNameByIndex(iLabelIndex) + ", ";
-
-                                // Update LatestPPeak and LatestRPeak with their averaged interval
-                                if (DataBuilderMemory.currentPeakIsP)
-                                {
-                                    /*if (DataBuilderMemory.PsCount > 0)
-                                        DataBuilderMemory.ppIntervalAv = ((DataBuilderMemory.ppIntervalAv * DataBuilderMemory.PsCount) + (corner._index - DataBuilderMemory.LatestPPeak._index))
-                                                                         / (double)(DataBuilderMemory.PsCount + 1);
-                                    DataBuilderMemory.PsCount++;*/
-
-                                    //DataBuilderMemory.ppIntervalAv = 
-
-                                    DataBuilderMemory.LatestPPeak = scannedCorner.Clone();
-                                    DataBuilderMemory.currentPeakIsP = false;
-                                }
-                                if (DataBuilderMemory.currentPeakIsR)
-                                {
-                                    /*if (DataBuilderMemory.RsCount > 0)
-                                        DataBuilderMemory.rrIntervalAv = ((DataBuilderMemory.rrIntervalAv * DataBuilderMemory.RsCount) + (corner._index - DataBuilderMemory.LatestRPeak._index))
-                                                                         / (double)(DataBuilderMemory.RsCount + 1);
-                                    DataBuilderMemory.RsCount++;*/
-
-                                    DataBuilderMemory.LatestRPeak = scannedCorner.Clone();
-                                    DataBuilderMemory.currentPeakIsR = false;
-                                }
-
-                                // Update its probability in DataBuilderMemory.latestPeakToClassifyProba
-                                DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] = output[output.Count - 1][iLabelIndex];
-                            }
-                            //------------------> Maybe otherwise, just set its probability to 0 at DataBuilderMemory.latestPeakToClassifyProba
+                        if (predictedRefOutput[iPredOutput].value >= latestClassified.refOutput[iPredOutput].value)
+                        {
+                            latestClassified.refOutput[iPredOutput].value = 0;
+                            latestClassified.refOutput[iPredOutput] = predictedRefOutput[iPredOutput];
+                            latestClassified.indecies[iPredOutput] = scannedCorner._index;
                         }
                         else
-                        {
-                            // Add the new label to the new peak
-                            // Update LatestPPeak and LatestRPeak with their averaged interval
-                            if (DataBuilderMemory.currentPeakIsP)
-                            {
-                                if (DataBuilderMemory.PsCount > 0)
-                                    DataBuilderMemory.ppIntervalAv = ((DataBuilderMemory.ppIntervalAv * DataBuilderMemory.PsCount) + (scannedCorner._index - DataBuilderMemory.LatestPPeak._index))
-                                                                     / (double)(DataBuilderMemory.PsCount + 1);
-                                DataBuilderMemory.PsCount++;
-
-                                DataBuilderMemory.LatestPPeak = scannedCorner.Clone();
-                                DataBuilderMemory.currentPeakIsP = false;
-                            }
-                            if (DataBuilderMemory.currentPeakIsR)
-                            {
-                                if (DataBuilderMemory.RsCount > 0)
-                                    DataBuilderMemory.rrIntervalAv = ((DataBuilderMemory.rrIntervalAv * DataBuilderMemory.RsCount) + (scannedCorner._index - DataBuilderMemory.LatestRPeak._index))
-                                                                     / (double)(DataBuilderMemory.RsCount + 1);
-                                DataBuilderMemory.RsCount++;
-
-                                DataBuilderMemory.LatestRPeak = scannedCorner.Clone();
-                                DataBuilderMemory.currentPeakIsR = false;
-                            }
-
-                            // Set its label into cornerNewName
-                            cornerNewName += GetAnnoNameByIndex(iLabelIndex) + ", ";
-
-                            // Add its probability in DataBuilderMemory.latestPeakToClassifyProba
-                            DataBuilderMemory.latestPeakToClassifyProba[iLabelIndex] = output[output.Count - 1][iLabelIndex];
-                        }
+                            predictedRefOutput[iPredOutput].value = 0;
                     }
+                    else
+                        latestClassified.refOutput[iPredOutput] = new RefDouble(0);
 
-                    // Update the latest classified peak and add its annotation if exists
-                    if (selectedLabelsIndecies.Count > 0 && cornerNewName.Length > 0)
+                // Update dataBuilderMemory
+                DatasetExplorerForm.GetOutputsOfTheSample(null, dataBuilderMemory, matchedIntrvsList);
+            }
+
+            // Create the annotation data
+            _AnnotationData = new AnnotationData(CharacteristicWavesDelineation.ObjectiveName);
+            string cornerNewName;
+
+            for (int iScannedCorner = 0; iScannedCorner < scannedCorners.Count; iScannedCorner++)
+            {
+                predictedRefOutput = predictedRefOutputList[iScannedCorner];
+                for (int iOutput = 0; iOutput < predictedRefOutput.Length; iOutput++)
+                    if (predictedRefOutput[iOutput].value >= CWDLSTMModel.OutputsThresholds[iOutput]._threshold)
                     {
-                        DataBuilderMemory.LatestClassifiedPeak = scannedCorner.Clone();
-
-                        _AnnotationData.InsertAnnotation(cornerNewName, AnnotationType.Point, scannedCorner._index, 0);
-                    }                        
-
-                    DataBuilderMemory.LatestPeak = scannedCorner.Clone();
-                }
+                        cornerNewName = dataBuilderMemory.OutputsLabels[iOutput];
+                        if (!cornerNewName.Equals(CWDNamigs.PeaksLabelsOutputs.Other))
+                            _AnnotationData.InsertAnnotation(cornerNewName, AnnotationType.Point, scannedCorners[iScannedCorner]._index, 0);
+                    }
             }
 
             // Show the annotation in the chart

@@ -69,15 +69,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                 public static string RLCornersScanData = "Corners scan";
                 public static string LSTMPeaksClassificationData = "Peaks classification";
 
-                public static string GlobalMean = "global mean";
-                public static string GlobalStdDev = "global STD_DEV";
-                public static string GlobalIQR = "global IQR";
-                public static string SegmentMin = "segment min";
-                public static string SegmentMax = "segment max";
-                public static string SegmentMean = "segment mean";
-                public static string SegmentStdDev = "segment STD_DEV";
-                public static string SegmentIQR = "segment IQR";
-
                 public class CornersScanOutputs
                 {
                     public static string AT = "AT"; // Angle Threshold
@@ -88,28 +79,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                         return typeof(CornersScanOutputs).GetFields().Select(field => (string)field.GetValue(null)).ToArray();
                     }
                 }
-
-                public static string NextArgTanRatio = "ArgTan to next range peaks";
-                public static string PrevArgTanRatio = "ArgTan to previous range peaks";
-                public static string PPIntervRatio = "PP interval ratio";
-                public static string RRIntervRatio = "RR interval ratio";
-                public static string SegmPeakAmpRatio = "Segment peak amplitude ratio";
-                public static string GlobPeakAmpRatio = "Global peak amplitude ratio";
-                public static string SegmGlobAmpRatio = "Segment to global amplitude interval ratio";
-                public static string NextHypotAvToGlob = "Hypotenuse to next range peaks global ratio";
-                public static string PrevHypotAvToGlob = "Hypotenuse to previous range peaks global ratio";
-                public static string NextHypotAvToSegm = "Hypotenuse to next range peaks segment ratio";
-                public static string PrevHypotAvToSegm = "Hypotenuse to previous range peaks segment ratio";
-                public static string NextMaxAmpArgTanRatio = "ArgTan to next range peaks maximum amplitude";
-                public static string NextMinAmpArgTanRatio = "ArgTan to next range peaks minimum amplitude";
-                public static string PrevMaxAmpArgTanRatio = "ArgTan to previous range peaks maximum amplitude";
-                public static string PrevMinAmpArgTanRatio = "ArgTan to previous range peaks minimum amplitude";
-                public static string NextAmpIntervRatio = "Next range amplitude interval ratio";
-                public static string PrevAmpIntervRatio = "Previous range amplitude interval ratio";
-                public static string NextHypotMaxToGlob = "Hypotenuse to next range max peak global ratio";
-                public static string NextHypotMinToGlob = "Hypotenuse to next range min peak global ratio";
-                public static string PrevHypotMaxToGlob = "Hypotenuse to previous range max peak global ratio";
-                public static string PrevHypotMinToGlob = "Hypotenuse to previous range min peak global ratio";
 
                 public class PeaksLabelsOutputs
                 {
@@ -123,14 +92,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                     public static string TPeak = "T-peak";
                     public static string TEnd = "T-end";
                     public static string Other = "Other";
-                    public static string Normal = "Normal";
-                    public static string Abnormal = "Abnormal";
 
                     public static string[] GetNames()
                     {
                         return typeof(PeaksLabelsOutputs).GetFields().Select(field => (string)field.GetValue(null)).ToArray();
                     }
                 }
+                public static string Normal = "Normal";
+                public static string Abnormal = "Abnormal";
                 public static string Delta = "Delta";
             }
         }

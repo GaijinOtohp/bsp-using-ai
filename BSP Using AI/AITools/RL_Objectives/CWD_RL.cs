@@ -2,6 +2,9 @@
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI;
 using BSP_Using_AI.AITools;
+using BSP_Using_AI.AITools.DatasetExplorer;
+using NWaves.Filters.Base;
+using NWaves.Signals;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +29,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             public int startingIndex;
             public int endingIndex;
             public double[] SegmentSamples;
+            public double segmentMean;
+            public double segmentMax;
+            public double segmentMin;
         }
 
         ReinforcementLearning.Environment _Env;
@@ -164,18 +170,37 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         public static AnnotationECG[] GetCornersExceptDleta(AnnotationData annoData)
         {
             // Remove the peaks of delta and any annotation that has the same index
-            int[] deltaIndexes = annoData.GetAnnotations().Where(ecgAnno => ecgAnno.Name.Equals(CWDNamigs.Delta)).Select(anno => anno.GetIndexes().starting).ToArray();
-            AnnotationECG[] trueCorners = annoData.GetAnnotations().Select(ecgAnno => {
-                int annoIndex = ecgAnno.GetIndexes().starting;
-                foreach (int deltaIndex in deltaIndexes)
-                    if (deltaIndex == annoIndex)
-                    {
-                        ecgAnno.SetNewVals(ecgAnno.Name, int.MinValue, 0);
-                        break;
-                    }
-                return ecgAnno;
-            }).
-                                                              Where(ecgAnno => ecgAnno.GetIndexes().starting != int.MinValue).ToArray();
+            AnnotationECG[] trueCorners = annoData.GetAnnotations().GroupBy(anno => anno.GetIndexes().starting).Where(group => !group.ToList().Select(ecgAnno => ecgAnno.Name).
+                                                                                                                                               Contains(CWDNamigs.Delta)).
+                                                                                                                SelectMany(group => group.ToList()).
+                                                                                                                ToArray();
+
+            return trueCorners;
+        }
+
+        public static AnnotationECG[] GetCornersWithExceptionAndRelation(AnnotationData annoData, string[] exceptions)
+        {
+            // Group the annotation according to their indecies
+            List<List<AnnotationECG>> annotationIndexGroups = annoData.GetAnnotations().GroupBy(anno => anno.GetIndexes().starting).Select(group => group.ToList()).ToList();
+
+            // Remove any group that contains the exception
+            foreach (string exception in exceptions)
+                annotationIndexGroups = annotationIndexGroups.Where(group => !group.Select(ecgAnno => ecgAnno.Name).
+                                                                                   Contains(exception)).
+                                                              ToList();
+
+            // Concatenate the groups in one list
+            AnnotationECG[] trueCorners = annotationIndexGroups.SelectMany(group => group).ToArray();
+
+            return trueCorners;
+        }
+
+        public static AnnotationECG[] GetCornersWithException(AnnotationData annoData, string[] exceptions)
+        {
+            AnnotationECG[] trueCorners = annoData.GetAnnotations().ToArray();
+
+            foreach (string exception in exceptions)
+                trueCorners = trueCorners.Where(ecgAnno => !ecgAnno.Name.Equals(exception)).ToArray();
 
             return trueCorners;
         }
@@ -189,7 +214,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             _RescaledSamples = GeneralTools.rescaleSignal(samples, 4);
             _samplingRate = samplingRate;
 
-            AnnotationECG[] trueCorners = GetCornersExceptDleta(annoData);
+            AnnotationECG[] trueCorners = CWD_RL.GetCornersWithException(annoData, new string[] { CWDNamigs.Delta, CWDNamigs.Normal, CWDNamigs.Abnormal });
 
             // Create the intervals covering 20% from the corners in both sides
             _ApproxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, _RescaledSamples, samplingRate);
@@ -203,7 +228,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             // Segment the samples of signal according to the chunks' distribution
             _SignalSegmentsList = SegmentTheMainSamples(_RescaledSamples, (int)_samplingRate, 0.002d, 0.5d);
-            int maxEpisodes = 50;
+            int maxEpisodes = 10;
             for (_selectedSegment = 0; _selectedSegment < _SignalSegmentsList.Count; _selectedSegment++)
             {
                 // ---------------------------------------------Try reset then new environment's q-table
@@ -260,151 +285,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             return GlobalCornersScanData;
         }
 
-        public Data FitRLData(double[] samples, int samplingRate, AnnotationData annoData)
-        {
-            // Include the signal infos
-            // Rescale samples to be in an amplitude interval of 4
-            _RescaledSamples = GeneralTools.rescaleSignal(samples, 4);
-            _samplingRate = samplingRate;
-
-            AnnotationECG[] trueCorners = GetCornersExceptDleta(annoData);
-
-            // Create the intervals covering 20% from the corners in both sides
-            _ApproxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, samples, samplingRate);
-
-            // Initialize the conditions of finishing the episodes
-            _atCircularQueue = new CircularQueue<int>(5);
-            _artCircularQueue = new CircularQueue<int>(5);
-
-            // Create the features and outputs data object
-            Data CornersScanData = new Data(CWDNamigs.RLCornersScanData);
-
-            // Segment the samples of signal according to the chunks' distribution
-            _SignalSegmentsList = SegmentTheMainSamples(samples, (int)_samplingRate, 0.002d, 0.5d);
-            int maxEpisodes = 100;
-            for (_selectedSegment = 0; _selectedSegment < _SignalSegmentsList.Count; _selectedSegment++)
-            {
-                // Get the Q tables of the current chunk
-                (Dictionary<string, (double reward, bool badState)> generalQTable, List<(double episodeReward, Dictionary<string, (double reward, bool badState)> episodeQTable)> episodesQTables) = _Env.Train(maxEpisodes);
-                // Get the best state of the environment
-                List<(double reward, string state)> acceptableStates = generalQTable.Where(state => state.Value.badState == false).Select(state => (state.Value.reward, state.Key)).ToList();
-                // Check if there was no best state
-                if (acceptableStates.Count == 0)
-                    // Then just take the whole Q table
-                    acceptableStates = generalQTable.Select(state => (state.Value.reward, state.Key)).ToList();
-                // Take the state with the highest reward
-                int[] bestState = ReinforcementLearning.Environment.String2IntArray(acceptableStates.Max().state);
-
-                // Include the best state for the corners scan as outputs
-                Sample chunkSample = GetFeaturesOfTheSamples(CornersScanData);
-
-                RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.AT)).ToList()[0];
-                RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.ART)).ToList()[0];
-
-                chunkSample.insertOutput(0, CWDNamigs.CornersScanOutputs.AT, (bestState[0] * atDim._step) / (atDim._max - atDim._min)); // Normalize the value to be from 0 to 1 by dividing with 360 (the max angle)
-                chunkSample.insertOutput(1, CWDNamigs.CornersScanOutputs.ART, (bestState[1] * artDim._step) / (artDim._max - artDim._min)); // art is already between 0 and 1
-            }
-
-            return CornersScanData;
-        }
-
-        public static List<SignalSegment> SegmentTheMainSamples3(double[] globalSamples, int samplingRate, double derivativeDelta, double distributionBarThreshold)
-        {
-            List<SignalSegment> signalSegmentsList = new List<SignalSegment>();
-            // The segment should be at least 0.05 seconds long
-            int segmentInitialLen = (int)(0.05d * samplingRate) + ((0.05d * samplingRate) % 1 > 0 ? 1 : 0);
-            // The segment could extend to the next and previous segments up to 0.1 seconds
-            int segmentExtension = (int)(0.1d * samplingRate) + ((0.1d * samplingRate) % 1 > 0 ? 1 : 0);
-
-            int bufferEndingIndexBeforeExtension;
-            double[] derivative = GeneralTools.Derivative(globalSamples, samplingRate, derivativeDelta);
-            List<double> derivSegmentBuffer;
-
-            double[] distribution = null;
-            double distXOffset = 0;
-            double distStep = 1;
-
-            bool segmentExceededLimit;
-            double dwtMin, dwtMax;
-            int dwtMaxPrefExt;
-            int dwtMaxSuffExt;
-            int dwtPrefExtension;
-            int dwtSuffExtension;
-
-            for (int iDWTGlobal = 0; iDWTGlobal < derivative.Length; iDWTGlobal++)
-            {
-                SignalSegment signalSegment = new SignalSegment();
-                dwtPrefExtension = 0;
-                dwtSuffExtension = 0;
-                derivSegmentBuffer = new List<double>(samplingRate + 2 * segmentExtension);
-                // The segment should be up to 1 second
-                for (int iDWTSegment = 0; iDWTSegment < samplingRate && iDWTGlobal + iDWTSegment < derivative.Length; iDWTSegment++)
-                {
-                    derivSegmentBuffer.Add(derivative[iDWTGlobal + iDWTSegment]);
-                    // The segment should be at least of length dwtSegmentInitialLen
-                    if (derivSegmentBuffer.Count < segmentInitialLen)
-                        continue;
-                    // Compute the distribution of the derivative
-                    (distribution, distXOffset, distStep) = DistributionDisplay.CoputeDistribution(derivSegmentBuffer.ToArray(), 10);
-                    // Check if the distribution of the derivative is not equiprobable
-                    segmentExceededLimit = false;
-                    foreach (double bar in distribution)
-                        if (bar >= distributionBarThreshold)
-                        {
-                            segmentExceededLimit = true;
-                            break;
-                        }
-                    if (segmentExceededLimit)
-                        break;
-                }
-                bufferEndingIndexBeforeExtension = iDWTGlobal + (derivSegmentBuffer.Count > 0 ? derivSegmentBuffer.Count - 1 : 0);
-
-                // Extend the segment
-                // The extension should be in the limits of the derivative's interval
-                (_, dwtMin, dwtMax) = GeneralTools.MeanMinMax(derivSegmentBuffer.ToArray());
-                dwtMaxPrefExt = iDWTGlobal - segmentExtension >= 0 ? segmentExtension : iDWTGlobal;
-                dwtMaxSuffExt = bufferEndingIndexBeforeExtension + segmentExtension < derivative.Length ? segmentExtension : (derivative.Length - bufferEndingIndexBeforeExtension) - 1;
-
-                for (int i = 1; i <= dwtMaxPrefExt; i++)
-                {
-                    int barIndex = (int)((derivative[iDWTGlobal - i] - distXOffset) / distStep);
-                    if (barIndex == distribution.Length)
-                        barIndex--;
-                    else if (barIndex > distribution.Length || barIndex < 0)
-                        break;
-                    //if (dwtMin <= derivative[iDWTGlobal - i] && derivative[iDWTGlobal - i] <= dwtMax)
-                    if (distribution[barIndex] >= 0.1d)
-                        dwtPrefExtension = i;
-                    else
-                        break;
-                }
-                for (int i = 1; i <= dwtMaxSuffExt; i++)
-                {
-                    int barIndex = (int)((derivative[bufferEndingIndexBeforeExtension + i] - distXOffset) / distStep);
-                    if (barIndex == distribution.Length)
-                        barIndex--;
-                    else if (barIndex > distribution.Length || barIndex < 0)
-                        break;
-                    //if (dwtMin <= derivative[bufferEndingIndexBeforeExtension + i] && derivative[bufferEndingIndexBeforeExtension + i] <= dwtMax)
-                    if (distribution[barIndex] >= 0.1d)
-                        dwtSuffExtension = i;
-                    else
-                        break;
-                }
-
-                // Include the new segment in signalSegmentsList
-                SignalSegment newSegment = new SignalSegment() { startingIndex = iDWTGlobal - dwtPrefExtension, endingIndex = bufferEndingIndexBeforeExtension + dwtSuffExtension };
-                newSegment.SegmentSamples = globalSamples.Where((val, index) => newSegment.startingIndex <= index && index <= newSegment.endingIndex).ToArray();
-
-                signalSegmentsList.Add(newSegment);
-
-                // Move iGlobal according to the new segment
-                iDWTGlobal = bufferEndingIndexBeforeExtension;
-            }
-
-            return signalSegmentsList;
-        }
-
         public static List<SignalSegment> SegmentTheMainSamples(double[] globalSamples, int samplingRate, double derivativeDelta, double distributionBarThreshold)
         {
             List<SignalSegment> signalSegmentsList = new List<SignalSegment>();
@@ -459,7 +339,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                     if (segmentExceededLimit)
                         break;
                 }
-                bufferEndingIndexBeforeExtension = iDWTGlobal + (dwtSegmentBuffer.Count > 0 ? dwtSegmentBuffer.Count - 1 : 0);
+                bufferEndingIndexBeforeExtension = iDWTGlobal + (dwtSegmentBuffer.Count > 0 ? dwtSegmentBuffer.Count : 0);
 
                 // Extend the segment
                 // The extension should be in the limits of the derivative's interval
@@ -483,8 +363,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 }
 
                 // Include the new segment in signalSegmentsList
-                SignalSegment newSegment = new SignalSegment() { startingIndex = (iDWTGlobal - dwtPrefExtension) * dwtDownScale, endingIndex = (bufferEndingIndexBeforeExtension + dwtSuffExtension) * dwtDownScale };
+                SignalSegment newSegment = new SignalSegment() {
+                                                                startingIndex = (iDWTGlobal - dwtPrefExtension) * dwtDownScale,
+                                                                endingIndex = (bufferEndingIndexBeforeExtension + dwtSuffExtension + 1) * dwtDownScale - 1 // Add the samples of the gape between two segments [ (.. + 1 * dwtDownScale) - 1 ]
+                }; 
                 newSegment.SegmentSamples = globalSamples.Where((val, index) => newSegment.startingIndex <= index && index <= newSegment.endingIndex).ToArray();
+                (newSegment.segmentMean, newSegment.segmentMin, newSegment.segmentMax) = GeneralTools.MeanMinMax(newSegment.SegmentSamples);
 
                 signalSegmentsList.Add(newSegment);
 
@@ -495,131 +379,21 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             return signalSegmentsList;
         }
 
-        public static List<SignalSegment> SegmentTheMainSamples0(double[] globalSamples, int samplingRate, double derivativeDelta, double distributionBarThreshold)
+        public static double[] GetFeaturesValues(SignalSegment segment)
         {
-            List<SignalSegment> signalSegmentsList = new List<SignalSegment>();
-            // The segment should be at least 0.05 seconds long
-            int segmentInitialLen = (int)(0.05d * samplingRate) + ((0.05d * samplingRate) % 1 > 0 ? 1 : 0);
-            // The segment could extend to the next and previous segments up to 0.1 seconds
-            int segmentExtension = (int)(0.1d * samplingRate) + ((0.1d * samplingRate) % 1 > 0 ? 1 : 0);
+            double[] distribution = DistributionDisplay.CoputeDistribution(segment.SegmentSamples, 10).distribution;
 
-            List<double> segmentBuffer;
-            int bufferEndingIndexBeforeExtension;
-            double[] derivative = null;
-            double[] distribution;
-
-            bool segmentExceededLimit;
-            double derMin, derMax;
-            double[] derExtended;
-            int derPrefExt;
-            int derSuffExt;
-            int prefExtension;
-            int suffExtension;
-
-            for (int iGlobal = 0; iGlobal < globalSamples.Length; iGlobal++)
-            {
-                SignalSegment signalSegment = new SignalSegment();
-                prefExtension = 0;
-                suffExtension = 0;
-                segmentBuffer = new List<double>(samplingRate + 2 * segmentExtension);
-                for (int iSegment = 0; iSegment < samplingRate && iGlobal + iSegment < globalSamples.Length; iSegment++)
-                {
-                    segmentBuffer.Add(globalSamples[iGlobal + iSegment]);
-                    // Compute the derivative of the segment
-                    derivative = GeneralTools.Derivative(segmentBuffer.ToArray(), samplingRate, derivativeDelta);
-                    // The segment should be at least of length segmentInitialLen
-                    if (segmentBuffer.Count < segmentInitialLen)
-                        continue;
-                    // Compute the distribution of the derivative
-                    distribution = DistributionDisplay.CoputeDistribution(derivative, 10).distribution;
-                    // Check if the distribution of the derivative is not equiprobable
-                    segmentExceededLimit = false;
-                    foreach (double bar in distribution)
-                        if (bar >= distributionBarThreshold)
-                        {
-                            segmentExceededLimit = true;
-                            break;
-                        }
-                    if (segmentExceededLimit)
-                        break;
-                }
-                bufferEndingIndexBeforeExtension = iGlobal + (segmentBuffer.Count > 0 ? segmentBuffer.Count - 1 : 0);
-
-                // Extend the segment
-                // The extension should be in the limits of the derivative's interval
-                (_, derMin, derMax) = GeneralTools.MeanMinMax(derivative);
-                derPrefExt = iGlobal - segmentExtension >= 0 ? segmentExtension : iGlobal;
-                derSuffExt = bufferEndingIndexBeforeExtension + segmentExtension < globalSamples.Length ? segmentExtension : (globalSamples.Length - bufferEndingIndexBeforeExtension) - 1;
-                derExtended = GeneralTools.Derivative(globalSamples.Where((sample, index) => iGlobal - derPrefExt <= index && index <= bufferEndingIndexBeforeExtension + derSuffExt).ToArray(),
-                                                      samplingRate,
-                                                      derivativeDelta);
-                for (int i = 1; i <= derPrefExt; i++)
-                {
-                    if (derMin <= derExtended[derPrefExt - i] && derExtended[derPrefExt - i] <= derMax)
-                    {
-                        segmentBuffer.Insert(0, globalSamples[iGlobal - i]);
-                        prefExtension = i;
-                    }
-                    else
-                        break;
-                }
-                for (int i = 1; i <= derSuffExt; i++)
-                {
-                    if (derMin <= derExtended[(derExtended.Length - 1) - derSuffExt + i] && derExtended[(derExtended.Length - 1) - derSuffExt + i] <= derMax)
-                    {
-                        segmentBuffer.Add(globalSamples[bufferEndingIndexBeforeExtension + i]);
-                        suffExtension = i;
-                    }
-                    else
-                        break;
-                }
-
-                // Include the new segment in signalSegmentsList
-                SignalSegment newSegment = new SignalSegment() { startingIndex = iGlobal - prefExtension, endingIndex = bufferEndingIndexBeforeExtension + suffExtension };
-                newSegment.SegmentSamples = segmentBuffer.ToArray();
-
-                signalSegmentsList.Add(newSegment);
-
-                // Move iGlobal according to the new segment
-                iGlobal = bufferEndingIndexBeforeExtension;
-            }
-
-            return signalSegmentsList;
-        }
-
-        public static (double globalMean, double globalStdDev, double globalIQR, double segmentMean,
-                       double segmentMin, double segmentMax, double segmentStdDev, double segmentIQR) GetFeaturesValues(double[] mainSamples, SignalSegment segment)
-        {
-            // Normalize samples
-            double[] normSamples = GeneralTools.normalizeSignal(mainSamples);
-            double[] normSegmentSamples = normSamples.Where((val, index) => segment.startingIndex <= index && index <= segment.endingIndex).ToArray();
-
-            double globalMean = GeneralTools.MeanMinMax(normSamples).mean;
-            double globalStdDev = GeneralTools.stdDevCalc(normSamples, globalMean);
-            double globalIQR = GeneralTools.signalIQR(normSamples);
-            (double segmentMean, double segmentMin, double segmentMax) = GeneralTools.MeanMinMax(normSegmentSamples);
-            double segmentStdDev = GeneralTools.stdDevCalc(normSegmentSamples, segmentMean);
-            double segmentIQR = GeneralTools.signalIQR(normSegmentSamples);
-
-            return (globalMean, globalStdDev, globalIQR, segmentMean,
-                    segmentMin, segmentMax, segmentStdDev, segmentIQR);
+            return distribution;
         }
 
         private Sample GetFeaturesOfTheSamples(Data dataParent)
         {
-            Sample sample = new Sample("segment" + _selectedSegment, 8, 2, dataParent);
+            double[] features = GetFeaturesValues(_SignalSegmentsList[_selectedSegment]);
 
-            (double globalMean, double globalStdDev, double globalIQR, double segmentMean,
-             double segmentMin, double segmentMax, double segmentStdDev, double segmentIQR) = GetFeaturesValues(_RescaledSamples, _SignalSegmentsList[_selectedSegment]);
+            Sample sample = new Sample("segment" + _selectedSegment, features.Length, 2, dataParent);
 
-            sample.insertFeature(0, CWDNamigs.GlobalMean, globalMean);
-            sample.insertFeature(1, CWDNamigs.GlobalStdDev, globalStdDev);
-            sample.insertFeature(2, CWDNamigs.GlobalIQR, globalIQR);
-            sample.insertFeature(3, CWDNamigs.SegmentMean, segmentMean);
-            sample.insertFeature(4, CWDNamigs.SegmentMin, segmentMin);
-            sample.insertFeature(5, CWDNamigs.SegmentMax, segmentMax);
-            sample.insertFeature(6, CWDNamigs.SegmentStdDev, segmentStdDev);
-            sample.insertFeature(7, CWDNamigs.SegmentIQR, segmentIQR);
+            for (int i = 0; i < features.Length; i++)
+                sample.insertFeature(i, "Feature " + i, features[i]);
 
             return sample;
         }

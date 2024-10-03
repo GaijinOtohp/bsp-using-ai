@@ -4,6 +4,7 @@ using Biological_Signal_Processing_Using_AI.AITools.RL_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
+using BSP_Using_AI.DetailsModify;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -26,307 +27,189 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
     {
         public class LSTMDataBuilderMemory
         {
+            public string[] FeaturesLabels = null;
+            public string[] OutputsLabels = null;
+
             public int samplingRate;
 
-            public List<CornerSample> nextCorners;
-            public List<CornerSample> prevCorners;
+            public double globalAmpInterval;
 
-            public double[] nextRescSamples;
-            public double[] prevRescSamplesReversed;
+            public double argTanNormalizer = Math.PI;
 
-            public CornerSample LatestPeak = null;
-            public CornerSample LatestClassifiedPeak = null;
-            public CornerSample LatestPPeak = null;
-            public CornerSample LatestRPeak = null;
-
-            public int latestPeakToClassifyIndx = -1;
-            public string latestPeakToClassifyName;
-            public double[] latestPeakToClassifyProba;
-
-            public bool currentPeakIsP = false;
-            public bool currentPeakIsR = false;
+            public int LatestClassifiedPeakIndex = 0;
+            public int LatestPPeakIndex = 0;
+            public int LatestRPeakIndex = 0;
+            public int LatestTPeakIndex = 0;
 
             public int PsCount = 0;
             public int RsCount = 0;
+            public int TsCount = 0;
 
-            public double latestPPInterval;
-            public double latestRRInterval;
-
-            public double ppIntervalAv;
-            public double rrIntervalAv;
-
-            public double globalMin;
-            public double segmentMin;
-
-            public double globalAmpInterval;
-            public double segmentAmpInterval;
+            //_____________________________________________________________________//
+            public int[] ProbingIntervals = new int[4];
         }
 
-        public static double[] GetLabelsOfTheSample(LSTMDataBuilderMemory dataBuilderMemory, List<CornerInterval> matchedIntervalsList)
+        public static (double opposite, double adjacent, double hypotenuse) ExtractRightTriangleBranches(double[] samples, double samplingRate)
         {
-            // There are 12 classes as output from the LSTM model
-            double[] labels = new double[12];
-
-            if (matchedIntervalsList.Count > 0)
+            double opposite = 0;
+            double adjacent = 0;
+            for (int i = 1; i < samples.Length; i++)
             {
-                foreach (CornerInterval cornInterval in matchedIntervalsList)
-                    if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.POnset))
-                        labels[0] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.PPeak))
-                    {
-                        labels[1] = 1;
-                        dataBuilderMemory.currentPeakIsP = true;
-                    }
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.PEnd))
-                        labels[2] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.QPeak))
-                        labels[3] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.RPeak))
-                    {
-                        labels[4] = 1;
-                        dataBuilderMemory.currentPeakIsR = true;
-                    }
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.SPeak))
-                        labels[5] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.TOnset))
-                        labels[6] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.TPeak))
-                        labels[7] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.TEnd))
-                        labels[8] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.Other))
-                        labels[9] = 0;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.Normal))
-                        labels[10] = 1;
-                    else if (cornInterval.Name.Equals(CWDNamigs.PeaksLabelsOutputs.Abnormal))
-                        labels[11] = 1;
+                opposite += (samples[i] - samples[0]) / (double)(samples.Length - 1);
+                adjacent += i / (double)(samples.Length - 1);
             }
-            else
+            adjacent = adjacent / samplingRate;
+            double hypotenuse = Math.Sqrt(Math.Pow(opposite, 2) + Math.Pow(adjacent, 2));
+
+            return (opposite, adjacent, hypotenuse);
+        }
+        
+        private static double[] GetSurroundingRangeFeatures(int longRangeIndex, int shortRangeIndex, int cornerIndex, LSTMDataBuilderMemory dataBuilderMemory, double[] rescaledSignalTotalSamples)
+        {
+            double[] xPeakPreSamples = rescaledSignalTotalSamples.Where((value, index) => (cornerIndex - longRangeIndex) <= index &&
+                                                                                                      index <= cornerIndex).
+                                                                  ToArray();
+            xPeakPreSamples = xPeakPreSamples.Reverse().ToArray();
+            double[] xPeakPostSamples = rescaledSignalTotalSamples.Where((value, index) => cornerIndex <= index &&
+                                                                                                      index <= cornerIndex + longRangeIndex).
+                                                                   ToArray();
+            double[] xPeakPreFeatures = new double[5];
+            double[] xPeakPostFeatures = new double[5];
+            if (xPeakPreSamples.Length > 0)
+                xPeakPreFeatures = GetSideRangeFeatures(shortRangeIndex, xPeakPreSamples, dataBuilderMemory);
+            if (xPeakPostSamples.Length > 0)
+                xPeakPostFeatures = GetSideRangeFeatures(shortRangeIndex, xPeakPostSamples, dataBuilderMemory);
+
+            double[] xPeakAllFeatures = xPeakPreFeatures.Concat(xPeakPostFeatures).ToArray();
+
+            return xPeakAllFeatures;
+        }
+        public static (int maxAmpIndex, int minAmpInde) GetMaxMinAmpFromTanIndecies(int shortRangeIndex, double meanTan, double[] spanSamples, double samplingRate)
+        {
+            int maxAmpIndex = 0;
+            double maxAmpFromTan = double.MinValue;
+            int minAmpIndex = 0;
+            double minAmpFromTan = double.MaxValue;
+
+            for (int i = 1; i < shortRangeIndex && i < spanSamples.Length; i++)
             {
-                // Set the peak as "other" and "normal"
-                labels[9] = 1;
-                labels[10] = 1;
+                double valInTan = spanSamples[0] + meanTan * (i / samplingRate);
+                if (spanSamples[i] - valInTan > maxAmpFromTan)
+                {
+                    maxAmpFromTan = spanSamples[i] - valInTan;
+                    maxAmpIndex = i;
+                }
+                if (spanSamples[i] - valInTan < minAmpFromTan)
+                {
+                    minAmpFromTan = spanSamples[i] - valInTan;
+                    minAmpIndex = i;
+                }
             }
 
-            return labels;
+            return (maxAmpIndex, minAmpIndex);
+        }
+        private static double[] GetSideRangeFeatures(int shortRangeIndex, double[] spanSamples, LSTMDataBuilderMemory dataBuilderMemory)
+        {
+            (double spanOps, double spanAdja, _) = ExtractRightTriangleBranches(spanSamples, dataBuilderMemory.samplingRate);
+
+            double spanTan = 0;
+            if (spanAdja != 0)
+                spanTan = spanOps / spanAdja;
+
+            (int spanMaxAmpIndex, int spanMinAmpIndex) = GetMaxMinAmpFromTanIndecies(shortRangeIndex, spanTan, spanSamples, dataBuilderMemory.samplingRate);
+
+            double spanMaxAmpTan = (spanSamples[spanMaxAmpIndex] - spanSamples[0]) / (spanMaxAmpIndex / (double)dataBuilderMemory.samplingRate);
+            double spanMinAmpTan = (spanSamples[spanMinAmpIndex] - spanSamples[0]) / (spanMinAmpIndex / (double)dataBuilderMemory.samplingRate);
+            double spanAmpIntervToGlob = (spanSamples[spanMaxAmpIndex] - spanSamples[spanMinAmpIndex]) / dataBuilderMemory.globalAmpInterval;
+            double spanMaxAmpBranToGlob = Math.Sqrt(Math.Pow(spanSamples[spanMaxAmpIndex] - spanSamples[0], 2) +
+                                             Math.Pow(spanMaxAmpIndex / (double)dataBuilderMemory.samplingRate, 2)) /
+                                             dataBuilderMemory.globalAmpInterval;
+            double spanMinAmpBranToGlob = Math.Sqrt(Math.Pow(spanSamples[spanMinAmpIndex] - spanSamples[0], 2) +
+                                             Math.Pow(spanMinAmpIndex / (double)dataBuilderMemory.samplingRate, 2)) /
+                                             dataBuilderMemory.globalAmpInterval;
+
+            double spanMaxAmpAtanDiv = 0;
+            double spanMinAmpAtanDiv = 0;
+            if (spanTan != 0)
+            {
+                spanMaxAmpAtanDiv = (Math.Atan(spanMaxAmpTan) - Math.Atan(spanTan)) / dataBuilderMemory.argTanNormalizer;
+                spanMinAmpAtanDiv = (Math.Atan(spanMinAmpTan) - Math.Atan(spanTan)) / dataBuilderMemory.argTanNormalizer;
+            }
+
+            return new double[] { spanMaxAmpAtanDiv, spanMinAmpAtanDiv, spanAmpIntervToGlob, spanMaxAmpBranToGlob, spanMinAmpBranToGlob };
         }
 
-        public static double[] GetFeaturesOfTheSample(Sample sample, LSTMDataBuilderMemory dataBuilderMemory, CornerSample scannedCorner)
+        public static double[] GetCornerFeatures(Sample sample, LSTMDataBuilderMemory dataBuilderMemory, int cornerIndex, double[] rescaledSignalTotalSamples, List<SignalSegment> segmentsList)
         {
-            double[] features = new double[21];
+            List<double> features = new List<double>(106);
 
-            double nextTanAv = 0;
-            double prevTanAv = 0;
-            double ppIntervRatio = 0;
-            double rrIntervRatio = 0;
-            double segmPeakAmpRatio = 0;
-            double globPeakAmpRatio = 0;
-            double segmGlobAmpRatio = 0;
-            double nextHypotAvToGlob = 0;
-            double prevHypotAvToGlob = 0;
-            double nextHypotAvToSegm = 0;
-            double prevHypotAvToSegm = 0;
-            double nextMaxAmpTan = 0;
-            double nextMinAmpTan = 0;
-            double prevMaxAmpTan = 0;
-            double prevMinAmpTan = 0;
-            double nextAmpIntervToGlob = 0;
-            double prevAmpIntervToGlob = 0;
-            double nextMaxAmpBranToGlob = 0;
-            double nextMinAmpBranToGlob = 0;
-            double prevMaxAmpBranToGlob = 0;
-            double prevMinAmpBranToGlob = 0;
-
-            if (dataBuilderMemory.nextCorners.Count > 0)
+            double[] intervalFeatures;
+            //for (int iProbingInterval = 0; iProbingInterval < dataBuilderMemory.ProbingIntervals.Length; iProbingInterval++)
+            for (int iLongIntervalSegm = 2; iLongIntervalSegm <= 5; iLongIntervalSegm++)
             {
-                double opposite = 0;
-                double adjacent = 0;
-                foreach (CornerSample nextCorn in dataBuilderMemory.nextCorners)
+                for (int iShortIntervalSegm = 1; iShortIntervalSegm < iLongIntervalSegm; iShortIntervalSegm++)
                 {
-                    opposite += (nextCorn._value - scannedCorner._value) / (double)dataBuilderMemory.nextCorners.Count;
-                    adjacent += (nextCorn._index - scannedCorner._index) / (double)dataBuilderMemory.nextCorners.Count;
+                    intervalFeatures = GetSurroundingRangeFeatures(dataBuilderMemory.ProbingIntervals[0] * iLongIntervalSegm / 10,
+                                                         dataBuilderMemory.ProbingIntervals[0] * iShortIntervalSegm / 10,
+                                                         cornerIndex,
+                                                         dataBuilderMemory,
+                                                         rescaledSignalTotalSamples);
+                    for (int iIntervalFeature = 0; iIntervalFeature < intervalFeatures.Length; iIntervalFeature++)
+                        features.Add(intervalFeatures[iIntervalFeature]);
                 }
-                nextTanAv = opposite / (adjacent / (double)dataBuilderMemory.samplingRate);
-                nextHypotAvToGlob = Math.Sqrt(Math.Pow(opposite, 2) + Math.Pow(adjacent / (double)dataBuilderMemory.samplingRate, 2));
-                nextHypotAvToSegm = nextHypotAvToGlob / dataBuilderMemory.segmentAmpInterval;
-                nextHypotAvToGlob /= dataBuilderMemory.globalAmpInterval;
-            }
-            if (dataBuilderMemory.prevCorners.Count > 0)
-            {
-                double opposite = 0;
-                double adjacent = 0;
-                foreach (CornerSample prevCorn in dataBuilderMemory.prevCorners)
-                {
-                    opposite += (scannedCorner._value - prevCorn._value) / (double)dataBuilderMemory.prevCorners.Count;
-                    adjacent += (scannedCorner._index - prevCorn._index) / (double)dataBuilderMemory.prevCorners.Count;
-                }
-                prevTanAv = opposite / (adjacent / (double)dataBuilderMemory.samplingRate);
-                prevHypotAvToGlob = Math.Sqrt(Math.Pow(opposite, 2) + Math.Pow(adjacent / (double)dataBuilderMemory.samplingRate, 2));
-                prevHypotAvToSegm = prevHypotAvToGlob / dataBuilderMemory.segmentAmpInterval;
-                prevHypotAvToGlob /= dataBuilderMemory.globalAmpInterval;
             }
 
-            if (dataBuilderMemory.ppIntervalAv > 0)
-                //ppIntervRatio = (double)(scannedCorner._index - dataBuilderMemory.LatestPPeak._index) / (dataBuilderMemory.ppIntervalAv * 2);
-                ppIntervRatio = (double)(scannedCorner._index - dataBuilderMemory.LatestPPeak._index) / dataBuilderMemory.ppIntervalAv;
-            if (dataBuilderMemory.rrIntervalAv > 0)
-                //rrIntervRatio = (double)(scannedCorner._index - dataBuilderMemory.LatestRPeak._index) / (dataBuilderMemory.rrIntervalAv * 2);
-                rrIntervRatio = (double)(scannedCorner._index - dataBuilderMemory.LatestRPeak._index) / dataBuilderMemory.rrIntervalAv;
+            SignalSegment cornerSegment = segmentsList.Where(segment => segment.startingIndex <= cornerIndex && cornerIndex <= segment.endingIndex).ToArray()[0];
+            double segmentInterval = cornerSegment.segmentMax - cornerSegment.segmentMin;
 
-            segmPeakAmpRatio = (scannedCorner._value - dataBuilderMemory.segmentMin) / dataBuilderMemory.segmentAmpInterval;
-            globPeakAmpRatio = (scannedCorner._value - dataBuilderMemory.globalMin) / dataBuilderMemory.globalAmpInterval;
-            segmGlobAmpRatio = dataBuilderMemory.segmentAmpInterval / dataBuilderMemory.globalAmpInterval;
+            features.AddRange(new double[] { 0, 0, 0 });
+            if (dataBuilderMemory.ProbingIntervals[1] != 0)
+                features[100] = (double)(cornerIndex - dataBuilderMemory.LatestPPeakIndex) / dataBuilderMemory.ProbingIntervals[1];
+            if (dataBuilderMemory.ProbingIntervals[2] != 0)
+                features[101] = (double)(cornerIndex - dataBuilderMemory.LatestRPeakIndex) / dataBuilderMemory.ProbingIntervals[2];
+            if (dataBuilderMemory.ProbingIntervals[3] != 0)
+                features[102] = (double)(cornerIndex - dataBuilderMemory.LatestTPeakIndex) / dataBuilderMemory.ProbingIntervals[3];
 
-            // Find the index of the max value an the min value from the tangent for the next range samples
-            if (dataBuilderMemory.nextRescSamples != null)
-                if (dataBuilderMemory.nextRescSamples.Length > 0)
-                {
-                    double opposite = 0;
-                    double adjacent = 0;
-                    double nextSamplesTan;
-                    for (int i = 1; i < dataBuilderMemory.nextRescSamples.Length; i++)
-                    {
-                        opposite += (dataBuilderMemory.nextRescSamples[i] - dataBuilderMemory.nextRescSamples[0]) / (double)(dataBuilderMemory.nextRescSamples.Length - 1);
-                        adjacent += i / (double)(dataBuilderMemory.nextRescSamples.Length - 1);
-                    }
-                    nextSamplesTan = opposite / (adjacent / (double)dataBuilderMemory.samplingRate);
+            features.Add((rescaledSignalTotalSamples[cornerIndex] - cornerSegment.segmentMin) / segmentInterval);
+            features.Add(rescaledSignalTotalSamples[cornerIndex] / dataBuilderMemory.globalAmpInterval);
+            features.Add(segmentInterval / dataBuilderMemory.globalAmpInterval);
 
-                    int maxAmpIndex = 0;
-                    double maxAmpFromTan = double.MinValue;
-                    int minAmpIndex = 0;
-                    double minAmpFromTan = double.MaxValue;
+            if (sample != null)
+                for (int iFeature = 0; iFeature < dataBuilderMemory.FeaturesLabels.Length; iFeature++)
+                    sample.insertFeature(iFeature, dataBuilderMemory.FeaturesLabels[iFeature], features[iFeature]);
 
-                    for (int i = 1; i < dataBuilderMemory.nextRescSamples.Length; i++)
-                    {
-                        double valInTan = dataBuilderMemory.nextRescSamples[0] + nextSamplesTan * (i / (double)dataBuilderMemory.samplingRate);
-                        if (dataBuilderMemory.nextRescSamples[i] - valInTan > maxAmpFromTan)
-                        {
-                            maxAmpFromTan = dataBuilderMemory.nextRescSamples[i] - valInTan;
-                            maxAmpIndex = i;
-                        }
-                        if (dataBuilderMemory.nextRescSamples[i] - valInTan < minAmpFromTan)
-                        {
-                            minAmpFromTan = dataBuilderMemory.nextRescSamples[i] - valInTan;
-                            minAmpIndex = i;
-                        }
-                    }
-
-                    nextMaxAmpTan = (dataBuilderMemory.nextRescSamples[maxAmpIndex] - dataBuilderMemory.nextRescSamples[0]) / (maxAmpIndex / (double)dataBuilderMemory.samplingRate);
-                    nextMinAmpTan = (dataBuilderMemory.nextRescSamples[minAmpIndex] - dataBuilderMemory.nextRescSamples[0]) / (minAmpIndex / (double)dataBuilderMemory.samplingRate);
-                    nextAmpIntervToGlob = (dataBuilderMemory.nextRescSamples[maxAmpIndex] - dataBuilderMemory.nextRescSamples[minAmpIndex]) / dataBuilderMemory.globalAmpInterval;
-                    nextMaxAmpBranToGlob = Math.Sqrt(Math.Pow(dataBuilderMemory.nextRescSamples[maxAmpIndex] - dataBuilderMemory.nextRescSamples[0], 2) +
-                                                     Math.Pow(maxAmpIndex / (double)dataBuilderMemory.samplingRate, 2)) /
-                                                     dataBuilderMemory.globalAmpInterval;
-                    nextMinAmpBranToGlob = Math.Sqrt(Math.Pow(dataBuilderMemory.nextRescSamples[minAmpIndex] - dataBuilderMemory.nextRescSamples[0], 2) +
-                                                     Math.Pow(minAmpIndex / (double)dataBuilderMemory.samplingRate, 2)) /
-                                                     dataBuilderMemory.globalAmpInterval;
-                }
-            // Find the index of the max value an the min value from the tangent for the previous range samples
-            if (dataBuilderMemory.prevRescSamplesReversed != null)
-                if (dataBuilderMemory.prevRescSamplesReversed.Length > 0)
-                {
-                    double opposite = 0;
-                    double adjacent = 0;
-                    double prevSamplesTan;
-                    for (int i = 1; i < dataBuilderMemory.prevRescSamplesReversed.Length; i++)
-                    {
-                        opposite += (dataBuilderMemory.prevRescSamplesReversed[i] - dataBuilderMemory.prevRescSamplesReversed[0]) / (double)(dataBuilderMemory.prevRescSamplesReversed.Length - 1);
-                        adjacent += i / (double)(dataBuilderMemory.prevRescSamplesReversed.Length - 1);
-                    }
-                    prevSamplesTan = opposite / (adjacent / (double)dataBuilderMemory.samplingRate);
-
-                    int maxAmpIndex = 0;
-                    double maxAmpFromTan = double.MinValue;
-                    int minAmpIndex = 0;
-                    double minAmpFromTan = double.MaxValue;
-
-                    for (int i = 1; i < dataBuilderMemory.prevRescSamplesReversed.Length; i++)
-                    {
-                        double valInTan = dataBuilderMemory.prevRescSamplesReversed[0] + prevSamplesTan * (i / (double)dataBuilderMemory.samplingRate);
-                        if (dataBuilderMemory.prevRescSamplesReversed[i] - valInTan > maxAmpFromTan)
-                        {
-                            maxAmpFromTan = dataBuilderMemory.prevRescSamplesReversed[i] - valInTan;
-                            maxAmpIndex = i;
-                        }
-                        if (dataBuilderMemory.prevRescSamplesReversed[i] - valInTan < minAmpFromTan)
-                        {
-                            minAmpFromTan = dataBuilderMemory.prevRescSamplesReversed[i] - valInTan;
-                            minAmpIndex = i;
-                        }
-                    }
-
-                    prevMaxAmpTan = (dataBuilderMemory.prevRescSamplesReversed[maxAmpIndex] - dataBuilderMemory.prevRescSamplesReversed[0]) / (maxAmpIndex / (double)dataBuilderMemory.samplingRate);
-                    prevMinAmpTan = (dataBuilderMemory.prevRescSamplesReversed[minAmpIndex] - dataBuilderMemory.prevRescSamplesReversed[0]) / (minAmpIndex / (double)dataBuilderMemory.samplingRate);
-                    prevAmpIntervToGlob = (dataBuilderMemory.prevRescSamplesReversed[maxAmpIndex] - dataBuilderMemory.prevRescSamplesReversed[minAmpIndex]) / dataBuilderMemory.globalAmpInterval;
-                    prevMaxAmpBranToGlob = Math.Sqrt(Math.Pow(dataBuilderMemory.prevRescSamplesReversed[maxAmpIndex] - dataBuilderMemory.prevRescSamplesReversed[0], 2) +
-                                                     Math.Pow(maxAmpIndex / (double)dataBuilderMemory.samplingRate, 2)) /
-                                                     dataBuilderMemory.globalAmpInterval;
-                    prevMinAmpBranToGlob = Math.Sqrt(Math.Pow(dataBuilderMemory.prevRescSamplesReversed[minAmpIndex] - dataBuilderMemory.prevRescSamplesReversed[0], 2) +
-                                                     Math.Pow(minAmpIndex / (double)dataBuilderMemory.samplingRate, 2)) /
-                                                     dataBuilderMemory.globalAmpInterval;
-                }
-
-            features[0] = Math.Atan(nextTanAv) / Math.PI;
-            features[1] = Math.Atan(prevTanAv) / Math.PI;
-            features[2] = ppIntervRatio;
-            features[3] = rrIntervRatio;
-            features[4] = segmPeakAmpRatio;
-            features[5] = globPeakAmpRatio;
-            features[6] = segmGlobAmpRatio;
-            features[7] = nextHypotAvToGlob;
-            features[8] = prevHypotAvToGlob;
-            features[9] = nextHypotAvToSegm;
-            features[10] = prevHypotAvToSegm;
-            features[11] = Math.Atan(nextMaxAmpTan) / Math.PI;
-            features[12] = Math.Atan(nextMinAmpTan) / Math.PI;
-            features[13] = Math.Atan(prevMaxAmpTan) / Math.PI;
-            features[14] = Math.Atan(prevMinAmpTan) / Math.PI;
-            features[15] = nextAmpIntervToGlob;
-            features[16] = prevAmpIntervToGlob;
-            features[17] = nextMaxAmpBranToGlob;
-            features[18] = nextMinAmpBranToGlob;
-            features[19] = prevMaxAmpBranToGlob;
-            features[20] = prevMinAmpBranToGlob;
-
-            sample?.insertFeature(0, CWDNamigs.NextArgTanRatio, features[0]);
-            sample?.insertFeature(1, CWDNamigs.PrevArgTanRatio, features[1]);
-            sample?.insertFeature(2, CWDNamigs.PPIntervRatio, features[2]);
-            sample?.insertFeature(3, CWDNamigs.RRIntervRatio, features[3]);
-            sample?.insertFeature(4, CWDNamigs.SegmPeakAmpRatio, features[4]);
-            sample?.insertFeature(5, CWDNamigs.GlobPeakAmpRatio, features[5]);
-            sample?.insertFeature(6, CWDNamigs.SegmGlobAmpRatio, features[6]);
-            sample?.insertFeature(7, CWDNamigs.NextHypotAvToGlob, features[7]);
-            sample?.insertFeature(8, CWDNamigs.PrevHypotAvToGlob, features[8]);
-            sample?.insertFeature(9, CWDNamigs.NextHypotAvToSegm, features[9]);
-            sample?.insertFeature(10, CWDNamigs.PrevHypotAvToSegm, features[10]);
-            sample?.insertFeature(11, CWDNamigs.NextMaxAmpArgTanRatio, features[11]);
-            sample?.insertFeature(12, CWDNamigs.NextMinAmpArgTanRatio, features[12]);
-            sample?.insertFeature(13, CWDNamigs.PrevMaxAmpArgTanRatio, features[13]);
-            sample?.insertFeature(14, CWDNamigs.PrevMinAmpArgTanRatio, features[14]);
-            sample?.insertFeature(15, CWDNamigs.NextAmpIntervRatio, features[15]);
-            sample?.insertFeature(16, CWDNamigs.PrevAmpIntervRatio, features[16]);
-            sample?.insertFeature(17, CWDNamigs.NextHypotMaxToGlob, features[17]);
-            sample?.insertFeature(18, CWDNamigs.NextHypotMinToGlob, features[18]);
-            sample?.insertFeature(19, CWDNamigs.PrevHypotMaxToGlob, features[19]);
-            sample?.insertFeature(20, CWDNamigs.PrevHypotMinToGlob, features[20]);
-
-            return features;
+            return features.ToArray();
         }
 
-        private static void UpdateDatasetSample(ref Sample sample, Data CornersScanData, LSTMDataBuilderMemory dataBuilderMemory, CornerSample scannedCorner, List<CornerInterval> matchedIntervalsList, bool updateTheSample)
+        private static void UpdatePeakMemoryParams(ref int latestXPeakIndex, ref int xxIntervalAv, ref int XsCount, int newXPeakIndex)
         {
-            if (!updateTheSample)
+            double latestXPeakInterval = newXPeakIndex - latestXPeakIndex;
+            xxIntervalAv = (int)((xxIntervalAv * XsCount + latestXPeakInterval) / (XsCount + 1));
+
+            XsCount++;
+            latestXPeakIndex = newXPeakIndex;
+        }
+
+        public static void GetOutputsOfTheSample(Sample sample, LSTMDataBuilderMemory dataBuilderMemory, List<CornerInterval> matchedIntrvsList)
+        {
+            foreach (CornerInterval cornerIntv in matchedIntrvsList)
             {
-                sample = new Sample("Peak" + scannedCorner._index, 21, 12, CornersScanData);
+                for (int iOutput = 0; iOutput < dataBuilderMemory.OutputsLabels.Length; iOutput++)
+                    if (dataBuilderMemory.OutputsLabels[iOutput].Equals(cornerIntv.Name))
+                    {
+                        sample?.insertOutput(iOutput, cornerIntv.Name, 1);
+
+                        if (cornerIntv.Name.Equals(CWDNamigs.PeaksLabelsOutputs.PPeak))
+                            UpdatePeakMemoryParams(ref dataBuilderMemory.LatestPPeakIndex, ref dataBuilderMemory.ProbingIntervals[1], ref dataBuilderMemory.PsCount, cornerIntv.cornerIndex);
+                        else if (cornerIntv.Name.Equals(CWDNamigs.PeaksLabelsOutputs.RPeak))
+                            UpdatePeakMemoryParams(ref dataBuilderMemory.LatestRPeakIndex, ref dataBuilderMemory.ProbingIntervals[2], ref dataBuilderMemory.RsCount, cornerIntv.cornerIndex);
+                        else if (cornerIntv.Name.Equals(CWDNamigs.PeaksLabelsOutputs.TPeak))
+                            UpdatePeakMemoryParams(ref dataBuilderMemory.LatestTPeakIndex, ref dataBuilderMemory.ProbingIntervals[3], ref dataBuilderMemory.TsCount, cornerIntv.cornerIndex);
+                    }
+
+                if (!cornerIntv.Name.Equals(CWDNamigs.PeaksLabelsOutputs.Other))
+                    dataBuilderMemory.LatestClassifiedPeakIndex = cornerIntv.cornerIndex;
             }
-
-            // Get the label of the selected scanned corner
-            double[] labels = GetLabelsOfTheSample(dataBuilderMemory, matchedIntervalsList);
-            string[] labelsNamings = new string[] { CWDNamigs.PeaksLabelsOutputs.POnset, CWDNamigs.PeaksLabelsOutputs.PPeak, CWDNamigs.PeaksLabelsOutputs.PEnd, CWDNamigs.PeaksLabelsOutputs.QPeak, CWDNamigs.PeaksLabelsOutputs.RPeak, CWDNamigs.PeaksLabelsOutputs.SPeak,
-                                                    CWDNamigs.PeaksLabelsOutputs.TOnset, CWDNamigs.PeaksLabelsOutputs.TPeak, CWDNamigs.PeaksLabelsOutputs.TEnd, CWDNamigs.PeaksLabelsOutputs.Normal, CWDNamigs.PeaksLabelsOutputs.Abnormal };
-
-            GetFeaturesOfTheSample(sample, dataBuilderMemory, scannedCorner);
-            sample.insertOutputArray(labelsNamings, labels);
         }
 
         public static List<List<Sample>> BuildLSTMTrainingSequences(List<DataRow> rowsList, TFNETReinforcementL rlModel)
@@ -345,146 +228,78 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 double globalAmpInterval = 4d;
                 double[] RescaledSamples = GeneralTools.rescaleSignal(signalSamples, globalAmpInterval);
 
-                List<SignalSegment> segmentsList = CWD_RL.SegmentTheMainSamples(RescaledSamples, samplingRate, 0.002d, 0.5d);
-
                 // Scan the corners of each segment using the corners scanner in FormDetailsModifyFilters
+                (List<CornerSample> ScannedCorners, List<SignalSegment> SegmentsList) = FormDetailsModify.RLAutoCornersScanner(rlModel, signalSamples, samplingRate);
                 // The parameters of the scanner are extracted using the RL model in cwdLSTM
-                Dictionary<int, (CornerSample corner, Sample dataSample)> scannedCornersDict = new Dictionary<int, (CornerSample, Sample)>(annoData.GetAnnotations().Count);
-                AnnotationECG[] trueCorners = CWD_RL.GetCornersExceptDleta(annoData);
+                List<int> totalScannedCornersIndecies = ScannedCorners.Select(corner => corner._index).ToList();
+
+                // Combine each scanned sample in totalScannedCornersIndecies to its closest annotation in approxIntervList
+                AnnotationECG[] trueCorners = CWD_RL.GetCornersWithException(annoData, new string[] { CWDNamigs.Delta, CWDNamigs.Normal, CWDNamigs.Abnormal });
                 // Create the intervals covering 40% from the corners in both sides
                 List<CornerInterval> approxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, RescaledSamples, samplingRate);
+                // Sort the intervals in a dictionary with the indecies of the scanned corners
+                Dictionary<int, List<CornerInterval>> sortedIntervDictBuff = approxIntervList.Select(cornerIntv => (coveredIndicies: totalScannedCornersIndecies.Where(scannedCornIndx => cornerIntv.starting <= scannedCornIndx &&
+                                                                                                                                                  scannedCornIndx <= cornerIntv.ending).ToList(),
+                                                                                                                cornerIntv)).
+                                                                                          Select(tuple => (coveredIndiciesDist: tuple.coveredIndicies.Select(scannedCornIndx => (
+                                                                                                                                                                                    Math.Sqrt(
+                                                                                                                                                                                                Math.Pow((double)(scannedCornIndx - tuple.cornerIntv.cornerIndex) / samplingRate, 2) +
+                                                                                                                                                                                                Math.Pow(RescaledSamples[scannedCornIndx] - RescaledSamples[tuple.cornerIntv.cornerIndex], 2)
+                                                                                                                                                                                             ),
+                                                                                                                                                                                    scannedCornIndx
+                                                                                                                                                                                )).
+                                                                                                                                                      ToList(),
+                                                                                                           tuple.cornerIntv)
+                                                                                                ).
+                                                                                          Select(tuple => (closestIndex: tuple.coveredIndiciesDist.Count > 0 ? tuple.coveredIndiciesDist.Min().scannedCornIndx : tuple.cornerIntv.cornerIndex,
+                                                                                                           tuple.cornerIntv)).
+                                                                                          Select(tuple => (tuple.closestIndex, cornerIntv: new CornerInterval()
+                                                                                          {
+                                                                                              cornerIndex = tuple.closestIndex,
+                                                                                              Name = tuple.cornerIntv.Name
+                                                                                          })).
+                                                                                          GroupBy(tuple => tuple.closestIndex).
+                                                                                          Select(group => (group.Key, cornerIntvGroup: group.ToList().Select(group => group.cornerIntv).ToList())).
+                                                                                          ToDictionary(tuple => tuple.Key, tuple => tuple.cornerIntvGroup);
+
+                Dictionary<int, List<CornerInterval>> sortedIntervDict = totalScannedCornersIndecies.Select(scannedCornIndx => new List<CornerInterval>() { new CornerInterval() { cornerIndex = scannedCornIndx,
+                                                                                                                                                                                   Name = CWDNamigs.PeaksLabelsOutputs.Other } }).
+                                                                                                     ToDictionary(cornerIntvList => cornerIntvList[0].cornerIndex);
+
+                // Combine other corners with the true ones
+                foreach (int intervIndex in sortedIntervDictBuff.Keys)
+                    if (sortedIntervDict.ContainsKey(intervIndex))
+                        sortedIntervDict[intervIndex] = sortedIntervDictBuff[intervIndex];
+                    else
+                        sortedIntervDict.Add(intervIndex, sortedIntervDictBuff[intervIndex]);
+
+                sortedIntervDict = sortedIntervDict.OrderBy(keyVal => keyVal.Key).ToDictionary(keyVal => keyVal.Key, keyVal => keyVal.Value);
+
+                // Create the training samples
 
                 // Create the data list sequence for the current signal
                 LSTMDataBuilderMemory dataBuilderMemory = new LSTMDataBuilderMemory();
-                List<Sample> cornersSequence = new List<Sample>(scannedCornersDict.Count);
                 Data CornersScanData = new Data(CWDNamigs.LSTMPeaksClassificationData);
-                Sample sample = null;
 
-                // Update dataBuilderMemory with the global samples
-                dataBuilderMemory.globalMin = GeneralTools.MeanMinMax(RescaledSamples).min;
-                dataBuilderMemory.globalAmpInterval = globalAmpInterval;
+                dataBuilderMemory.OutputsLabels = CWDNamigs.PeaksLabelsOutputs.GetNames();
+                //dataBuilderMemory.FeaturesLabels = CWDNamigs.PeaksLabelsFeatures.GetNames();
+                dataBuilderMemory.FeaturesLabels = new string[106];
+                for (int i = 0; i < 106; i++)
+                    dataBuilderMemory.FeaturesLabels[i] = "Feature " + i;
                 dataBuilderMemory.samplingRate = samplingRate;
+                dataBuilderMemory.ProbingIntervals[0] = samplingRate;
+                dataBuilderMemory.globalAmpInterval = globalAmpInterval;
 
-                foreach (SignalSegment segment in segmentsList)
+                foreach (int cornerIndex in sortedIntervDict.Keys)
                 {
-                    (double globalMean, double globalStdDev, double globalIQR, double segmentMean,
-                     double segmentMin, double segmentMax, double segmentStdDev, double segmentIQR) = GetFeaturesValues(RescaledSamples, segment);
-                    double[] features = new double[] { globalMean, globalStdDev, globalIQR, segmentMean, segmentMin, segmentMax, segmentStdDev, segmentIQR };
+                    // Create a new sample
+                    Sample sample = new Sample("Peak" + cornerIndex, dataBuilderMemory.FeaturesLabels.Length, dataBuilderMemory.OutputsLabels.Length, CornersScanData);
 
-                    double[] atARTOutput = TF_NET_NN.predict(features, rlModel, rlModel.BaseModel.Session);
+                    // Set features of the corner before the outputs (the outputs updates dataBuilderMemory for the next corner)
+                    GetCornerFeatures(sample, dataBuilderMemory, cornerIndex, RescaledSamples, SegmentsList);
 
-                    List<RLDimension> dimList = rlModel._DimensionsList;
-                    double at = dimList[0]._min + (atARTOutput[0] * (dimList[0]._max - dimList[0]._min));
-                    double art = dimList[1]._min + (atARTOutput[1] * (dimList[1]._max - dimList[1]._min));
-                    List<CornerSample> tempCornersList = ScanCorners(segment.SegmentSamples, segment.startingIndex, samplingRate, art, at);
-
-                    // Update dataBuilderMemory with the segment samples
-                    (_, double rescSegmentMin, double rescSegmentMax) = GeneralTools.MeanMinMax(segment.SegmentSamples);
-                    dataBuilderMemory.segmentMin = rescSegmentMin;
-                    dataBuilderMemory.segmentAmpInterval = rescSegmentMax - rescSegmentMin;
-
-                    // There should be no double true corners
-                    foreach (CornerSample scannedCorner in tempCornersList)
-                    {
-                        // The new corner should be after the latest peak
-                        if (dataBuilderMemory.LatestPeak != null)
-                            if (scannedCorner._index <= dataBuilderMemory.LatestPeak._index)
-                                continue;
-
-                        // Get the next and previous corners that are in the range of 0.2 sec froward and backward
-                        double nearbyCornersTempIntervalRange = 0.3d;
-                        dataBuilderMemory.nextCorners = tempCornersList.Where(corner => Math.Abs(corner._index - scannedCorner._index) / (double)samplingRate <= nearbyCornersTempIntervalRange && corner._index > scannedCorner._index).ToList();
-                        dataBuilderMemory.prevCorners = tempCornersList.Where(corner => Math.Abs(corner._index - scannedCorner._index) / (double)samplingRate <= nearbyCornersTempIntervalRange && corner._index < scannedCorner._index).ToList();
-
-                        double nearbySamplesTempIntervalRange = 0.3d;
-                        dataBuilderMemory.nextRescSamples = RescaledSamples.Where((value, index) => scannedCorner._index <= index && index <= scannedCorner._index + (nearbySamplesTempIntervalRange * samplingRate)).ToArray();
-                        dataBuilderMemory.prevRescSamplesReversed = RescaledSamples.Where((value, index) => scannedCorner._index - (nearbySamplesTempIntervalRange * samplingRate) <= index && index <= scannedCorner._index).ToArray();
-                        dataBuilderMemory.prevRescSamplesReversed = dataBuilderMemory.prevRescSamplesReversed.Reverse().ToArray();
-
-                        // Get the interval where this scannedCornIndx is belonging to
-                        List<CornerInterval> matchedIntervalsList = approxIntervList.Where(interval => interval.starting <= scannedCorner._index && scannedCorner._index <= interval.ending).ToList();
-
-                        // Check if we have a true corner close to the current scanned one
-                        if (matchedIntervalsList.Count > 0)
-                        {
-                            CornerInterval cornInterval = matchedIntervalsList[0];
-                            // If this corner is already included in scannedCornersDict
-                            // then check if this scanned corner is closer to the true one
-                            if (scannedCornersDict.ContainsKey(cornInterval.cornerIndex))
-                            {
-                                // Compute the amplitude between the real corner and the new scanned one vs the real corner and the previous selected one
-                                double newDistAamp = Math.Sqrt(Math.Pow((cornInterval.cornerIndex - scannedCorner._index) / (double)samplingRate, 2) + Math.Pow(RescaledSamples[cornInterval.cornerIndex] - scannedCorner._value, 2));
-                                double prevDistAamp = Math.Sqrt(Math.Pow((cornInterval.cornerIndex - scannedCornersDict[cornInterval.cornerIndex].corner._index) / (double)samplingRate, 2) + Math.Pow(RescaledSamples[cornInterval.cornerIndex] - scannedCornersDict[cornInterval.cornerIndex].corner._value, 2));
-                                if (newDistAamp < prevDistAamp)
-                                {
-                                    // If yes then set the previous corner as "Other"
-                                    for (int iOutput = 0; iOutput < 12; iOutput++) // 3 for P, 3 for QRS, and 3 for T
-                                        scannedCornersDict[cornInterval.cornerIndex].dataSample.UpdateOutput(iOutput, 0);
-                                    //scannedCornersDict[cornInterval.cornerIndex].dataSample.UpdateOutput(9, 1); // The 9th index is for "Other" peaks
-                                    // Create a dataset sequence sample for the current scanned corner
-                                    UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
-                                    // Swap the previous corner in the dictionary with the new one
-                                    scannedCornersDict[cornInterval.cornerIndex] = (scannedCorner, sample);
-                                }
-                                else
-                                {
-                                    // Add the new scanned corner as "Other"
-                                    // Create a dataset sequence sample for the current scanned corner
-                                    //matchedIntervalsList = matchedIntervalsList.Where(interval => interval.Name == CWDNamigs.PeaksLabelsOutputs.Normal || interval.Name == CWDNamigs.PeaksLabelsOutputs.Abnormal).ToList();
-                                    //matchedIntervalsList.Add(new CornerInterval() { Name = CWDNamigs.PeaksLabelsOutputs.Other });
-                                    matchedIntervalsList = new List<CornerInterval>();
-                                    UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
-                                }
-                            }
-                            else
-                            {
-                                // Update the latest classified peak
-                                if (dataBuilderMemory.latestPeakToClassifyIndx >= 0)
-                                    dataBuilderMemory.LatestClassifiedPeak = scannedCornersDict[dataBuilderMemory.latestPeakToClassifyIndx].corner.Clone();
-                                dataBuilderMemory.latestPeakToClassifyIndx = cornInterval.cornerIndex;
-                                // Update LatestPPeak and LatestRPeak with their averaged interval
-                                if (dataBuilderMemory.currentPeakIsP)
-                                {
-                                    if (dataBuilderMemory.PsCount > 0)
-                                    {
-                                        dataBuilderMemory.latestPPInterval = dataBuilderMemory.LatestClassifiedPeak._index - dataBuilderMemory.LatestPPeak._index;
-                                        dataBuilderMemory.ppIntervalAv = ((dataBuilderMemory.ppIntervalAv * dataBuilderMemory.PsCount) + dataBuilderMemory.latestPPInterval)
-                                                                         / (double)(dataBuilderMemory.PsCount + 1);
-                                    }
-                                    dataBuilderMemory.PsCount++;
-
-                                    dataBuilderMemory.LatestPPeak = dataBuilderMemory.LatestClassifiedPeak.Clone();
-                                    dataBuilderMemory.currentPeakIsP = false;
-                                }
-                                if (dataBuilderMemory.currentPeakIsR)
-                                {
-                                    if (dataBuilderMemory.RsCount > 0)
-                                    {
-                                        dataBuilderMemory.latestRRInterval = dataBuilderMemory.LatestClassifiedPeak._index - dataBuilderMemory.LatestRPeak._index;
-                                        dataBuilderMemory.rrIntervalAv = ((dataBuilderMemory.rrIntervalAv * dataBuilderMemory.RsCount) + dataBuilderMemory.latestRRInterval)
-                                                                         / (double)(dataBuilderMemory.RsCount + 1);
-                                    }
-                                    dataBuilderMemory.RsCount++;
-
-                                    dataBuilderMemory.LatestRPeak = dataBuilderMemory.LatestClassifiedPeak.Clone();
-                                    dataBuilderMemory.currentPeakIsR = false;
-                                }
-                                // Create a dataset sequence sample for the current scanned corner
-                                UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
-                                // Add the new true corner
-                                scannedCornersDict.Add(cornInterval.cornerIndex, (scannedCorner, sample));
-                            }
-                        }
-                        else
-                        {
-                            // Create a dataset sequence sample for the current scanned corner
-                            UpdateDatasetSample(ref sample, CornersScanData, dataBuilderMemory, scannedCorner, matchedIntervalsList, false);
-                            // Otherwise just add the corner as a regular one
-                            scannedCornersDict.Add(scannedCorner._index, (scannedCorner, sample));
-                        }
-
-                        dataBuilderMemory.LatestPeak = scannedCorner.Clone();
-                    }
+                    // Set the output
+                    GetOutputsOfTheSample(sample, dataBuilderMemory, sortedIntervDict[cornerIndex]);
                 }
 
                 //_______________________________________________________________________________________________________//
@@ -503,7 +318,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
             // Check if there is any other deep Q-learning "CWDReinforcementLModel" model with the same training data as the current one
             bool rlModelCopied = false;
-            foreach(ObjectiveBaseModel objectiveBaseModel in _aIToolsForm._objectivesModelsDic.Values)
+            foreach (ObjectiveBaseModel objectiveBaseModel in _aIToolsForm._objectivesModelsDic.Values)
                 // The model exists only in CWDReinforcementL or CWDLSTM objects and should not be the model being trained
                 if ((objectiveBaseModel is CWDReinforcementL || objectiveBaseModel is CWDLSTM) && objectiveBaseModel != _objectiveModel)
                     // The training data could be checked using the samples ids in DataIdsIntervalsList

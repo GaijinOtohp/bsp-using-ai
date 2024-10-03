@@ -107,10 +107,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             // Create the model object
             CWDLSTM cwdLSTM = new CWDLSTM();
             // One for tuning the peaks analyzer using deep Q learning
-            cwdLSTM.CWDReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, rlModelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
-            cwdLSTM.CWDCrazyReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyRLModelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
+            cwdLSTM.CWDReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, rlModelPath, inputDim: 10, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
+            cwdLSTM.CWDCrazyReinforcementLModel = CWD_RL_TFNET.createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyRLModelPath, inputDim: 10, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
             // One for classifying the peaks
-            cwdLSTM.CWDLSTMModel = createTFNETLSTMModel(CWDNamigs.LSTMPeaksClassificationData, lstmModelPath, inputDim: 26, outputDim: 12, CWDNamigs.PeaksLabelsOutputs.GetNames());
+            cwdLSTM.CWDLSTMModel = createTFNETLSTMModel(CWDNamigs.LSTMPeaksClassificationData, lstmModelPath, inputDim: 106, outputDim: 10, CWDNamigs.PeaksLabelsOutputs.GetNames());
 
             cwdLSTM.ModelName = TFNETLSTMModel.ModelName;
             cwdLSTM.ObjectiveName = " for " + CharacteristicWavesDelineation.ObjectiveName + lstmModelIndx;
@@ -129,9 +129,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
         public static TFNETLSTMModel createTFNETLSTMModel(string name, string path, int inputDim, int outputDim, string[] outputNames)
         {
-            int modelSequenceLength = 10;
+            int modelSequenceLength = 2;
             int layers = 1;
-            TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, outputNames, modelSequenceLength, layers: layers) { Name = name, Type = ObjectiveType.Classification };
+            TFNETLSTMModel model = new TFNETLSTMModel(path, inputDim, outputDim, outputNames, modelSequenceLength, bidirectional: true, layers: layers) { Name = name, Type = ObjectiveType.Classification };
 
             model.BaseModel.Session = TF_NET_LSTM_Recur.LSTMSession(model);
 

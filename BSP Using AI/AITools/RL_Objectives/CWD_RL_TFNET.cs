@@ -88,8 +88,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
             // Create the model object
             CWDReinforcementL cwdReinforcementL = new CWDReinforcementL();
-            cwdReinforcementL.CWDReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, modelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
-            cwdReinforcementL.CWDCrazyReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyModelPath, inputDim: 8, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
+            cwdReinforcementL.CWDReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, modelPath, inputDim: 10, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
+            cwdReinforcementL.CWDCrazyReinforcementLModel = createTFNETRLModel(CWDNamigs.RLCornersScanData, crazyModelPath, inputDim: 10, outputDim: 2, CWDNamigs.CornersScanOutputs.GetNames());
 
             cwdReinforcementL.ModelName = TFNETReinforcementL.ModelName;
             cwdReinforcementL.ObjectiveName = " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx;
@@ -109,7 +109,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         public static TFNETReinforcementL createTFNETRLModel(string name, string path, int inputDim, int outputDim, string[] outputNames)
         {
             List<RLDimension> dimensionsList = new List<RLDimension>(2);
-            dimensionsList.Add(new RLDimension(name: CWDNamigs.CornersScanOutputs.AT, size: 60, min: 1, max: 40));
+            dimensionsList.Add(new RLDimension(name: CWDNamigs.CornersScanOutputs.AT, size: 30, min: 1, max: 25));
             dimensionsList.Add(new RLDimension(name: CWDNamigs.CornersScanOutputs.ART, size: 60, min: 0, max: 0.3d));
 
             TFNETReinforcementL model = new TFNETReinforcementL(path, inputDim, outputDim, outputNames, dimensionsList) { Name = name, Type = ObjectiveType.Regression };
@@ -145,9 +145,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             // but inform the shape of the input, with "input" elements.
             int hidLayerDim = (int)((float)inputDim * (2f / 3f) + outputDim);
             // Define the model function
-            Tensor hiddenLayer1 = tf.nn.tanh(TF_NET_NN.Layer(input, hidLayerDim)); // The input layer connected to the 1st hidden layer. The 1st layer has "Tanh" as activation function
-            Tensor hiddenLayer2 = TF_NET_NN.Layer(hiddenLayer1, hidLayerDim); // The 1st hidden layer connected to the 2nd hidden layer. The 2nd layer has "linear" as activation function (default)
-            Tensor output = TF_NET_NN.HardSigmoid(TF_NET_NN.Layer(hiddenLayer2, outputDim), "output"); // The 2nd hidden layer connected to the output layer. The output layer has "hard sigmoid" as activation function
+            Tensor hiddenLayer1 = TF_NET_NN.ELU(TF_NET_NN.Layer(input, hidLayerDim)); // The input layer connected to the 1st hidden layer. The 1st layer has "ELU" as activation function
+            Tensor output = TF_NET_NN.Layer(hiddenLayer1, outputDim, name: "output"); // The 2nd hidden layer connected to the output layer. The output layer has no activation function
             Session session = new Session(graph);
             session.as_default();
             // Assign values to the graph variables
