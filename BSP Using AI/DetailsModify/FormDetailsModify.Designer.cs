@@ -263,7 +263,8 @@
             // 
             // featuresSettingInstructionsLabel
             // 
-            this.featuresSettingInstructionsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.featuresSettingInstructionsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.featuresSettingInstructionsLabel.Location = new System.Drawing.Point(7, 697);
             this.featuresSettingInstructionsLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
@@ -273,6 +274,7 @@
             // 
             // previousButton
             // 
+            this.previousButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.previousButton.Enabled = false;
             this.previousButton.Location = new System.Drawing.Point(6, 826);
             this.previousButton.Margin = new System.Windows.Forms.Padding(2);
@@ -285,6 +287,7 @@
             // 
             // nextButton
             // 
+            this.nextButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.nextButton.Enabled = false;
             this.nextButton.Location = new System.Drawing.Point(88, 826);
             this.nextButton.Margin = new System.Windows.Forms.Padding(2);
@@ -329,7 +332,8 @@
             // 
             // featuresTableLayoutPanel
             // 
-            this.featuresTableLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.featuresTableLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.featuresTableLayoutPanel.AutoScroll = true;
             this.featuresTableLayoutPanel.ColumnCount = 1;
             this.featuresTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
@@ -343,6 +347,7 @@
             // 
             // predictButton
             // 
+            this.predictButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.predictButton.Location = new System.Drawing.Point(660, 826);
             this.predictButton.Margin = new System.Windows.Forms.Padding(2);
             this.predictButton.Name = "predictButton";
@@ -354,6 +359,7 @@
             // 
             // modelTypeComboBox
             // 
+            this.modelTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.modelTypeComboBox.DisplayMember = "1";
             this.modelTypeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.modelTypeComboBox.DropDownWidth = 300;
@@ -392,6 +398,7 @@
             // 
             // samplingRateLabel
             // 
+            this.samplingRateLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.samplingRateLabel.AutoSize = true;
             this.samplingRateLabel.Location = new System.Drawing.Point(413, 30);
             this.samplingRateLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
@@ -402,6 +409,7 @@
             // 
             // quantizationStepLabel
             // 
+            this.quantizationStepLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.quantizationStepLabel.AutoSize = true;
             this.quantizationStepLabel.Location = new System.Drawing.Point(503, 30);
             this.quantizationStepLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
