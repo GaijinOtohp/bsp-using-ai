@@ -64,6 +64,25 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                 }
             }
 
+            public class PeaksPredictionTolerance
+            {
+                public static double POnsetTolMillis = 10.2d;
+                public static double PPeakTolMillis = 75d;
+                public static double PEndTolMillis = 12.7d;
+                public static double QPeakTolMillis = 6.5d;
+                public static double RPeakTolMillis = 75d;
+                public static double SPeakTolMillis = 11.6d;
+                public static double TOnsetTolMillis = 75d;
+                public static double TPeakTolMillis = 75d;
+                public static double TEndTolMillis = 30.6d;
+                public static double OtherTolMillis = 0d;
+
+                public static double[] GetValues()
+                {
+                    return typeof(PeaksPredictionTolerance).GetFields().Select(field => (double)field.GetValue(null)).ToArray();
+                }
+            }
+
             public class CWDNamigs
             {
                 public static string RLCornersScanData = "Corners scan";
@@ -101,6 +120,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                 public static string Normal = "Normal";
                 public static string Abnormal = "Abnormal";
                 public static string Delta = "Delta";
+
+                public static int peakIndex = 0;
+                public static int samplingRate = 1;
             }
         }
     }

@@ -32,6 +32,13 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
             public int _falseNegative;
 
             [DataMember]
+            public double _classDeviationTolerance;
+            [DataMember]
+            public double _classDeviationMean;
+            [DataMember]
+            public double _classDeviationStd;
+
+            [DataMember]
             public double _mase; // Mean absolute scaled error
             [DataMember]
             public double _mae; // Mean absolute error
@@ -47,6 +54,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
                 clonedOutputMetrics._trueNegative = _trueNegative;
                 clonedOutputMetrics._falsePositive = _falsePositive;
                 clonedOutputMetrics._falseNegative = _falseNegative;
+                clonedOutputMetrics._classDeviationTolerance = _classDeviationTolerance;
+                clonedOutputMetrics._classDeviationMean = _classDeviationMean;
+                clonedOutputMetrics._classDeviationStd = _classDeviationStd;
                 clonedOutputMetrics._mase = _mase;
                 clonedOutputMetrics._mae = _mae;
                 clonedOutputMetrics._maeNaive = _maeNaive;

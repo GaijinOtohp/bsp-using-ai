@@ -39,6 +39,9 @@
     <Compile Update="AITools\Details\DatasetFlowLayoutPanelItem2UserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValClassDeviationMetr.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValClassAccF1ScoreMetr.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -52,6 +55,9 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\OutValRegrRawMetrics.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutClasDeviaTit.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutClasAcF1STit.cs">

@@ -56,6 +56,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tsneVisTabPage = new System.Windows.Forms.TabPage();
             this.umapVisTabPage = new System.Windows.Forms.TabPage();
             this.stepLabel = new System.Windows.Forms.Label();
+            this.predictionDeviationTitlesPanel = new System.Windows.Forms.Panel();
+            this.predictionDeviationFlowLayoutPanel = new BSP_Using_AI.CustomFlowLayoutPanel();
             this.tabControl.SuspendLayout();
             this.valDetailsTabPage.SuspendLayout();
             this.rawVisTabPage.SuspendLayout();
@@ -72,15 +74,17 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tabControl.Controls.Add(this.pcaVisTabPage);
             this.tabControl.Controls.Add(this.tsneVisTabPage);
             this.tabControl.Controls.Add(this.umapVisTabPage);
-            this.tabControl.Location = new System.Drawing.Point(14, 156);
+            this.tabControl.Location = new System.Drawing.Point(15, 45);
             this.tabControl.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(1262, 802);
+            this.tabControl.Size = new System.Drawing.Size(1262, 910);
             this.tabControl.TabIndex = 0;
             // 
             // valDetailsTabPage
             // 
+            this.valDetailsTabPage.Controls.Add(this.predictionDeviationTitlesPanel);
+            this.valDetailsTabPage.Controls.Add(this.predictionDeviationFlowLayoutPanel);
             this.valDetailsTabPage.Controls.Add(this.ConfMatSaveImageButton);
             this.valDetailsTabPage.Controls.Add(this.confusionMatrixPlot);
             this.valDetailsTabPage.Controls.Add(this.validationSaveButton);
@@ -90,7 +94,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.valDetailsTabPage.Controls.Add(this.outpValResultsLabel);
             this.valDetailsTabPage.Location = new System.Drawing.Point(4, 24);
             this.valDetailsTabPage.Name = "valDetailsTabPage";
-            this.valDetailsTabPage.Size = new System.Drawing.Size(1254, 774);
+            this.valDetailsTabPage.Size = new System.Drawing.Size(1254, 882);
             this.valDetailsTabPage.TabIndex = 4;
             this.valDetailsTabPage.Text = "Validation details";
             this.valDetailsTabPage.UseVisualStyleBackColor = true;
@@ -98,7 +102,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // ConfMatSaveImageButton
             // 
             this.ConfMatSaveImageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ConfMatSaveImageButton.Location = new System.Drawing.Point(1127, 141);
+            this.ConfMatSaveImageButton.Location = new System.Drawing.Point(1129, 13);
             this.ConfMatSaveImageButton.Margin = new System.Windows.Forms.Padding(2);
             this.ConfMatSaveImageButton.Name = "ConfMatSaveImageButton";
             this.ConfMatSaveImageButton.Size = new System.Drawing.Size(102, 23);
@@ -113,16 +117,16 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.confusionMatrixPlot.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.confusionMatrixPlot.Location = new System.Drawing.Point(729, 157);
+            this.confusionMatrixPlot.Location = new System.Drawing.Point(731, 29);
             this.confusionMatrixPlot.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.confusionMatrixPlot.Name = "confusionMatrixPlot";
-            this.confusionMatrixPlot.Size = new System.Drawing.Size(521, 521);
+            this.confusionMatrixPlot.Size = new System.Drawing.Size(521, 574);
             this.confusionMatrixPlot.TabIndex = 51;
             this.confusionMatrixPlot.Visible = false;
             // 
             // validationSaveButton
             // 
-            this.validationSaveButton.Location = new System.Drawing.Point(619, 640);
+            this.validationSaveButton.Location = new System.Drawing.Point(740, 839);
             this.validationSaveButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.validationSaveButton.Name = "validationSaveButton";
             this.validationSaveButton.Size = new System.Drawing.Size(111, 27);
@@ -133,7 +137,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // validationTitlesPanel
             // 
-            this.validationTitlesPanel.Location = new System.Drawing.Point(17, 166);
+            this.validationTitlesPanel.Location = new System.Drawing.Point(19, 38);
             this.validationTitlesPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.validationTitlesPanel.Name = "validationTitlesPanel";
             this.validationTitlesPanel.Size = new System.Drawing.Size(683, 35);
@@ -142,7 +146,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // metricsComboBox
             // 
             this.metricsComboBox.FormattingEnabled = true;
-            this.metricsComboBox.Location = new System.Drawing.Point(599, 141);
+            this.metricsComboBox.Location = new System.Drawing.Point(601, 13);
             this.metricsComboBox.Name = "metricsComboBox";
             this.metricsComboBox.Size = new System.Drawing.Size(131, 23);
             this.metricsComboBox.TabIndex = 48;
@@ -154,16 +158,16 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.validationFlowLayoutPanel.AutoScroll = true;
-            this.validationFlowLayoutPanel.Location = new System.Drawing.Point(17, 207);
+            this.validationFlowLayoutPanel.Location = new System.Drawing.Point(19, 79);
             this.validationFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.validationFlowLayoutPanel.Name = "validationFlowLayoutPanel";
-            this.validationFlowLayoutPanel.Size = new System.Drawing.Size(713, 427);
+            this.validationFlowLayoutPanel.Size = new System.Drawing.Size(713, 370);
             this.validationFlowLayoutPanel.TabIndex = 47;
             // 
             // outpValResultsLabel
             // 
             this.outpValResultsLabel.AutoSize = true;
-            this.outpValResultsLabel.Location = new System.Drawing.Point(22, 144);
+            this.outpValResultsLabel.Location = new System.Drawing.Point(24, 16);
             this.outpValResultsLabel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.outpValResultsLabel.Name = "outpValResultsLabel";
             this.outpValResultsLabel.Size = new System.Drawing.Size(142, 15);
@@ -184,7 +188,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.rawVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.rawVisTabPage.Name = "rawVisTabPage";
             this.rawVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.rawVisTabPage.Size = new System.Drawing.Size(1254, 774);
+            this.rawVisTabPage.Size = new System.Drawing.Size(1254, 882);
             this.rawVisTabPage.TabIndex = 0;
             this.rawVisTabPage.Text = "Raw visualisation";
             this.rawVisTabPage.UseVisualStyleBackColor = true;
@@ -205,7 +209,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             this.xInputFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.xInputFlowLayoutPanel.AutoScroll = true;
-            this.xInputFlowLayoutPanel.Location = new System.Drawing.Point(477, 608);
+            this.xInputFlowLayoutPanel.Location = new System.Drawing.Point(477, 716);
             this.xInputFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.xInputFlowLayoutPanel.Name = "xInputFlowLayoutPanel";
             this.xInputFlowLayoutPanel.Size = new System.Drawing.Size(243, 132);
@@ -245,7 +249,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             this.xInputLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.xInputLabel.AutoSize = true;
-            this.xInputLabel.Location = new System.Drawing.Point(474, 590);
+            this.xInputLabel.Location = new System.Drawing.Point(474, 698);
             this.xInputLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.xInputLabel.Name = "xInputLabel";
             this.xInputLabel.Size = new System.Drawing.Size(45, 15);
@@ -284,7 +288,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.pcaVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.pcaVisTabPage.Name = "pcaVisTabPage";
             this.pcaVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.pcaVisTabPage.Size = new System.Drawing.Size(1254, 774);
+            this.pcaVisTabPage.Size = new System.Drawing.Size(1254, 882);
             this.pcaVisTabPage.TabIndex = 1;
             this.pcaVisTabPage.Text = "PCA visualisation";
             this.pcaVisTabPage.UseVisualStyleBackColor = true;
@@ -365,7 +369,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.umapVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.umapVisTabPage.Name = "umapVisTabPage";
             this.umapVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.umapVisTabPage.Size = new System.Drawing.Size(1254, 774);
+            this.umapVisTabPage.Size = new System.Drawing.Size(1254, 721);
             this.umapVisTabPage.TabIndex = 3;
             this.umapVisTabPage.Text = "UMAP visualisation";
             this.umapVisTabPage.UseVisualStyleBackColor = true;
@@ -379,6 +383,26 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.stepLabel.Size = new System.Drawing.Size(60, 15);
             this.stepLabel.TabIndex = 1;
             this.stepLabel.Text = "step Label";
+            // 
+            // predictionDeviationTitlesPanel
+            // 
+            this.predictionDeviationTitlesPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.predictionDeviationTitlesPanel.Location = new System.Drawing.Point(19, 455);
+            this.predictionDeviationTitlesPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.predictionDeviationTitlesPanel.Name = "predictionDeviationTitlesPanel";
+            this.predictionDeviationTitlesPanel.Size = new System.Drawing.Size(683, 35);
+            this.predictionDeviationTitlesPanel.TabIndex = 54;
+            // 
+            // predictionDeviationFlowLayoutPanel
+            // 
+            this.predictionDeviationFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.predictionDeviationFlowLayoutPanel.AutoScroll = true;
+            this.predictionDeviationFlowLayoutPanel.Location = new System.Drawing.Point(19, 496);
+            this.predictionDeviationFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.predictionDeviationFlowLayoutPanel.Name = "predictionDeviationFlowLayoutPanel";
+            this.predictionDeviationFlowLayoutPanel.Size = new System.Drawing.Size(713, 370);
+            this.predictionDeviationFlowLayoutPanel.TabIndex = 53;
             // 
             // DataVisualisationForm
             // 
@@ -431,5 +455,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private System.Windows.Forms.Button validationSaveButton;
         private ScottPlot.FormsPlot confusionMatrixPlot;
         public System.Windows.Forms.Button ConfMatSaveImageButton;
+        private System.Windows.Forms.Panel predictionDeviationTitlesPanel;
+        private CustomFlowLayoutPanel predictionDeviationFlowLayoutPanel;
     }
 }

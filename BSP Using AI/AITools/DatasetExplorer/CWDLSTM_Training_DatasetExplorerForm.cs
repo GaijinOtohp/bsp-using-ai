@@ -295,6 +295,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     // Create a new sample
                     Sample sample = new Sample("Peak" + cornerIndex, dataBuilderMemory.FeaturesLabels.Length, dataBuilderMemory.OutputsLabels.Length, CornersScanData);
 
+                    sample.AdditionalInfo = new Dictionary<object, object>(3);
+                    sample.AdditionalInfo.Add(CWDNamigs.peakIndex, cornerIndex);
+                    sample.AdditionalInfo.Add(CWDNamigs.samplingRate, samplingRate);
+
                     // Set features of the corner before the outputs (the outputs updates dataBuilderMemory for the next corner)
                     GetCornerFeatures(sample, dataBuilderMemory, cornerIndex, RescaledSamples, SegmentsList);
 

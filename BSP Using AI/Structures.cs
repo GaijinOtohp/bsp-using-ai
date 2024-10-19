@@ -144,6 +144,8 @@ namespace Biological_Signal_Processing_Using_AI
             private double[] Features { get; set; }
             [DataMember]
             private double[] Outputs { get; set; }
+            [DataMember]
+            public Dictionary<object, object> AdditionalInfo { get; set; }
 
             public Sample(string name, int numberOfFeatures, int numberOfOutputs, Data dataParent = null)
             {

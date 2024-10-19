@@ -144,6 +144,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             for (int i = 0; i < outputDim; i++)
                 model.OutputsThresholds[i] = new OutputThresholdItem();
 
+            // Set the prediction tolerance
+            double[] peaksPredictionTolerance = PeaksPredictionTolerance.GetValues();
+            for (int i = 0; i < peaksPredictionTolerance.Length; i++)
+                model.ValidationData._ModelOutputsValidMetrics[i]._classDeviationTolerance = peaksPredictionTolerance[i];
+
             // Get the parameters
             return model;
         }

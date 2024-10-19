@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
+using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
 using static BSP_Using_AI.AITools.Details.DetailsForm;
 
 namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
@@ -88,6 +89,19 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 _InnerObjectiveModel.OutputsThresholds[iControl]._threshold = threshold;
             }
 
+            // Copy the thresholds from predictionDeviationFlowLayoutPanel to _InnerObjectiveModel.ValidationData._ModelOutputsValidMetrics[i]._classDeviationTolerance
+            for (int iControl = 0; iControl < predictionDeviationFlowLayoutPanel.Controls.Count; iControl++)
+            {
+                OutValClassDeviationMetr outPutToleranceControl = (OutValClassDeviationMetr)predictionDeviationFlowLayoutPanel.Controls[iControl];
+                double threshold = CharacteristicWavesDelineation.PeaksPredictionTolerance.GetValues()[iControl];
+                string newThreshold = outPutToleranceControl.toleranceThresholdTextBox.Text;
+
+                if (newThreshold.Length > 0)
+                    threshold = double.Parse(newThreshold);
+
+                _InnerObjectiveModel.ValidationData._ModelOutputsValidMetrics[iControl]._classDeviationTolerance = threshold;
+            }
+
             // Update the model with the new thresholds
             DbStimulator dbStimulator = new DbStimulator();
             dbStimulator.Update("models", new string[] { "the_model" },
@@ -98,7 +112,10 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             // List the evaluation techniques
             if (_InnerObjectiveModel.Type == ObjectiveType.Classification)
+            {
                 metricsComboBox.DataSource = EvaluationTechnique.GetNames();
+                DisplayClassDeviation();
+            }
 
             refreshValidationData();
             if (_InnerObjectiveModel.Type == ObjectiveType.Classification)
@@ -247,6 +264,27 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
                 outValClassAccSeSpMetricsUserControl.classificationThresholdTextBox.Text = Math.Round(_InnerObjectiveModel.OutputsThresholds[iOutput]._threshold, 4).ToString();
 
                 validationFlowLayoutPanel.Controls.Add(outValClassAccSeSpMetricsUserControl);
+            }
+        }
+
+        private void DisplayClassDeviation()
+        {
+            // Insert titles
+            predictionDeviationTitlesPanel.Controls.Add(new OutClasDeviaTit());
+
+            for (int iOutput = 0; iOutput < _InnerObjectiveModel.OutputsNames.Length; iOutput++)
+            {
+                OutputMetrics outputMetrics = _InnerObjectiveModel.ValidationData._ModelOutputsValidMetrics[iOutput];
+
+                OutValClassDeviationMetr outValClassDeviationMetricsUserControl = new OutValClassDeviationMetr();
+
+                outValClassDeviationMetricsUserControl.Name = _InnerObjectiveModel.OutputsNames[iOutput];
+                outValClassDeviationMetricsUserControl.outputLabel.Text = _InnerObjectiveModel.OutputsNames[iOutput];
+                outValClassDeviationMetricsUserControl.deviationMeanLabel.Text = outputMetrics._classDeviationMean.ToString();
+                outValClassDeviationMetricsUserControl.deviationStdLabel.Text = outputMetrics._classDeviationStd.ToString();
+                outValClassDeviationMetricsUserControl.toleranceThresholdTextBox.Text = outputMetrics._classDeviationTolerance.ToString();
+
+                predictionDeviationFlowLayoutPanel.Controls.Add(outValClassDeviationMetricsUserControl);
             }
         }
     }

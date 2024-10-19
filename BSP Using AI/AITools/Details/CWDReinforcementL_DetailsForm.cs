@@ -48,8 +48,6 @@ namespace BSP_Using_AI.AITools.Details
             List<Sample> validationSamples;
 
             ////////////////////////// Start validation for the deep rl model
-            // Initialize _validationData
-            cwdReinforcementL.CWDReinforcementLModel.ValidationData = new ValidationData(cwdReinforcementL.CWDReinforcementLModel._outputDim);
 
             // Calculate number of data to be processed
             _totalSamples = totalValidationProgress;
@@ -116,6 +114,11 @@ namespace BSP_Using_AI.AITools.Details
         {
             // Get current model's output metrics' resutls
             OutputMetrics[] outputMetrics = selectedModel.ValidationData._ModelOutputsValidMetrics;
+
+            // Initialize the validation values
+            for (int col = 0; col < selectedModel._outputDim; col++)
+                outputMetrics[col]._iSamples = 0;
+
             // Calculate validation metrics
             double[] predictedOutput;
             double[] actualOutput;

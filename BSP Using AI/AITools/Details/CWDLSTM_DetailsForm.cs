@@ -1,5 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools;
 using Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation;
 using System;
@@ -41,9 +42,6 @@ namespace BSP_Using_AI.AITools.Details
             List<List<Sample>> lstmValidationSequences;
 
             ////////////////////////// Start validation for each model
-            // Initialize _validationData for both models
-            cwdLSTM.CWDReinforcementLModel.ValidationData = new ValidationData(cwdLSTM.CWDReinforcementLModel._outputDim);
-            cwdLSTM.CWDLSTMModel.ValidationData = new ValidationData(cwdLSTM.CWDLSTMModel._outputDim);
 
             // Calculate number of data to be processed
             _totalSamples = totalValidationProgress;
@@ -165,14 +163,36 @@ namespace BSP_Using_AI.AITools.Details
             // Get current model's output metrics' resutls and thresholds
             OutputMetrics[] outputMetrics = selectedModel.ValidationData._ModelOutputsValidMetrics;
             OutputThresholdItem[] outThresholds = selectedModel.OutputsThresholds;
+
+            // Initialize the validation values
+            for (int col = 0; col < selectedModel._outputDim; col++)
+            {
+                outputMetrics[col]._truePositive = 0;
+                outputMetrics[col]._trueNegative = 0;
+                outputMetrics[col]._falsePositive = 0;
+                outputMetrics[col]._falseNegative = 0;
+
+                selectedModel.ValidationData._ConfusionMatrix[col] = new double[selectedModel._outputDim];
+
+                outputMetrics[col]._iSamples = 0;
+
+                selectedModel.ValidationData._ModelOutputsValidMetrics[col]._classDeviationMean = 0;
+                selectedModel.ValidationData._ModelOutputsValidMetrics[col]._classDeviationStd = 0;
+            }
+
             // Calculate validation metrics
             double[] predictedOutput;
             double[] actualOutput;
+            int sampleIndex;
+            int samplingRate;
+            List<double>[] predictionDeviations = new List<double>[selectedModel._outputDim];
+            for (int i = 0; i < selectedModel._outputDim; i++)
+                predictionDeviations[i] = new List<double>();
 
             // The following is used for rectifying predicted outputs
             RefDouble[] predictedRefOutput;
             RefDouble[] latestClassifiedRefOutput = null;
-            List<(RefDouble[] predictedRefOutput, double[] actualOutput)> prediActualOutputsPairsList;
+            List<(RefDouble[] predicted, int peakIndex)> prediOutputsIndexPairList;
 
             Queue<double[]> InputSeqQueue;
 
@@ -184,7 +204,7 @@ namespace BSP_Using_AI.AITools.Details
 
             foreach (List<Sample> samplesSeq in validationSequences)
             {
-                prediActualOutputsPairsList = new List<(RefDouble[] predictedRefOutput, double[] actualOutput)>(samplesSeq.Count);
+                prediOutputsIndexPairList = new List<(RefDouble[], int)>(samplesSeq.Count);
 
                 InputSeqQueue = new Queue<double[]>(tempModel._modelSequenceLength + 1);
 
@@ -217,7 +237,7 @@ namespace BSP_Using_AI.AITools.Details
                         predictedRefOutput[iDouble] = new RefDouble(predictedOutput[iDouble]);
 
                     // Insert the paris in prediActualOutputsPairsList
-                    prediActualOutputsPairsList.Add((predictedRefOutput, actualOutput));
+                    prediOutputsIndexPairList.Add((predictedRefOutput, (int)sample.AdditionalInfo[CWDNamigs.peakIndex]));
 
                     // Update latestClassifiedRefOutput
                     if (latestClassifiedRefOutput == null)
@@ -242,34 +262,71 @@ namespace BSP_Using_AI.AITools.Details
                 }
 
                 // Set the validation measurements of the prediction for the current sequence
-                foreach ((RefDouble[] predicted, double[] actual) predicPair in prediActualOutputsPairsList)
-                    for (int i = 0; i < predicPair.predicted.Length; i++)
+                for (int iSample = 0; iSample < samplesSeq.Count; iSample++)
+                {
+                    actualOutput = samplesSeq[iSample].getOutputs();
+                    sampleIndex = (int)samplesSeq[iSample].AdditionalInfo[CWDNamigs.peakIndex];
+                    samplingRate = (int)samplesSeq[iSample].AdditionalInfo[CWDNamigs.samplingRate];
+                    for (int i = 0; i < actualOutput.Length; i++)
                     {
                         // Check if the output should be positive or negative
-                        if (predicPair.actual[i] == 1)
+                        if (actualOutput[i] == 1)
                         {
-                            // If yes then check if the forcasted output is true or false
-                            if (predicPair.predicted[i].value >= outThresholds[i]._threshold)
+                            // Get nearby positively predicted samples according to the selected label's tolerance
+                            List<(RefDouble[] prediction, double deviation)> nearbyPositivePeaks = prediOutputsIndexPairList.Where(predIndexPair =>
+                                                                        (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= selectedModel.ValidationData._ModelOutputsValidMetrics[i]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
+                                                                        && predIndexPair.predicted[i].value >= outThresholds[i]._threshold)
+                                                                    .Select(predIndexPair => (predIndexPair.predicted,
+                                                                                              Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d))
+                                                                    .ToList();
+
+                            // Compute the deviations of the prediction
+                            foreach ((_, double deviation) in nearbyPositivePeaks)
+                                predictionDeviations[i].Add(deviation);
+
+                            // Check if there is any positive forcasted output
+                            if (nearbyPositivePeaks.Count > 0)
                                 outputMetrics[i]._truePositive++;
                             else
                                 outputMetrics[i]._falseNegative++;
                         }
                         else
                         {
-                            if (predicPair.predicted[i].value < outThresholds[i]._threshold)
+                            if (prediOutputsIndexPairList[iSample].predicted[i].value < outThresholds[i]._threshold)
                                 outputMetrics[i]._trueNegative++;
                             else
                                 outputMetrics[i]._falsePositive++;
                         }
                     }
+                }
 
                 // Set the confusion matrix
-                foreach ((RefDouble[] predicted, double[] actual) predicPair in prediActualOutputsPairsList)
-                    for (int col = 0; col < predicPair.actual.Length; col++)
-                        if (predicPair.actual[col] == 1)
-                            for (int row = 0; row < predicPair.predicted.Length; row++)
-                                if (predicPair.predicted[row].value >= outThresholds[row]._threshold)
+                foreach (Sample sample in samplesSeq)
+                {
+                    actualOutput = sample.getOutputs();
+                    sampleIndex = (int)sample.AdditionalInfo[CWDNamigs.peakIndex];
+                    samplingRate = (int)sample.AdditionalInfo[CWDNamigs.samplingRate];
+                    for (int col = 0; col < actualOutput.Length; col++)
+                        if (actualOutput[col] == 1)
+                            for (int row = 0; row < actualOutput.Length; row++)
+                            {
+                                List<RefDouble[]> nearbyPositivePeaks = prediOutputsIndexPairList.Where(predIndexPair =>
+                                                                            (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= selectedModel.ValidationData._ModelOutputsValidMetrics[row]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
+                                                                            && predIndexPair.predicted[row].value >= outThresholds[row]._threshold)
+                                                                        .Select(predIndexPair => predIndexPair.predicted)
+                                                                        .ToList();
+                                if (nearbyPositivePeaks.Count > 0)
                                     selectedModel.ValidationData._ConfusionMatrix[col][row]++;
+                            }
+                }
+            }
+
+            // Compute te deviation mean and standard deviation of the predictions
+            for (int iOutput = 0; iOutput < selectedModel._outputDim; iOutput++)
+            {
+                double[] deviations = predictionDeviations[iOutput].ToArray();
+                selectedModel.ValidationData._ModelOutputsValidMetrics[iOutput]._classDeviationMean = GeneralTools.MeanMinMax(deviations).mean;
+                selectedModel.ValidationData._ModelOutputsValidMetrics[iOutput]._classDeviationStd = GeneralTools.stdDevCalc(deviations, selectedModel.ValidationData._ModelOutputsValidMetrics[iOutput]._classDeviationMean);
             }
         }
     }

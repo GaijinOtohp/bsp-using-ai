@@ -33,9 +33,6 @@ namespace BSP_Using_AI.AITools.Details
             ////////////////////////// Start validation for each step model (7 steps)
             // Set maximum of progress bar
             this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Maximum = arthtModels.ARTHTModelsDic.Count * valModelsDataFolds.Count; }));
-            // Initialize _validationData
-            foreach (CustomArchiBaseModel model in arthtModels.ARTHTModelsDic.Values)
-                model.ValidationData = new ValidationData(model._outputDim);
 
             // Calculate number of data to be processed
             _totalSamples = 0;
@@ -168,6 +165,20 @@ namespace BSP_Using_AI.AITools.Details
             CustomArchiBaseModel selectedModel = arthtModels.ARTHTModelsDic[stepName];
             OutputThresholdItem[] outThresholds = selectedModel.OutputsThresholds;
             OutputMetrics[] outputMetrics = selectedModel.ValidationData._ModelOutputsValidMetrics;
+
+            // Initialize the validation values
+            for (int col = 0; col < selectedModel._outputDim; col++)
+            {
+                outputMetrics[col]._truePositive = 0;
+                outputMetrics[col]._trueNegative = 0;
+                outputMetrics[col]._falsePositive = 0;
+                outputMetrics[col]._falseNegative = 0;
+
+                selectedModel.ValidationData._ConfusionMatrix[col] = new double[selectedModel._outputDim];
+
+                outputMetrics[col]._iSamples = 0;
+            }
+
             // Calculate validation metrics
             double[] predictedOutput;
             double[] actualOutput;
