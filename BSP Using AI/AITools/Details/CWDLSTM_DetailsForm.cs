@@ -27,6 +27,8 @@ namespace BSP_Using_AI.AITools.Details
             public RefDouble(double initVal) => value = initVal;
         }
 
+        public delegate void ValidationReportDelegate();
+
         private void CWDLSTM_ValidateModel(List<ModelData> valModelsDataFolds, CWDLSTM cwdLSTM)
         {
             // Convert the annotation data samples to the deep reinforcement learning model samples
@@ -158,11 +160,24 @@ namespace BSP_Using_AI.AITools.Details
             return tempModel;
         }
 
+        private void ValidationReportUpdate()
+        {
+            _remainingSamples--;
+            // Update fitProgressBar
+            this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Value++; }));
+        }
+
         private void LSTM_UpdateModelValidation(TFNETLSTMModel selectedModel, List<List<Sample>> validationSequences, TFNETLSTMModel tempModel)
         {
+            selectedModel.ValidationData = LSTM_ValidateTheModel(selectedModel, validationSequences, tempModel, ValidationReportUpdate).validationData;
+        }
+
+        public static (ValidationData validationData, OutputThresholdItem[] outThresholds) LSTM_ValidateTheModel(TFNETLSTMModel selectedModel, List<List<Sample>> validationSequences, TFNETLSTMModel tempModel, ValidationReportDelegate validationReportDelegate )
+        {
             // Get current model's output metrics' resutls and thresholds
-            OutputMetrics[] outputMetrics = selectedModel.ValidationData._ModelOutputsValidMetrics;
-            OutputThresholdItem[] outThresholds = selectedModel.OutputsThresholds;
+            ValidationData validationDataClone = selectedModel.ValidationData.Clone();
+            OutputMetrics[] outputMetrics = validationDataClone._ModelOutputsValidMetrics;
+            OutputThresholdItem[] outThresholdsClone = selectedModel.OutputsThresholds.Select(thresholdVals => thresholdVals.Clone()).ToArray();
 
             // Initialize the validation values
             for (int col = 0; col < selectedModel._outputDim; col++)
@@ -172,13 +187,18 @@ namespace BSP_Using_AI.AITools.Details
                 outputMetrics[col]._falsePositive = 0;
                 outputMetrics[col]._falseNegative = 0;
 
-                selectedModel.ValidationData._ConfusionMatrix[col] = new double[selectedModel._outputDim];
+                validationDataClone._ConfusionMatrix[col] = new double[selectedModel._outputDim];
 
                 outputMetrics[col]._iSamples = 0;
 
-                selectedModel.ValidationData._ModelOutputsValidMetrics[col]._classDeviationMean = 0;
-                selectedModel.ValidationData._ModelOutputsValidMetrics[col]._classDeviationStd = 0;
+                validationDataClone._ModelOutputsValidMetrics[col]._classDeviationMean = 0;
+                validationDataClone._ModelOutputsValidMetrics[col]._classDeviationStd = 0;
             }
+
+            // Thhese two are for averaging the predicted outputs
+            // for computing the mean threshold
+            int[] highOutputsCount = new int[selectedModel._outputDim];
+            int[] lowOutputsCount = new int[selectedModel._outputDim];
 
             // Calculate validation metrics
             double[] predictedOutput;
@@ -226,17 +246,36 @@ namespace BSP_Using_AI.AITools.Details
                                                                                       sequenceCellsInputsPlaceHolders, sequenceCellsOutputs,
                                                                                       layersSartingOutputs, layersStartingStates,
                                                                                       layersLatestOutputs, layersLatestStates);
-                    _remainingSamples--;
 
                     if (predictedSequenceList.Count == 0)
                         continue;
                     predictedOutput = predictedSequenceList[0];
 
+                    // Update the threshold _highOutputAv and _lowOutputAv
+                    for (int iOutput = 0; iOutput < sample.getOutputs().Length; iOutput++)
+                    {
+                        double outputaVal = sample.getOutputs()[iOutput];
+
+                        if (outputaVal > 0)
+                        {
+                            outThresholdsClone[iOutput]._highOutputAv = (outThresholdsClone[iOutput]._highOutputAv * highOutputsCount[iOutput] +
+                                                                                 predictedOutput[iOutput]) / (highOutputsCount[iOutput] + 1);
+                            highOutputsCount[iOutput] += 1;
+                        }
+                        else
+                        {
+                            outThresholdsClone[iOutput]._lowOutputAv = (outThresholdsClone[iOutput]._lowOutputAv * lowOutputsCount[iOutput] +
+                                                                                 predictedOutput[iOutput]) / (lowOutputsCount[iOutput] + 1);
+                            lowOutputsCount[iOutput] += 1;
+                        }
+                    }
+
+                    // Set each predicted value from the output as a reference
                     predictedRefOutput = new RefDouble[predictedOutput.Length];
                     for (int iDouble = 0; iDouble < predictedOutput.Length; iDouble++)
                         predictedRefOutput[iDouble] = new RefDouble(predictedOutput[iDouble]);
 
-                    // Insert the paris in prediActualOutputsPairsList
+                    // Pair the output with its index
                     prediOutputsIndexPairList.Add((predictedRefOutput, (int)sample.AdditionalInfo[CWDNamigs.peakIndex]));
 
                     // Update latestClassifiedRefOutput
@@ -244,7 +283,7 @@ namespace BSP_Using_AI.AITools.Details
                         latestClassifiedRefOutput = predictedRefOutput;
 
                     for (int iPredOutput = 0; iPredOutput < predictedRefOutput.Length; iPredOutput++)
-                        if (predictedRefOutput[iPredOutput].value >= outThresholds[iPredOutput]._threshold)
+                        if (predictedRefOutput[iPredOutput].value >= outThresholdsClone[iPredOutput]._threshold)
                         {
                             if (predictedRefOutput[iPredOutput].value >= latestClassifiedRefOutput[iPredOutput].value)
                             {
@@ -257,8 +296,9 @@ namespace BSP_Using_AI.AITools.Details
                         else
                             latestClassifiedRefOutput[iPredOutput] = new RefDouble(0);
 
-                    // Update fitProgressBar
-                    this.Invoke(new MethodInvoker(delegate () { validationProgressBar.Value++; }));
+                    // Update validation progress report
+                    if (validationReportDelegate != null)
+                        validationReportDelegate();
                 }
 
                 // Set the validation measurements of the prediction for the current sequence
@@ -274,8 +314,8 @@ namespace BSP_Using_AI.AITools.Details
                         {
                             // Get nearby positively predicted samples according to the selected label's tolerance
                             List<(RefDouble[] prediction, double deviation)> nearbyPositivePeaks = prediOutputsIndexPairList.Where(predIndexPair =>
-                                                                        (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= selectedModel.ValidationData._ModelOutputsValidMetrics[i]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
-                                                                        && predIndexPair.predicted[i].value >= outThresholds[i]._threshold)
+                                                                        (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= validationDataClone._ModelOutputsValidMetrics[i]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
+                                                                        && predIndexPair.predicted[i].value >= outThresholdsClone[i]._threshold)
                                                                     .Select(predIndexPair => (predIndexPair.predicted,
                                                                                               Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d))
                                                                     .ToList();
@@ -292,7 +332,7 @@ namespace BSP_Using_AI.AITools.Details
                         }
                         else
                         {
-                            if (prediOutputsIndexPairList[iSample].predicted[i].value < outThresholds[i]._threshold)
+                            if (prediOutputsIndexPairList[iSample].predicted[i].value < outThresholdsClone[i]._threshold)
                                 outputMetrics[i]._trueNegative++;
                             else
                                 outputMetrics[i]._falsePositive++;
@@ -311,12 +351,12 @@ namespace BSP_Using_AI.AITools.Details
                             for (int row = 0; row < actualOutput.Length; row++)
                             {
                                 List<RefDouble[]> nearbyPositivePeaks = prediOutputsIndexPairList.Where(predIndexPair =>
-                                                                            (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= selectedModel.ValidationData._ModelOutputsValidMetrics[row]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
-                                                                            && predIndexPair.predicted[row].value >= outThresholds[row]._threshold)
+                                                                            (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= validationDataClone._ModelOutputsValidMetrics[row]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
+                                                                            && predIndexPair.predicted[row].value >= outThresholdsClone[row]._threshold)
                                                                         .Select(predIndexPair => predIndexPair.predicted)
                                                                         .ToList();
                                 if (nearbyPositivePeaks.Count > 0)
-                                    selectedModel.ValidationData._ConfusionMatrix[col][row]++;
+                                    validationDataClone._ConfusionMatrix[col][row]++;
                             }
                 }
             }
@@ -325,9 +365,11 @@ namespace BSP_Using_AI.AITools.Details
             for (int iOutput = 0; iOutput < selectedModel._outputDim; iOutput++)
             {
                 double[] deviations = predictionDeviations[iOutput].ToArray();
-                selectedModel.ValidationData._ModelOutputsValidMetrics[iOutput]._classDeviationMean = GeneralTools.MeanMinMax(deviations).mean;
-                selectedModel.ValidationData._ModelOutputsValidMetrics[iOutput]._classDeviationStd = GeneralTools.stdDevCalc(deviations, selectedModel.ValidationData._ModelOutputsValidMetrics[iOutput]._classDeviationMean);
+                validationDataClone._ModelOutputsValidMetrics[iOutput]._classDeviationMean = GeneralTools.MeanMinMax(deviations).mean;
+                validationDataClone._ModelOutputsValidMetrics[iOutput]._classDeviationStd = GeneralTools.stdDevCalc(deviations, validationDataClone._ModelOutputsValidMetrics[iOutput]._classDeviationMean);
             }
+
+            return (validationDataClone, outThresholdsClone);
         }
     }
 }

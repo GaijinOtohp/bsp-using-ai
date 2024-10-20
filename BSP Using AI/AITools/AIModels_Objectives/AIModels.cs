@@ -114,6 +114,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
             public double _highOutputAv = 1;
             public double _lowOutputAv = 0;
             public double _threshold = 0.5d;
+            public Dictionary<double, (int _truePositives, int _falsePositives)> _ROC;
 
             public OutputThresholdItem Clone()
             {

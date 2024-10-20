@@ -2,6 +2,7 @@
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI;
 using BSP_Using_AI.AITools;
+using BSP_Using_AI.AITools.Details;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -176,73 +177,49 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
                 return;
 
             // Set the high and low outputs averaged to zeros
+            // and initialize the ROC
             for (int iOutput = 0; iOutput < lstmModel._outputDim; iOutput++)
             {
                 lstmModel.OutputsThresholds[iOutput]._highOutputAv = 0;
                 lstmModel.OutputsThresholds[iOutput]._lowOutputAv = 0;
+                lstmModel.OutputsThresholds[iOutput]._ROC = new Dictionary<double, (int _truePositives, int _falsePositives)>(101);
             }
 
-            int[] highOutputsCount = new int[lstmModel._outputDim];
-            int[] lowOutputsCount = new int[lstmModel._outputDim];
-
-            Queue<double[]> InputSeqQueue;
-
-            List<double[]> predictedSequenceList;
-            List<NDArray> layersLatestOutputsVals = null, layersLatestStatesVals = null;
-            (List<Tensor> sequenceCellsInputsPlaceHolders, List<Tensor> sequenceCellsOutputs) = TF_NET_LSTM_Recur.GetInputOutputPlaceHolders(lstmModel, lstmModel.BaseModel.Session);
-            (List<Tensor> layersSartingOutputs, List<Tensor> layersStartingStates) = TF_NET_LSTM_Recur.GetLayersStartingOutputsAndStates(lstmModel);
-            (List<Tensor> layersLatestOutputs, List<Tensor> layersLatestStates) = TF_NET_LSTM_Recur.GetLayersLatestOutputsAndStates(lstmModel);
-
-            foreach (List<Sample> samplesSeq in dataListSequences)
+            // Iterate through 100 possibilities of thresholds
+            int[] rocBestGap = new int[lstmModel._outputDim];
+            double[] rocBestThreshold = new double[lstmModel._outputDim];
+            for (int iThreshold = 0; iThreshold < 100; iThreshold++)
             {
-                InputSeqQueue = new Queue<double[]>(lstmModel._modelSequenceLength + 1);
+                // Modify the model's outputs' thresholds
+                double newThreshold = iThreshold / 100d;
+                for (int iOutput = 0; iOutput < lstmModel._outputDim; iOutput++)
+                    lstmModel.OutputsThresholds[iOutput]._threshold = newThreshold;
 
-                layersLatestOutputsVals = null;
-                layersLatestStatesVals = null;
-                foreach (Sample sample in samplesSeq)
+                // Get validation data using the selected threshod
+                (ValidationData validationData, OutputThresholdItem[] outThresholds) = DetailsForm.LSTM_ValidateTheModel(lstmModel, dataListSequences, lstmModel, null);
+
+                // Insert the new evaluation to the ROC
+                for (int iOutput = 0; iOutput < lstmModel._outputDim; iOutput++)
                 {
-                    // Enqueue the new features in InputSeqQueue
-                    InputSeqQueue.Enqueue(sample.getFeatures());
-                    // Check if the queue has exceeded the sequence length of the model
-                    if (InputSeqQueue.Count > lstmModel._modelSequenceLength)
-                        InputSeqQueue.Dequeue();
+                    int truePositives = validationData._ModelOutputsValidMetrics[iOutput]._truePositive;
+                    int falsePositives = validationData._ModelOutputsValidMetrics[iOutput]._falsePositive;
 
-                    // Feed the queue sequence into the LSTM model for prediction
-                    (predictedSequenceList, layersLatestOutputsVals, layersLatestStatesVals) = TF_NET_LSTM_Recur.PredictSequenciallyFast(InputSeqQueue.ToList(), lstmModel,
-                                                                                      layersLatestOutputsVals, layersLatestStatesVals,
-                                                                                      sequenceCellsInputsPlaceHolders, sequenceCellsOutputs,
-                                                                                      layersSartingOutputs, layersStartingStates,
-                                                                                      layersLatestOutputs, layersLatestStates);
+                    lstmModel.OutputsThresholds[iOutput]._ROC.Add(newThreshold, (truePositives, falsePositives));
 
-                    if (predictedSequenceList.Count == 0)
-                        continue;
-
-                    // Update the threshold _highOutputAv and _lowOutputAv
-                    for (int iOutput = 0; iOutput < sample.getOutputs().Length; iOutput++)
+                    if (truePositives - falsePositives > rocBestGap[iOutput])
                     {
-                        double outputaVal = sample.getOutputs()[iOutput];
+                        rocBestGap[iOutput] = truePositives - falsePositives;
+                        rocBestThreshold[iOutput] = newThreshold;
 
-                        if (outputaVal > 0)
-                        {
-                            lstmModel.OutputsThresholds[iOutput]._highOutputAv = (lstmModel.OutputsThresholds[iOutput]._highOutputAv * highOutputsCount[iOutput] +
-                                                                                 predictedSequenceList[0][iOutput]) / (highOutputsCount[iOutput] + 1);
-                            highOutputsCount[iOutput] += 1;
-                        }
-                        else
-                        {
-                            lstmModel.OutputsThresholds[iOutput]._lowOutputAv = (lstmModel.OutputsThresholds[iOutput]._lowOutputAv * lowOutputsCount[iOutput] +
-                                                                                 predictedSequenceList[0][iOutput]) / (lowOutputsCount[iOutput] + 1);
-                            lowOutputsCount[iOutput] += 1;
-                        }
+                        lstmModel.OutputsThresholds[iOutput]._highOutputAv = outThresholds[iOutput]._highOutputAv;
+                        lstmModel.OutputsThresholds[iOutput]._lowOutputAv = outThresholds[iOutput]._lowOutputAv;
                     }
                 }
             }
 
-            // Update the outputs thresholds according to the new _highOutputAv and _lowOutputAv
+            // Set the best thresholds
             for (int iOutput = 0; iOutput < lstmModel._outputDim; iOutput++)
-            {
-                lstmModel.OutputsThresholds[iOutput]._threshold = (lstmModel.OutputsThresholds[iOutput]._highOutputAv + lstmModel.OutputsThresholds[iOutput]._lowOutputAv) / 2;
-            }
+                lstmModel.OutputsThresholds[iOutput]._threshold = rocBestThreshold[iOutput];
         }
     }
 }
