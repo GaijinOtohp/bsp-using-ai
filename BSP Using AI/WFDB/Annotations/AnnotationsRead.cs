@@ -111,7 +111,7 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
                     // that starts from the next 16 bits
                     int auxBytesCount = annoInfo[0];
 
-                    BitArray auxBits = new BitArray(32);
+                    BitArray auxBits = new BitArray(auxBytesCount * 8);
                     for (int j = 0; j < auxBytesCount * 8; j++)
                         if (16 + i + j < fileBits.Length)
                             auxBits.Set(j, fileBits.Get(16 + i + j));

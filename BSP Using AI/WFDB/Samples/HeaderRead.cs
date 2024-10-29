@@ -95,7 +95,8 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Samples
                     case 2:
                         // The ADC gain (ADC units per physical unit), base line (ADC units), and units parts
                         string[] adcGainParts = whiteSpacedParts[iPart].Split(new string[] { "(", ")", "/" }, StringSplitOptions.RemoveEmptyEntries);
-                        signalSpecsLine.adcGain = double.Parse(adcGainParts[0]);
+                        if (double.Parse(adcGainParts[0]) != 0) // ADC gain should not be 0
+                            signalSpecsLine.adcGain = double.Parse(adcGainParts[0]);
                         for (int iADCPart = 1; iADCPart < adcGainParts.Length; iADCPart++)
                             if (whiteSpacedParts[iPart].Contains("(") && iADCPart <= 1) // It could be only after the format
                                 signalSpecsLine.baseline = int.Parse(adcGainParts[iADCPart]);
