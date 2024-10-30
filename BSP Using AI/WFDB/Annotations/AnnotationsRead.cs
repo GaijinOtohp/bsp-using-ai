@@ -66,7 +66,7 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
                     latestAnnoIndex = newAnnotation.index;
                     skipInterval = 0;
                 }
-                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.SKIP)
+                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.Control.SKIP)
                 {
                     // I which is annoInfo[0] should equal "0" and has no information
                     // Get the next four bytes (32 bits) as a long integer representing the interval to skip
@@ -83,14 +83,14 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
                     // Forward i by 32 bits additional to the annotation 16 bits
                     i += 32;
                 }
-                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.NUM)
+                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.Control.NUM)
                 {
                     // Change the num of the next annotations being P[0], QRS[1], or T[2]
                     selectedNum = annoInfo[0];
                     // additional to the previous one
                     annotations[annotations.Count - 1].number = selectedNum;
                 }
-                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.SUB)
+                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.Control.SUB)
                 {
                     ///:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::///
                     ///:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::///
@@ -98,14 +98,14 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
                     ///:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::///
                     ///----------------------------------------------TODO---------------------------------------------///
                 }
-                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.CHN)
+                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.Control.CHN)
                 {
                     // Change the channel of the next annotations
                     selectedChannel = annoInfo[0];
                     // additional to the previous one
                     annotations[annotations.Count - 1].channel = selectedChannel;
                 }
-                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.AUX)
+                else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.Control.AUX)
                 {
                     // I which is annoInfo[0] contains the number of bytes of auxiliary information
                     // that starts from the next 16 bits
