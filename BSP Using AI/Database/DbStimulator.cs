@@ -274,10 +274,11 @@ namespace BSP_Using_AI
             }
 
             // Execute the command
-            int lastRowAdded = -1;
+            long lastRowAdded = -1;
             try
             {
-                lastRowAdded = command.ExecuteNonQuery();
+                command.ExecuteNonQuery();
+                lastRowAdded = command.Connection.LastInsertRowId;
             }
             catch (Exception e)
             {
