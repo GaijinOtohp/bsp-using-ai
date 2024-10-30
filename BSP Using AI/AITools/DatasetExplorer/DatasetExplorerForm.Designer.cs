@@ -39,6 +39,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             this.instrucitonLabel = new System.Windows.Forms.Label();
             this.quantizationStepLabel = new System.Windows.Forms.Label();
             this.aiGoalComboBox = new System.Windows.Forms.ComboBox();
+            this.wfdbButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // signalsFlowLayoutPanel
@@ -166,11 +167,24 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             this.aiGoalComboBox.Tag = "";
             this.aiGoalComboBox.SelectedIndexChanged += new System.EventHandler(this.aiGoalComboBox_SelectedIndexChanged);
             // 
+            // wfdbButton
+            // 
+            this.wfdbButton.Location = new System.Drawing.Point(16, 57);
+            this.wfdbButton.Margin = new System.Windows.Forms.Padding(2);
+            this.wfdbButton.Name = "wfdbButton";
+            this.wfdbButton.Size = new System.Drawing.Size(122, 25);
+            this.wfdbButton.TabIndex = 36;
+            this.wfdbButton.Text = "Include using WFDB";
+            this.wfdbButton.UseVisualStyleBackColor = true;
+            this.wfdbButton.Visible = false;
+            this.wfdbButton.Click += new System.EventHandler(this.wfdbButton_Click);
+            // 
             // DatasetExplorerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(822, 636);
+            this.Controls.Add(this.wfdbButton);
             this.Controls.Add(this.aiGoalComboBox);
             this.Controls.Add(this.quantizationStepLabel);
             this.Controls.Add(this.instrucitonLabel);
@@ -193,8 +207,6 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         }
 
         #endregion
-
-        private System.Windows.Forms.FlowLayoutPanel signalsFlowLayoutPanel;
         private System.Windows.Forms.Label samplingRateLabel;
         private System.Windows.Forms.Label startingIndexLabel;
         private System.Windows.Forms.Label signalNameLabel;
@@ -204,5 +216,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         public System.Windows.Forms.Button fitSelectionButton;
         public System.Windows.Forms.Label quantizationStepLabel;
         public System.Windows.Forms.ComboBox aiGoalComboBox;
+        public System.Windows.Forms.Button wfdbButton;
+        public System.Windows.Forms.FlowLayoutPanel signalsFlowLayoutPanel;
     }
 }

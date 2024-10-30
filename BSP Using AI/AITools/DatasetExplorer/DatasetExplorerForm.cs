@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives;
+using Biological_Signal_Processing_Using_AI.AITools.DatasetExplorer.WFDBExplorer;
 using Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.KNN_Objectives;
 using Biological_Signal_Processing_Using_AI.AITools.NaiveBayes_Objectives;
@@ -87,13 +88,25 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
         //*******************************************************************************************************//
         //********************************************EVENT HANDLERS*********************************************//
+        private void wfdbButton_Click(object sender, EventArgs e)
+        {
+            WFDBExplorerForm wfdbExplorerForm = new WFDBExplorerForm(this);
+            // Show the form
+            wfdbExplorerForm.Show();
+        }
+
         public void aiGoalComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_ignoreEvent)
                 return;
 
+            wfdbButton.Visible = false;
+
             if (aiGoalComboBox.Text.Equals(CharacteristicWavesDelineation.ObjectiveName))
+            {
                 queryForSignals_CWD();
+                wfdbButton.Visible = true;
+            }
             else if (aiGoalComboBox.Text.Equals(ArrhythmiaClassification.ObjectiveName))
                 queryForSignals_ArrhyCla();
             else
@@ -195,7 +208,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 // Insert new items from records
                 foreach (DataRow row in rowsList)
                 {
-                    // Create an item of the model
+                    // Create an item of the signal features
                     DatasetFlowLayoutPanelItemUserControl datasetFlowLayoutPanelItemUserControl = new DatasetFlowLayoutPanelItemUserControl();
                     datasetFlowLayoutPanelItemUserControl.signalNameLabel.Text = row.Field<string>("sginal_name");
                     datasetFlowLayoutPanelItemUserControl.startingIndexLabel.Text = row.Field<long>("starting_index").ToString();
@@ -206,7 +219,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
                     // Check if this form is for "Training dataset explorer"
                     if (this.Text.Equals("Training dataset explorer"))
-                        holdRecordReport_Training_Item(/*dataTable, */row, datasetFlowLayoutPanelItemUserControl);
+                        holdRecordReport_Training_Item(row, datasetFlowLayoutPanelItemUserControl);
 
                     if (IsHandleCreated) this.Invoke(new MethodInvoker(delegate () { signalsFlowLayoutPanel.Controls.Add(datasetFlowLayoutPanelItemUserControl); }));
                 }
