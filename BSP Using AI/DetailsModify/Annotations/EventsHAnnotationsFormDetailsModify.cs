@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures;
@@ -90,9 +91,30 @@ namespace BSP_Using_AI.DetailsModify
 
         public void ShowAnnotationDetails()
         {
-            foreach (AnnotationECG annoECG in _AnnotationData.GetAnnotations())
-                // Create the new annotation item and add it in featuresTableLayoutPanel
-                featuresTableLayoutPanel.Controls.Add(new AnnotationItemUserControl(annoECG, this));
+            Thread featuresTableLayoutPanelrThread = new Thread(() => 
+            {
+                // Wait for 60 seconds for the window handle to be created
+                for (int i = 0; i < 600; i++)
+                    if (!this.IsHandleCreated)
+                        Thread.Sleep(100);
+                    else
+                        break;
+
+                foreach (AnnotationECG annoECG in _AnnotationData.GetAnnotations())
+                {
+                    // Create the new annotation item and add it in featuresTableLayoutPanel
+                    try
+                    {
+                        featuresTableLayoutPanel.Invoke(new MethodInvoker(delegate () { featuresTableLayoutPanel.Controls.Add(new AnnotationItemUserControl(annoECG, this)); }));
+                        Thread.Sleep(100);
+                    }
+                    catch (Exception e)
+                    {
+                        break;
+                    }
+                }
+            });
+            featuresTableLayoutPanelrThread.Start();
 
             // Update the annotations in the plots
             UpdateAnnotationsPlots();
