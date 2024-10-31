@@ -39,12 +39,6 @@ namespace BSP_Using_AI.SignalHolderFolder
 
         private void detailsModifyButton_Click(object sender, EventArgs e)
         {
-            // Check if the form is already opened, and wlose it if so
-            /*FormDetailsModify[] formDetailsModifyArray = Application.OpenForms.OfType<FormDetailsModify>().ToArray();
-            for (int i = 0; i < formDetailsModifyArray.Length; i++)
-                if (formDetailsModifyArray[i].Text.Equals("Signal details"))
-                    formDetailsModifyArray[i].Close();*/
-
             // Open a new form
             FormDetailsModify formDetailsModify = new FormDetailsModify(_FilteringTools.Clone(), pathLabel.Text + "\\Modify");
             formDetailsModify._objectivesModelsDic = ((MainForm)FindForm())._objectivesModelsDic;
@@ -53,6 +47,16 @@ namespace BSP_Using_AI.SignalHolderFolder
 
             formDetailsModify.Text = "Signal details";
             formDetailsModify.Show();
+        }
+
+        private void signalSpanTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
+        }
+
+        private void signalSpanTextBox_TextChanged(object sender, System.EventArgs e)
+        {
+            loadSignalStartingFrom(_FilteringTools._startingInSec);
         }
 
         private void forwardButton_Click(object sender, EventArgs e)

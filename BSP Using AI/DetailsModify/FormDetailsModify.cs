@@ -116,6 +116,10 @@ namespace BSP_Using_AI.DetailsModify
                 // Load signals inside charts
                 SignalPlot signalPlot = GeneralTools.loadSignalInChart(signalChart, samples, samplingRate, startingInSec, "FormDetailsModifySignal");
                 _Plots[SANamings.Signal] = signalPlot;
+                // Set the limits of the plot to be 10 seconds
+                double span = Math.Min(10, samples.Length / samplingRate);
+                signalChart.Plot.SetAxisLimitsX(startingInSec, startingInSec + span);
+                signalChart.Refresh();
 
                 // Set the real frequency rate
                 // ftMag has only half of the spectrum (the real frequencies)

@@ -37,6 +37,8 @@
             this.backwardButton = new System.Windows.Forms.Button();
             this.forwardButton = new System.Windows.Forms.Button();
             this.pathLabel = new System.Windows.Forms.Label();
+            this.signalSpanTextBox = new System.Windows.Forms.TextBox();
+            this.signalSpanLabel = new System.Windows.Forms.Label();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -128,11 +130,34 @@
             this.pathLabel.TabIndex = 7;
             this.pathLabel.Text = "Path";
             // 
+            // signalSpanTextBox
+            // 
+            this.signalSpanTextBox.Location = new System.Drawing.Point(883, 156);
+            this.signalSpanTextBox.Name = "signalSpanTextBox";
+            this.signalSpanTextBox.PlaceholderText = "0";
+            this.signalSpanTextBox.Size = new System.Drawing.Size(149, 23);
+            this.signalSpanTextBox.TabIndex = 8;
+            this.signalSpanTextBox.Text = "10";
+            this.signalSpanTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.signalSpanTextBox.TextChanged += new System.EventHandler(this.signalSpanTextBox_TextChanged);
+            this.signalSpanTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.signalSpanTextBox_KeyPress);
+            // 
+            // signalSpanLabel
+            // 
+            this.signalSpanLabel.AutoSize = true;
+            this.signalSpanLabel.Location = new System.Drawing.Point(911, 138);
+            this.signalSpanLabel.Name = "signalSpanLabel";
+            this.signalSpanLabel.Size = new System.Drawing.Size(96, 15);
+            this.signalSpanLabel.TabIndex = 9;
+            this.signalSpanLabel.Text = "Signal span (Sec)";
+            // 
             // SignalHolder
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.Controls.Add(this.signalSpanLabel);
+            this.Controls.Add(this.signalSpanTextBox);
             this.Controls.Add(this.pathLabel);
             this.Controls.Add(this.forwardButton);
             this.Controls.Add(this.backwardButton);
@@ -158,5 +183,7 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem sendSignalToolStripMenuItem;
         public System.Windows.Forms.Label pathLabel;
+        private System.Windows.Forms.TextBox signalSpanTextBox;
+        private System.Windows.Forms.Label signalSpanLabel;
     }
 }

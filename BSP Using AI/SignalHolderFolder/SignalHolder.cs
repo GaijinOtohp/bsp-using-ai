@@ -1,4 +1,6 @@
 ﻿using Biological_Signal_Processing_Using_AI.Garage;
+using System;
+using System.Linq;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
@@ -12,10 +14,6 @@ namespace BSP_Using_AI.SignalHolderFolder
         public double[] _samples { get; set; }
 
         public ARTHTFeatures _arthtFeatures { get; set; }
-
-        bool _mouseDown = false;
-        int _previousMouseX;
-        int _previousMouseY;
 
         public SignalHolder()
         {
@@ -33,47 +31,27 @@ namespace BSP_Using_AI.SignalHolderFolder
         /// </summary>
         public void loadSignalStartingFrom(double startingInSecs)
         {
-            double[] truncatedSamples;
-            // Check if the signal is more than 10 secs
-            if ((_samples.Length / _FilteringTools._samplingRate) > 10)
-            {
-                double truncPeriod = 10;
-                // If yes then plot only 10 secs of the signal
-                // Check if the inserted starting param is negative number
-                if (startingInSecs < 0)
-                    // If yes then set the starting param as 0
-                    startingInSecs = 0;
+            // Set the new startingInSec
+            _FilteringTools.SetStartingInSecond(startingInSecs);
 
-                // starting from the inserted param as in secs
-                int starting = (int)(startingInSecs * _FilteringTools._samplingRate);
-                int ending = starting + (int)(truncPeriod * _FilteringTools._samplingRate);
-                // Check if _samples contains enogh samples for 10 sec starting from the starting index
-                if (ending > _samples.Length)
-                {
-                    // If yes then set the ending as the length of _samples
-                    ending = _samples.Length;
-                    // and the starting as 10 secs from the ending
-                    starting = ending - (int)(truncPeriod * _FilteringTools._samplingRate);
-                }
+            // Get the selected signal span
+            double spanInSecs = 10;
+            if (signalSpanTextBox.Text.Length > 0)
+                spanInSecs = double.Parse(signalSpanTextBox.Text);
 
-                // Set the new startingInSec
-                _FilteringTools.SetStartingInSecond(starting / (double)_FilteringTools._samplingRate);
-
-                int numSamples = ending - starting;
-                truncatedSamples = new double[numSamples];
-
-                for (int i = 0; i < numSamples; i++)
-                    truncatedSamples[i] = _samples[i + starting];
-            }
-            else
-            {
-                // If yes then copy _samples in _truncatedSamples
-                truncatedSamples = _samples;
-            }
+            // Get the selected samples
+            int startingIndex = (int)(startingInSecs * _FilteringTools._samplingRate);
+            int endingIndex = (int)((startingInSecs + spanInSecs) * _FilteringTools._samplingRate);
+            double[] truncatedSamples = _samples.Where((value, index) => startingIndex <= index && index <= endingIndex).ToArray();
 
             // Insert signal values inside signal holder chart
             _FilteringTools.SetOriginalSamples(truncatedSamples);
             GeneralTools.loadSignalInChart(signalExhibitor, _FilteringTools._RawSamples, _FilteringTools._samplingRate, _FilteringTools._startingInSec, "SignalHolderSignal");
+
+            // Set the limits of the plot to be 10 seconds
+            double span = Math.Min(10, truncatedSamples.Length / (double)_FilteringTools._samplingRate);
+            signalExhibitor.Plot.SetAxisLimitsX(startingInSecs, startingInSecs + span);
+            signalExhibitor.Refresh();
         }
     }
 }
