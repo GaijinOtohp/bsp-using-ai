@@ -63,6 +63,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         int _holdRatio = 50;
         int _holdRatioReset = 50;
 
+        public delegate void SegmentDelegate(SignalSegment segment, int segmentCount);
+
         public CWD_RL(List<RLDimension> dimensionsList)
         {
             // Set the environment
@@ -227,8 +229,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             Data GlobalCornersScanData = new Data(CWDNamigs.RLCornersScanData);
 
             // Segment the samples of signal according to the chunks' distribution
-            _SignalSegmentsList = SegmentTheMainSamples(_RescaledSamples, (int)_samplingRate, 0.002d, 0.5d);
-            int maxEpisodes = 10;
+            _SignalSegmentsList = SegmentTheMainSamples(_RescaledSamples, (int)_samplingRate, 0.5d, null);
+            int maxEpisodes = 3;
             for (_selectedSegment = 0; _selectedSegment < _SignalSegmentsList.Count; _selectedSegment++)
             {
                 // ---------------------------------------------Try reset then new environment's q-table
@@ -245,7 +247,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                     // Predict the initial state of the selected segment
                     double[] features = EpisodeSample.getFeatures();
 
-                    double[] atARTOutput = TF_NET_NN.predict(features, CWDCrazyReinforcementLModel, CWDCrazyReinforcementLModel.BaseModel.Session);
+                    double[] atARTOutput = null;
+                    lock (CWDCrazyReinforcementLModel)
+                        atARTOutput = TF_NET_NN.predict(features, CWDCrazyReinforcementLModel, CWDCrazyReinforcementLModel.BaseModel.Session);
 
                     // Start training with the new initial state in the new episode
                     (int[] episodeBestState, bool badState) = _Env.DeepTrain(atARTOutput);
@@ -262,7 +266,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                         EpisodeSample.insertOutput(1, CWDNamigs.CornersScanOutputs.ART, bestART);
 
                         List<Sample> trainingSamplesList = new List<Sample>() { EpisodeSample };
-                        TF_NET_NN.fit(CWDCrazyReinforcementLModel, CWDCrazyReinforcementLModel.BaseModel, trainingSamplesList, null, saveModel: false, epochsMax: 1);
+                        lock (CWDCrazyReinforcementLModel)
+                            TF_NET_NN.fit(CWDCrazyReinforcementLModel, CWDCrazyReinforcementLModel.BaseModel, trainingSamplesList, null, saveModel: false, epochsMax: 1);
                     }
                 }
 
@@ -285,7 +290,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             return GlobalCornersScanData;
         }
 
-        public static List<SignalSegment> SegmentTheMainSamples(double[] globalSamples, int samplingRate, double derivativeDelta, double distributionBarThreshold)
+        public static List<SignalSegment> SegmentTheMainSamples(double[] globalSamples, int samplingRate, double distributionBarThreshold, SegmentDelegate segmentDelegate)
         {
             List<SignalSegment> signalSegmentsList = new List<SignalSegment>();
             // The segment should be at least 0.2 seconds long
@@ -363,14 +368,19 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 }
 
                 // Include the new segment in signalSegmentsList
-                SignalSegment newSegment = new SignalSegment() {
-                                                                startingIndex = (iDWTGlobal - dwtPrefExtension) * dwtDownScale,
-                                                                endingIndex = (bufferEndingIndexBeforeExtension + dwtSuffExtension + 1) * dwtDownScale - 1 // Add the samples of the gape between two segments [ (.. + 1 * dwtDownScale) - 1 ]
-                }; 
+                SignalSegment newSegment = new SignalSegment()
+                {
+                    startingIndex = (iDWTGlobal - dwtPrefExtension) * dwtDownScale,
+                    endingIndex = (bufferEndingIndexBeforeExtension + dwtSuffExtension + 1) * dwtDownScale - 1 // Add the samples of the gape between two segments [ (.. + 1 * dwtDownScale) - 1 ]
+                };
                 newSegment.SegmentSamples = globalSamples.Where((val, index) => newSegment.startingIndex <= index && index <= newSegment.endingIndex).ToArray();
                 (newSegment.segmentMean, newSegment.segmentMin, newSegment.segmentMax) = GeneralTools.MeanMinMax(newSegment.SegmentSamples);
 
                 signalSegmentsList.Add(newSegment);
+
+                // Send the segment with the delegate
+                if (segmentDelegate != null)
+                    segmentDelegate(newSegment, signalSegmentsList.Count);
 
                 // Move iGlobal according to the new segment
                 iDWTGlobal = bufferEndingIndexBeforeExtension;

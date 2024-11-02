@@ -25,7 +25,7 @@ namespace BSP_Using_AI.DetailsModify
             double globalAmpInterval = 4d;
             double[] RescaledSamples = GeneralTools.rescaleSignal(SignalSamples, globalAmpInterval);
 
-            List<SignalSegment> SegmentsList = CWD_RL.SegmentTheMainSamples(RescaledSamples, samplingRate, 0.002d, 0.5d);
+            List<SignalSegment> SegmentsList = CWD_RL.SegmentTheMainSamples(RescaledSamples, samplingRate, 0.5d, null);
 
             List<CornerSample> scannedCornersList = new List<CornerSample>(SignalSamples.Length);
 
