@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
@@ -216,100 +217,108 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         {
             List<List<Sample>> dataListSequences = new List<List<Sample>>(rowsList.Count);
 
+            List<Thread> lstmSeqBuildThreads = new List<Thread>(rowsList.Count + 1);
             foreach (DataRow row in rowsList)
             {
-                // Get the signal and segment it using the CWD_RL segmentation method
-                int samplingRate = (int)(row.Field<long>("sampling_rate"));
-                int startingIndex = (int)(row.Field<long>("starting_index") * samplingRate);
-                double[] signalSamples = GeneralTools.ByteArrayToObject<double[]>(row.Field<byte[]>("signal_data"));
-                AnnotationData annoData = GeneralTools.ByteArrayToObject<AnnotationData>(row.Field<byte[]>("anno_data"));
-
-                // Rescale samples to be in an amplitude interval of 4
-                double globalAmpInterval = 4d;
-                double[] RescaledSamples = GeneralTools.rescaleSignal(signalSamples, globalAmpInterval);
-
-                // Scan the corners of each segment using the corners scanner in FormDetailsModifyFilters
-                (List<CornerSample> ScannedCorners, List<SignalSegment> SegmentsList) = FormDetailsModify.RLAutoCornersScanner(rlModel, signalSamples, samplingRate);
-                // The parameters of the scanner are extracted using the RL model in cwdLSTM
-                List<int> totalScannedCornersIndecies = ScannedCorners.Select(corner => corner._index).ToList();
-
-                // Combine each scanned sample in totalScannedCornersIndecies to its closest annotation in approxIntervList
-                AnnotationECG[] trueCorners = CWD_RL.GetCornersWithException(annoData, new string[] { CWDNamigs.Delta, CWDNamigs.Normal, CWDNamigs.Abnormal });
-                // Create the intervals covering 40% from the corners in both sides
-                List<CornerInterval> approxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, RescaledSamples, samplingRate);
-                // Sort the intervals in a dictionary with the indecies of the scanned corners
-                Dictionary<int, List<CornerInterval>> sortedIntervDictBuff = approxIntervList.Select(cornerIntv => (coveredIndicies: totalScannedCornersIndecies.Where(scannedCornIndx => cornerIntv.starting <= scannedCornIndx &&
-                                                                                                                                                  scannedCornIndx <= cornerIntv.ending).ToList(),
-                                                                                                                cornerIntv)).
-                                                                                          Select(tuple => (coveredIndiciesDist: tuple.coveredIndicies.Select(scannedCornIndx => (
-                                                                                                                                                                                    Math.Sqrt(
-                                                                                                                                                                                                Math.Pow((double)(scannedCornIndx - tuple.cornerIntv.cornerIndex) / samplingRate, 2) +
-                                                                                                                                                                                                Math.Pow(RescaledSamples[scannedCornIndx] - RescaledSamples[tuple.cornerIntv.cornerIndex], 2)
-                                                                                                                                                                                             ),
-                                                                                                                                                                                    scannedCornIndx
-                                                                                                                                                                                )).
-                                                                                                                                                      ToList(),
-                                                                                                           tuple.cornerIntv)
-                                                                                                ).
-                                                                                          Select(tuple => (closestIndex: tuple.coveredIndiciesDist.Count > 0 ? tuple.coveredIndiciesDist.Min().scannedCornIndx : tuple.cornerIntv.cornerIndex,
-                                                                                                           tuple.cornerIntv)).
-                                                                                          Select(tuple => (tuple.closestIndex, cornerIntv: new CornerInterval()
-                                                                                          {
-                                                                                              cornerIndex = tuple.closestIndex,
-                                                                                              Name = tuple.cornerIntv.Name
-                                                                                          })).
-                                                                                          GroupBy(tuple => tuple.closestIndex).
-                                                                                          Select(group => (group.Key, cornerIntvGroup: group.ToList().Select(group => group.cornerIntv).ToList())).
-                                                                                          ToDictionary(tuple => tuple.Key, tuple => tuple.cornerIntvGroup);
-
-                Dictionary<int, List<CornerInterval>> sortedIntervDict = totalScannedCornersIndecies.Select(scannedCornIndx => new List<CornerInterval>() { new CornerInterval() { cornerIndex = scannedCornIndx,
-                                                                                                                                                                                   Name = CWDNamigs.PeaksLabelsOutputs.Other } }).
-                                                                                                     ToDictionary(cornerIntvList => cornerIntvList[0].cornerIndex);
-
-                // Combine other corners with the true ones
-                foreach (int intervIndex in sortedIntervDictBuff.Keys)
-                    if (sortedIntervDict.ContainsKey(intervIndex))
-                        sortedIntervDict[intervIndex] = sortedIntervDictBuff[intervIndex];
-                    else
-                        sortedIntervDict.Add(intervIndex, sortedIntervDictBuff[intervIndex]);
-
-                sortedIntervDict = sortedIntervDict.OrderBy(keyVal => keyVal.Key).ToDictionary(keyVal => keyVal.Key, keyVal => keyVal.Value);
-
-                // Create the training samples
-
-                // Create the data list sequence for the current signal
-                LSTMDataBuilderMemory dataBuilderMemory = new LSTMDataBuilderMemory();
-                Data CornersScanData = new Data(CWDNamigs.LSTMPeaksClassificationData);
-
-                dataBuilderMemory.OutputsLabels = CWDNamigs.PeaksLabelsOutputs.GetNames();
-                //dataBuilderMemory.FeaturesLabels = CWDNamigs.PeaksLabelsFeatures.GetNames();
-                dataBuilderMemory.FeaturesLabels = new string[106];
-                for (int i = 0; i < 106; i++)
-                    dataBuilderMemory.FeaturesLabels[i] = "Feature " + i;
-                dataBuilderMemory.samplingRate = samplingRate;
-                dataBuilderMemory.ProbingIntervals[0] = samplingRate;
-                dataBuilderMemory.globalAmpInterval = globalAmpInterval;
-
-                foreach (int cornerIndex in sortedIntervDict.Keys)
+                Thread lstmSeqBuildThread = new Thread(() =>
                 {
-                    // Create a new sample
-                    Sample sample = new Sample("Peak" + cornerIndex, dataBuilderMemory.FeaturesLabels.Length, dataBuilderMemory.OutputsLabels.Length, CornersScanData);
+                    // Get the signal and segment it using the CWD_RL segmentation method
+                    int samplingRate = (int)(row.Field<long>("sampling_rate"));
+                    int startingIndex = (int)(row.Field<long>("starting_index") * samplingRate);
+                    double[] signalSamples = GeneralTools.ByteArrayToObject<double[]>(row.Field<byte[]>("signal_data"));
+                    AnnotationData annoData = GeneralTools.ByteArrayToObject<AnnotationData>(row.Field<byte[]>("anno_data"));
 
-                    sample.AdditionalInfo = new Dictionary<object, object>(3);
-                    sample.AdditionalInfo.Add(CWDNamigs.peakIndex, cornerIndex);
-                    sample.AdditionalInfo.Add(CWDNamigs.samplingRate, samplingRate);
+                    // Rescale samples to be in an amplitude interval of 4
+                    double globalAmpInterval = 4d;
+                    double[] RescaledSamples = GeneralTools.rescaleSignal(signalSamples, globalAmpInterval);
 
-                    // Set features of the corner before the outputs (the outputs updates dataBuilderMemory for the next corner)
-                    GetCornerFeatures(sample, dataBuilderMemory, cornerIndex, RescaledSamples, SegmentsList);
+                    // Scan the corners of each segment using the corners scanner in FormDetailsModifyFilters
+                    (List<CornerSample> ScannedCorners, List<SignalSegment> SegmentsList) = FormDetailsModify.RLAutoCornersScanner(rlModel, signalSamples, samplingRate);
+                    // The parameters of the scanner are extracted using the RL model in cwdLSTM
+                    List<int> totalScannedCornersIndecies = ScannedCorners.Select(corner => corner._index).ToList();
 
-                    // Set the output
-                    GetOutputsOfTheSample(sample, dataBuilderMemory, sortedIntervDict[cornerIndex]);
-                }
+                    // Combine each scanned sample in totalScannedCornersIndecies to its closest annotation in approxIntervList
+                    AnnotationECG[] trueCorners = CWD_RL.GetCornersWithException(annoData, new string[] { CWDNamigs.Delta, CWDNamigs.Normal, CWDNamigs.Abnormal });
+                    // Create the intervals covering 40% from the corners in both sides
+                    List<CornerInterval> approxIntervList = ApproximateIndexesToIntervals(trueCorners, 40, RescaledSamples, samplingRate);
+                    // Sort the intervals in a dictionary with the indecies of the scanned corners
+                    Dictionary<int, List<CornerInterval>> sortedIntervDictBuff = approxIntervList.Select(cornerIntv => (coveredIndicies: totalScannedCornersIndecies.Where(scannedCornIndx => cornerIntv.starting <= scannedCornIndx &&
+                                                                                                                                                      scannedCornIndx <= cornerIntv.ending).ToList(),
+                                                                                                                    cornerIntv)).
+                                                                                              Select(tuple => (coveredIndiciesDist: tuple.coveredIndicies.Select(scannedCornIndx => (
+                                                                                                                                                                                        Math.Sqrt(
+                                                                                                                                                                                                    Math.Pow((double)(scannedCornIndx - tuple.cornerIntv.cornerIndex) / samplingRate, 2) +
+                                                                                                                                                                                                    Math.Pow(RescaledSamples[scannedCornIndx] - RescaledSamples[tuple.cornerIntv.cornerIndex], 2)
+                                                                                                                                                                                                 ),
+                                                                                                                                                                                        scannedCornIndx
+                                                                                                                                                                                    )).
+                                                                                                                                                          ToList(),
+                                                                                                               tuple.cornerIntv)
+                                                                                                    ).
+                                                                                              Select(tuple => (closestIndex: tuple.coveredIndiciesDist.Count > 0 ? tuple.coveredIndiciesDist.Min().scannedCornIndx : tuple.cornerIntv.cornerIndex,
+                                                                                                               tuple.cornerIntv)).
+                                                                                              Select(tuple => (tuple.closestIndex, cornerIntv: new CornerInterval()
+                                                                                              {
+                                                                                                  cornerIndex = tuple.closestIndex,
+                                                                                                  Name = tuple.cornerIntv.Name
+                                                                                              })).
+                                                                                              GroupBy(tuple => tuple.closestIndex).
+                                                                                              Select(group => (group.Key, cornerIntvGroup: group.ToList().Select(group => group.cornerIntv).ToList())).
+                                                                                              ToDictionary(tuple => tuple.Key, tuple => tuple.cornerIntvGroup);
 
-                //_______________________________________________________________________________________________________//
-                // Append the data list sequence for the current signal into dataListSequences
-                dataListSequences.Add(CornersScanData.Samples);
+                    Dictionary<int, List<CornerInterval>> sortedIntervDict = totalScannedCornersIndecies.Select(scannedCornIndx => new List<CornerInterval>() { new CornerInterval() { cornerIndex = scannedCornIndx,
+                                                                                                                                                                                   Name = CWDNamigs.PeaksLabelsOutputs.Other } }).
+                                                                                                         ToDictionary(cornerIntvList => cornerIntvList[0].cornerIndex);
+
+                    // Combine other corners with the true ones
+                    foreach (int intervIndex in sortedIntervDictBuff.Keys)
+                        if (sortedIntervDict.ContainsKey(intervIndex))
+                            sortedIntervDict[intervIndex] = sortedIntervDictBuff[intervIndex];
+                        else
+                            sortedIntervDict.Add(intervIndex, sortedIntervDictBuff[intervIndex]);
+
+                    sortedIntervDict = sortedIntervDict.OrderBy(keyVal => keyVal.Key).ToDictionary(keyVal => keyVal.Key, keyVal => keyVal.Value);
+
+                    // Create the training samples
+
+                    // Create the data list sequence for the current signal
+                    LSTMDataBuilderMemory dataBuilderMemory = new LSTMDataBuilderMemory();
+                    Data CornersScanData = new Data(CWDNamigs.LSTMPeaksClassificationData);
+
+                    dataBuilderMemory.OutputsLabels = CWDNamigs.PeaksLabelsOutputs.GetNames();
+                    //dataBuilderMemory.FeaturesLabels = CWDNamigs.PeaksLabelsFeatures.GetNames();
+                    dataBuilderMemory.FeaturesLabels = new string[106];
+                    for (int i = 0; i < 106; i++)
+                        dataBuilderMemory.FeaturesLabels[i] = "Feature " + i;
+                    dataBuilderMemory.samplingRate = samplingRate;
+                    dataBuilderMemory.ProbingIntervals[0] = samplingRate;
+                    dataBuilderMemory.globalAmpInterval = globalAmpInterval;
+
+                    foreach (int cornerIndex in sortedIntervDict.Keys)
+                    {
+                        // Create a new sample
+                        Sample sample = new Sample("Peak" + cornerIndex, dataBuilderMemory.FeaturesLabels.Length, dataBuilderMemory.OutputsLabels.Length, CornersScanData);
+
+                        sample.AdditionalInfo = new Dictionary<object, object>(3);
+                        sample.AdditionalInfo.Add(CWDNamigs.peakIndex, cornerIndex);
+                        sample.AdditionalInfo.Add(CWDNamigs.samplingRate, samplingRate);
+
+                        // Set features of the corner before the outputs (the outputs updates dataBuilderMemory for the next corner)
+                        GetCornerFeatures(sample, dataBuilderMemory, cornerIndex, RescaledSamples, SegmentsList);
+
+                        // Set the output
+                        GetOutputsOfTheSample(sample, dataBuilderMemory, sortedIntervDict[cornerIndex]);
+                    }
+
+                    //_______________________________________________________________________________________________________//
+                    // Append the data list sequence for the current signal into dataListSequences
+                    dataListSequences.Add(CornersScanData.Samples);
+                });
+                lstmSeqBuildThread.Start();
+                lstmSeqBuildThreads.Add(lstmSeqBuildThread);
             }
+            foreach (Thread t in lstmSeqBuildThreads)
+                t.Join();
 
             return dataListSequences;
         }

@@ -33,7 +33,9 @@ namespace BSP_Using_AI.DetailsModify
             {
                 double[] features = GetFeaturesValues(Segment);
 
-                double[] atARTOutput = TF_NET_NN.predict(features, CWDReinforcementLModel, CWDReinforcementLModel.BaseModel.Session);
+                double[] atARTOutput = null;
+                lock (CWDReinforcementLModel)
+                    atARTOutput = TF_NET_NN.predict(features, CWDReinforcementLModel, CWDReinforcementLModel.BaseModel.Session);
 
                 List<RLDimension> dimList = CWDReinforcementLModel._DimensionsList;
                 double at = dimList[0]._min + (atARTOutput[0] * (dimList[0]._max - dimList[0]._min));
