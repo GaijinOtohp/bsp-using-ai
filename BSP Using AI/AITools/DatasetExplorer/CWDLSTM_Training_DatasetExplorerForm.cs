@@ -64,7 +64,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
             return (opposite, adjacent, hypotenuse);
         }
-        
+
         private static double[] GetSurroundingRangeFeatures(int longRangeIndex, int shortRangeIndex, int cornerIndex, LSTMDataBuilderMemory dataBuilderMemory, double[] rescaledSignalTotalSamples)
         {
             double[] xPeakPreSamples = rescaledSignalTotalSamples.Where((value, index) => (cornerIndex - longRangeIndex) <= index &&
@@ -233,7 +233,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     double[] RescaledSamples = GeneralTools.rescaleSignal(signalSamples, globalAmpInterval);
 
                     // Scan the corners of each segment using the corners scanner in FormDetailsModifyFilters
-                    (List<CornerSample> ScannedCorners, List<SignalSegment> SegmentsList) = FormDetailsModify.RLAutoCornersScanner(rlModel, signalSamples, samplingRate);
+                    (List<CornerSample> ScannedCorners, List<SignalSegment> SegmentsList) = FormDetailsModify.RLAutoCornersScanner_Training(rlModel, signalSamples, samplingRate);
                     // The parameters of the scanner are extracted using the RL model in cwdLSTM
                     List<int> totalScannedCornersIndecies = ScannedCorners.Select(corner => corner._index).ToList();
 

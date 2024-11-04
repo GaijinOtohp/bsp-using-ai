@@ -63,7 +63,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         int _holdRatio = 50;
         int _holdRatioReset = 50;
 
-        public delegate void SegmentDelegate(SignalSegment segment, int segmentCount);
+        public delegate void SegmentDelegate(SignalSegment segment, int segmentCount, bool lastSegment, ObjectiveBaseModel baseModel);
 
         public CWD_RL(List<RLDimension> dimensionsList)
         {
@@ -229,7 +229,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             Data GlobalCornersScanData = new Data(CWDNamigs.RLCornersScanData);
 
             // Segment the samples of signal according to the chunks' distribution
-            _SignalSegmentsList = SegmentTheMainSamples(_RescaledSamples, (int)_samplingRate, 0.5d, null);
+            _SignalSegmentsList = SegmentTheMainSamples(_RescaledSamples, (int)_samplingRate, 0.5d, null, null);
             int maxEpisodes = 3;
             for (_selectedSegment = 0; _selectedSegment < _SignalSegmentsList.Count; _selectedSegment++)
             {
@@ -290,7 +290,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             return GlobalCornersScanData;
         }
 
-        public static List<SignalSegment> SegmentTheMainSamples(double[] globalSamples, int samplingRate, double distributionBarThreshold, SegmentDelegate segmentDelegate)
+        public static List<SignalSegment> SegmentTheMainSamples(double[] globalSamples, int samplingRate, double distributionBarThreshold, ObjectiveBaseModel baseModel, SegmentDelegate segmentDelegate)
         {
             List<SignalSegment> signalSegmentsList = new List<SignalSegment>();
             // The segment should be at least 0.2 seconds long
@@ -379,8 +379,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 signalSegmentsList.Add(newSegment);
 
                 // Send the segment with the delegate
+                bool LastSegment = bufferEndingIndexBeforeExtension + 1 >= absHaarDWTLevel1.Length;
                 if (segmentDelegate != null)
-                    segmentDelegate(newSegment, signalSegmentsList.Count);
+                    segmentDelegate(newSegment, signalSegmentsList.Count, LastSegment, baseModel);
 
                 // Move iGlobal according to the new segment
                 iDWTGlobal = bufferEndingIndexBeforeExtension;
