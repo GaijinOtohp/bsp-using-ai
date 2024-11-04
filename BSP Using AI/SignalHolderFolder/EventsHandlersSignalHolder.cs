@@ -13,7 +13,7 @@ namespace BSP_Using_AI.SignalHolderFolder
         private void chooseFileButton_Click(object sender, EventArgs e)
         {
             // Open file dialogue to choose matlab file of a signal
-            using (OpenFileDialog ofd = new OpenFileDialog() { Multiselect = false, ValidateNames = true, Filter = "MAT file|*.mat|Text file|*.txt|All files|*.*", RestoreDirectory = true, FilterIndex = 2 })
+            using (OpenFileDialog ofd = new OpenFileDialog() { Multiselect = false, ValidateNames = true, Filter = "Header files|*.hea|MAT file|*.mat|Text file|*.txt|DAT files|*.dat|EDF files|*.edf|All files|*.*", RestoreDirectory = true, FilterIndex = 1 })
             {
                 // Check if the user clicked OK button
                 if (ofd.ShowDialog() == DialogResult.OK)
@@ -27,10 +27,7 @@ namespace BSP_Using_AI.SignalHolderFolder
                     if (Application.OpenForms.OfType<InputForm>().Count() > 0)
                         Application.OpenForms.OfType<InputForm>().First().Close();
 
-                    InputForm inputForm = new InputForm();
-                    // Set the file path and current signal holder
-                    inputForm._FilePath = filePath;
-                    inputForm._CurrentSignalHolder = this;
+                    InputForm inputForm = new InputForm(filePath, this);
                     // Show the form
                     inputForm.Show();
                 }

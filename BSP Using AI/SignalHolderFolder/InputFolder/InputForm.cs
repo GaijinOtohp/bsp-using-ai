@@ -1,9 +1,13 @@
 ﻿using Biological_Signal_Processing_Using_AI;
+using Biological_Signal_Processing_Using_AI.WFDB;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels_ObjectivesArchitectures.WPWSyndromeDetection;
 using static Biological_Signal_Processing_Using_AI.Structures;
+using static Biological_Signal_Processing_Using_AI.WFDB.WFBDDefinitions;
 using static BSP_Using_AI.DetailsModify.FormDetailsModify;
 
 namespace BSP_Using_AI.SignalHolderFolder.Input
@@ -11,16 +15,40 @@ namespace BSP_Using_AI.SignalHolderFolder.Input
     public partial class InputForm : Form
     {
         public string _FilePath;
+        WFDBScope _WFDBScope;
         public SignalHolder _CurrentSignalHolder;
 
-        public InputForm()
+        public InputForm(string filePath, SignalHolder signalHolder)
         {
             InitializeComponent();
+
+            // Set the file path and current signal holder
+            _FilePath = filePath;
+            _CurrentSignalHolder = signalHolder;
+
+            // Read WFDB signal if exists
+            _WFDBScope = WFDBRead.ReadWFDBInfo(filePath);
+            // Fill the signals combo boxes
+            if (_WFDBScope.SignalsDict != null)
+                signalsComboBox.Items.AddRange(_WFDBScope.SignalsDict.Keys.ToArray());
+            else
+                signalsComboBox.Items.Add(Path.GetFileName(filePath));
+            signalsComboBox.SelectedIndex = 0;
         }
 
         private void samplingRateTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
+        }
+
+        private void signalsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Update the displayed data of the selected signal
+            if (_WFDBScope.SignalsDict != null)
+            {
+                samplingRateTextBox.Text = _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq.ToString();
+                quantizationStepTextBox.Text = _WFDBScope.SignalsDict[signalsComboBox.Text].adcGain.ToString();
+            }
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -124,10 +152,18 @@ namespace BSP_Using_AI.SignalHolderFolder.Input
                     return;
                 }
             }
+
             // Set the path of the signal, sampling rate, and quantization step
             _CurrentSignalHolder.pathLabel.Text = _FilePath.Substring(_FilePath.LastIndexOf("\\"));
             _CurrentSignalHolder._arthtFeatures = new ARTHTFeatures();
             _CurrentSignalHolder._FilteringTools = new FilteringTools(samplingRate, quantizationStep, null);
+
+            // Include the WFDB signal if exists
+            if (_WFDBScope.SignalsDict != null)
+            {
+                _CurrentSignalHolder._samples = _WFDBScope.SignalsDict[signalsComboBox.Text].Samples.Select(value => (double)value).ToArray();
+                _CurrentSignalHolder.pathLabel.Text = signalsComboBox.Text;
+            }
 
             // Insert signal values inside signal holder chart
             _CurrentSignalHolder.loadSignalStartingFrom(0D);
