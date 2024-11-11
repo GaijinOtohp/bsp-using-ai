@@ -76,7 +76,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 for (int iDimension = 0; iDimension < predictedState.Length; iDimension++)
                 {
                     RLDimension dim = _Environment._DimensionsList[iDimension];
-                    newState[iDimension] = (int)(predictedState[iDimension] * (dim._max - dim._min) / dim._step);
+                    newState[iDimension] = (int)(predictedState[iDimension] * dim._size);
                 }
 
                 return newState;

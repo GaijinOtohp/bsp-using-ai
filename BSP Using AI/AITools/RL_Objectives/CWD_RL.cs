@@ -57,9 +57,9 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
         int _selectedSegment;
 
         bool _done = false;
-        double _overPeaksRatio = 20d;
+        double _overPeaksRatio = 2d;
         double _ratioIncrement = 0.5d;
-        double _overPeaksRatioReset = 20d;
+        double _overPeaksRatioReset = 2d;
         int _holdRatio = 50;
         int _holdRatioReset = 50;
 
@@ -256,8 +256,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
 
                     // Check if the predicted state of the crazy model is greater than the improvementThreshold
                     double improvementThreshold = 0.001d;
-                    double bestAT = (episodeBestState[0] * atDim._step) / (atDim._max - atDim._min);
-                    double bestART = (episodeBestState[1] * artDim._step) / (artDim._max - artDim._min);
+                    double bestAT = episodeBestState[0] / (double)atDim._size;
+                    double bestART = episodeBestState[1] / (double)artDim._size;
                     if ((Math.Abs(atARTOutput[0] - bestAT) + Math.Abs(atARTOutput[1] - bestART)) > improvementThreshold)
                     {
                         // Then train the crazy model with the new sample
@@ -283,8 +283,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                 // Take the state with the highest reward
                 int[] segmentBestState = ReinforcementLearning.Environment.String2IntArray(acceptableStates.Max().state);
 
-                SegmentSample.insertOutput(0, CWDNamigs.CornersScanOutputs.AT, (segmentBestState[0] * atDim._step) / (atDim._max - atDim._min));
-                SegmentSample.insertOutput(1, CWDNamigs.CornersScanOutputs.ART, (segmentBestState[1] * artDim._step) / (artDim._max - artDim._min));
+                SegmentSample.insertOutput(0, CWDNamigs.CornersScanOutputs.AT, segmentBestState[0] / (double)atDim._size);
+                SegmentSample.insertOutput(1, CWDNamigs.CornersScanOutputs.ART, segmentBestState[1] / (double)artDim._size);
             }
 
             return GlobalCornersScanData;
