@@ -71,7 +71,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
             // Fit features in model
             TF_NET_LSTM_Recur.Fit(cwdLSTM.CWDLSTMModel, dataListSequences, UpdateFittingProgress, true);
-            UpdateThresholds(cwdLSTM.CWDLSTMModel, dataListSequences);
+            UpdateThresholds(cwdLSTM.CWDLSTMModel, dataListSequences, UpdateFittingProgress);
 
             // Update model in models table
             DbStimulator dbStimulator = new DbStimulator();
@@ -171,7 +171,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             _objectivesModelsDic.Add(cwdLSTM.ModelName + cwdLSTM.ObjectiveName, cwdLSTM);
         }
 
-        public static void UpdateThresholds(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences)
+        public static void UpdateThresholds(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences, FittingProgAIReportDelegate fittingProgAIReportDelegate)
         {
             if (dataListSequences.Count == 0)
                 return;
@@ -215,6 +215,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
                         lstmModel.OutputsThresholds[iOutput]._lowOutputAv = outThresholds[iOutput]._lowOutputAv;
                     }
                 }
+
+                // Update fitProgressBar
+                if (fittingProgAIReportDelegate != null)
+                    fittingProgAIReportDelegate(iThreshold, 99);
             }
 
             // Set the best thresholds

@@ -155,7 +155,7 @@ namespace BSP_Using_AI.AITools.Details
 
             // Fit features
             tempModel = TF_NET_LSTM_Recur.Fit((TFNETLSTMModel)tempModel, trainingSequences, null);
-            CWD_TF_NET_LSTM.UpdateThresholds((TFNETLSTMModel)tempModel, trainingSequences);
+            CWD_TF_NET_LSTM.UpdateThresholds((TFNETLSTMModel)tempModel, trainingSequences, null);
 
             return tempModel;
         }
