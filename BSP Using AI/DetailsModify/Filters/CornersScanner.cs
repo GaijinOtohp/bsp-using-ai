@@ -250,11 +250,12 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
 
                     // Select the samples with the angle deviation that exceeds angThreshold
                     // and both of _prevMeanMag and _nextMeanMag exceeds amplitudeInterval * magThreshold
-                    CornerSample[] selectedSamples = corners.Select((corner, index) => (corner, index)).Where(tuple => tuple.index > latCorShiftIndx && tuple.index < i).
-                                                                                           Where(tuple => tuple.corner._nextMag > amplitudeInterval * art
-                                                                                           && tuple.corner._prevMag > amplitudeInterval * art
-                                                                                           && Math.Abs(tuple.corner._deviationAngle) > at).
-                                                                                           Select(tuple => tuple.corner).ToArray();
+                    CornerSample[] latestCornersBuff = new CornerSample[i - (latCorShiftIndx + 1)];
+                    Array.Copy(corners, latCorShiftIndx + 1, latestCornersBuff, 0, latestCornersBuff.Length);
+                    CornerSample[] selectedSamples = latestCornersBuff.Where(corner => corner._nextMag > amplitudeInterval * art
+                                                                                           && corner._prevMag > amplitudeInterval * art
+                                                                                           && Math.Abs(corner._deviationAngle) > at).
+                                                                                           ToArray();
 
                     // Check if there is any selected samples that fulfills the conditions
                     if (selectedSamples.Length > 0)
