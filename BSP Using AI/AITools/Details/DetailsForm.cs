@@ -96,7 +96,7 @@ namespace BSP_Using_AI.AITools.Details
             // Set previous validation data
             refreshValidationData();
 
-            timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInSecToString(_ObjectiveModel._validationTimeCompelxity) + ", " + _ObjectiveModel._ValidationInfo;
+            timeToFinishLabel.Text = "Processed in: " + GeneralTools.PeriodInMillSecToString(_ObjectiveModel._validationTimeCompelxity) + ", " + _ObjectiveModel._ValidationInfo;
 
             // Query for all signals in dataset table
             if (_ObjectiveModel is ARTHTModels)
