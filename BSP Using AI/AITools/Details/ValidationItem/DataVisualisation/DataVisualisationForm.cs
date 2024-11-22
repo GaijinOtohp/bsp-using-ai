@@ -39,14 +39,17 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             _modelId = modelId;
             DataList = dataList;
             _datasetSize = datasetSize;
+        }
 
+        //*******************************************************************************************************//
+        //********************************************CLASS FUNCTIONS********************************************//
+        public void SetTabs()
+        {
             setRawVisTab();
             setPCAVisTab();
             setValidationDetailsVisTab();
         }
 
-        //*******************************************************************************************************//
-        //********************************************CLASS FUNCTIONS********************************************//
         private void addNewSeries(FormsPlot formsPlot, double[] xAxisVals, double[] yAxisVals, double[] colorVals, string seriesName, Color primaryColor, Color secondaryColor)
         {
             if (colorVals == null)

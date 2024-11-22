@@ -162,42 +162,53 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         //********************************************CLASS FUNCTIONS********************************************//
         private void setPCAVisTab()
         {
-            // Check if PCA is already computed
-            if (PCA != null)
-                if (PCA.Count > 0)
-                    // If yes then just return
+            Thread pcaThread = new Thread(() =>
+            {
+                // Check if PCA is already computed
+                if (PCA != null)
+                    if (PCA.Count > 0)
+                        // If yes then just return
+                        return;
+                if (DataList.Count == 0)
                     return;
-            if (DataList.Count == 0)
-                return;
 
-            PCA = getPCA(DataList);
+                PCA = getPCA(DataList);
 
-            // Insert eigenvalues in pcaChart
-            double[] values = new double[PCA.Count];
-            double[] positions = new double[PCA.Count];
-            string[] labels = new string[PCA.Count];
-            for (int i = 0; i < PCA.Count; i++)
-            {
-                values[i] = Math.Round(PCA[i]._eigenValue, 4);
-                positions[i] = i;
-                labels[i] = "PC" + (i + 1);
-                CheckBox pcaCheckBox = createCheckBox(labels[i], i, pcaCheckBox_CheckedChanged);
-                pcFlowLayoutPanel.Controls.Add(pcaCheckBox);
-            }
-            BarPlot barPlot = pcaChart.Plot.AddBar(values, positions);
-            barPlot.ShowValuesAboveBars = true;
-            pcaChart.Plot.SetAxisLimits(yMin: 0);
-            pcaChart.Plot.AddBar(new double[] { 0 }, new double[] { 0 }, System.Drawing.Color.Green);
-            pcaChart.Plot.XTicks(labels);
-            pcaChart.Refresh();
+                // Insert eigenvalues in pcaChart
+                double[] values = new double[PCA.Count];
+                double[] positions = new double[PCA.Count];
+                string[] labels = new string[PCA.Count];
+                for (int i = 0; i < PCA.Count; i++)
+                {
+                    if (i % 10 == 0)
+                        Thread.Sleep(100);
+                    values[i] = Math.Round(PCA[i]._eigenValue, 4);
+                    positions[i] = i;
+                    labels[i] = "PC" + (i + 1);
+                    CheckBox pcaCheckBox = createCheckBox(labels[i], i, pcaCheckBox_CheckedChanged);
+                    this.Invoke(new MethodInvoker(delegate () { pcFlowLayoutPanel.Controls.Add(pcaCheckBox); }));
+                }
+                this.Invoke(new MethodInvoker(delegate () 
+                {
+                    BarPlot barPlot = pcaChart.Plot.AddBar(values, positions);
+                    barPlot.ShowValuesAboveBars = true;
+                    pcaChart.Plot.SetAxisLimits(yMin: 0);
+                    pcaChart.Plot.AddBar(new double[] { 0 }, new double[] { 0 }, System.Drawing.Color.Green);
+                    pcaChart.Plot.XTicks(labels);
+                    pcaChart.Refresh();
+                }));
 
-            // Check the previously selected PCs
-            for (int i = 0; i < _InnerObjectiveModel.PCA.Count; i++)
-            {
-                PCAitem pcaItem = _InnerObjectiveModel.PCA[i];
-                if (pcaItem._selected)
-                    ((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked = true;
-            }
+                // Check the previously selected PCs
+                for (int i = 0; i < _InnerObjectiveModel.PCA.Count; i++)
+                {
+                    if (i % 10 == 0)
+                        Thread.Sleep(100);
+                    PCAitem pcaItem = _InnerObjectiveModel.PCA[i];
+                    if (pcaItem._selected)
+                        this.Invoke(new MethodInvoker(delegate () { ((CheckBox)pcFlowLayoutPanel.Controls[i]).Checked = true; }));
+                }
+            });
+            pcaThread.Start();
         }
 
         private void pcaCheckBox_CheckedChanged(object sender, EventArgs e)

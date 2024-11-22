@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using static Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives.AIModels;
 using static Biological_Signal_Processing_Using_AI.Structures;
@@ -27,49 +28,66 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             if (DataList.Count == 0)
                 return;
 
-            Random rand = new Random();
-            // Set list boxes with model variables and outputes
-            foreach (string featureName in DataList[0].DataParent.FeaturesLabelsIndx.Keys)
+            Thread rawVisThread = new Thread(() =>
             {
-                yInputFlowLayoutPanel.Controls.Add(createCheckBox("Feature: " + featureName, featureName, rawDataVisCheckBox_CheckedChanged));
-                xInputFlowLayoutPanel.Controls.Add(createCheckBox("Feature: " + featureName, featureName, rawDataVisCheckBox_CheckedChanged));
-            }
-            foreach (string outputName in DataList[0].DataParent.OutputsLabelsIndx.Keys)
-            {
-                yInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
-                xInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
-
-                // If the selected model is for classification
-                if (_InnerObjectiveModel.Type == ObjectiveType.Classification)
-                    for (int j = 0; j < 2; j++)
+                int iInstruct = 0;
+                Random rand = new Random();
+                // Set list boxes with model variables and outputes
+                foreach (string featureName in DataList[0].DataParent.FeaturesLabelsIndx.Keys)
+                {
+                    if (iInstruct % 10 == 0)
+                        Thread.Sleep(100);
+                    iInstruct++;
+                    this.Invoke(new MethodInvoker(delegate () 
                     {
-                        RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName + " (" + j + ")");
+                        yInputFlowLayoutPanel.Controls.Add(createCheckBox("Feature: " + featureName, featureName, rawDataVisCheckBox_CheckedChanged));
+                        xInputFlowLayoutPanel.Controls.Add(createCheckBox("Feature: " + featureName, featureName, rawDataVisCheckBox_CheckedChanged));
+                    }));
+                }
+                foreach (string outputName in DataList[0].DataParent.OutputsLabelsIndx.Keys)
+                {
+                    if (iInstruct % 10 == 0)
+                        Thread.Sleep(100);
+                    iInstruct++;
+                    this.Invoke(new MethodInvoker(delegate ()
+                    {
+                        yInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
+                        xInputFlowLayoutPanel.Controls.Add(createCheckBox("Output: " + outputName, outputName, rawDataVisCheckBox_CheckedChanged));
+                    }));
+
+                    // If the selected model is for classification
+                    if (_InnerObjectiveModel.Type == ObjectiveType.Classification)
+                        for (int j = 0; j < 2; j++)
+                        {
+                            RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName + " (" + j + ")");
+                            rawVisItemUserControl.Name = outputName;
+                            rawVisItemUserControl.Tag = j;
+                            rawVisItemUserControl._ignoreEvent = true;
+                            if (j == 0)
+                                rawVisItemUserControl.outputCheckBox.Checked = false;
+                            rawVisItemUserControl._ignoreEvent = false;
+
+                            // If yes then pick a different color number
+                            Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));
+                            rawVisItemUserControl.primaryColorButton.BackColor = color;
+                            rawVisItemUserControl.secondaryColorButton.BackColor = Color.FromArgb(color.R - 60 > 0 ? color.R - 60 : 0, color.G - 60 > 0 ? color.G - 60 : 0, color.B - 60 > 0 ? color.B - 60 : 0);
+                            this.Invoke(new MethodInvoker(delegate () { outputFlowLayoutPanel.Controls.Add(rawVisItemUserControl); }));
+                        }
+                    // If the selected model is for regression
+                    else
+                    {
+                        RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName);
                         rawVisItemUserControl.Name = outputName;
-                        rawVisItemUserControl.Tag = j;
-                        rawVisItemUserControl._ignoreEvent = true;
-                        if (j == 0)
-                            rawVisItemUserControl.outputCheckBox.Checked = false;
-                        rawVisItemUserControl._ignoreEvent = false;
 
                         // If yes then pick a different color number
                         Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));
                         rawVisItemUserControl.primaryColorButton.BackColor = color;
                         rawVisItemUserControl.secondaryColorButton.BackColor = Color.FromArgb(color.R - 60 > 0 ? color.R - 60 : 0, color.G - 60 > 0 ? color.G - 60 : 0, color.B - 60 > 0 ? color.B - 60 : 0);
-                        outputFlowLayoutPanel.Controls.Add(rawVisItemUserControl);
+                        this.Invoke(new MethodInvoker(delegate () { outputFlowLayoutPanel.Controls.Add(rawVisItemUserControl); }));
                     }
-                // If the selected model is for regression
-                else
-                {
-                    RawVisItemUserControl rawVisItemUserControl = new RawVisItemUserControl(outputName);
-                    rawVisItemUserControl.Name = outputName;
-
-                    // If yes then pick a different color number
-                    Color color = Color.FromArgb(rand.Next(256), rand.Next(256), rand.Next(256));
-                    rawVisItemUserControl.primaryColorButton.BackColor = color;
-                    rawVisItemUserControl.secondaryColorButton.BackColor = Color.FromArgb(color.R - 60 > 0 ? color.R - 60 : 0, color.G - 60 > 0 ? color.G - 60 : 0, color.B - 60 > 0 ? color.B - 60 : 0);
-                    outputFlowLayoutPanel.Controls.Add(rawVisItemUserControl);
                 }
-            }
+            });
+            rawVisThread.Start();
         }
 
         private void rawDataVisCheckBox_CheckedChanged(object sender, EventArgs e)

@@ -142,7 +142,10 @@ namespace BSP_Using_AI.AITools.Details
                                                                                     ((DetailsForm)this.FindForm())._modelId, dataList, datasetSize);
             dataVisualisationForm._ValidationItemUserControl = this;
             dataVisualisationForm.stepLabel.Text = modelTargetLabel.Text;
-            this.Invoke(new MethodInvoker(delegate () { dataVisualisationForm.Show(); }));
+            this.Invoke(new MethodInvoker(delegate () { 
+                dataVisualisationForm.Show();
+                dataVisualisationForm.SetTabs();
+            }));
         }
 
         public void holdAIReport(AIReport report, string callingClassName)
