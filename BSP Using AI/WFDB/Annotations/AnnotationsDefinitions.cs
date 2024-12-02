@@ -23,7 +23,8 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
             public string CodeInShort;
             public string CodeSymbol;
 
-            public int number;          // P-edge: [0], QRS-edge: [1], T-edge: [2], Double T-peak: [4]
+            public int number;          // P-edge: [0], QRS-edge: [1], T-edge: [2], U-edge: [3], Double T-peak: [4]
+                                        // ecgpuwave uses "number" also to classify the T waves as normal (0), inverted (1), only upwards (2), only downwards (3), biphasic negative-positive (4), or biphasic positive-negative (5)
             public int channel;         // Defines the signal which the annotation refers to
             public int subType;         // The marked class/category of each annotation (annotation in a noisy segment on the signal)
 
