@@ -70,15 +70,22 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
                 {
                     // I which is annoInfo[0] should equal "0" and has no information
                     // Get the next four bytes (32 bits) as a long integer representing the interval to skip
+                    // The the interval is in PDP-11 long integer format (the high 16 bits first, then the low 16 bits, with the low byte first in each pair)
                     BitArray skipIntervalBits = new BitArray(32);
-                    for (int j = 0; j < 32; j++)
+                    // Take the low 16 bits
+                    for (int j = 0; j < 16; j++)
+                        if (16 + i + 16 + j < fileBits.Length)
+                            skipIntervalBits.Set(j, fileBits.Get(16 + i + 16 + j));
+                    // Take the high 16 bits
+                    for (int j = 0; j < 16; j++)
                         if (16 + i + j < fileBits.Length)
-                            skipIntervalBits.Set(j, fileBits.Get(16 + i + j));
+                            skipIntervalBits.Set(16 + j, fileBits.Get(16 + i + j));
+
                     // Convert the long bits to a long variable
                     int[] skipIntervalArray = new int[1];
                     skipIntervalBits.CopyTo(skipIntervalArray, 0);          // "int" in C# takes 32 bits in memory
 
-                    skipInterval = skipIntervalArray[0];
+                    skipInterval = (int)skipIntervalArray[0];
 
                     // Forward i by 32 bits additional to the annotation 16 bits
                     i += 32;
