@@ -41,6 +41,10 @@
             this.annotationsComboBox = new System.Windows.Forms.ComboBox();
             this.informationLabel = new System.Windows.Forms.Label();
             this.chooseFileButton = new System.Windows.Forms.Button();
+            this.signalStartLabel = new System.Windows.Forms.Label();
+            this.signalStartTextBox = new System.Windows.Forms.TextBox();
+            this.signalEndLabel = new System.Windows.Forms.Label();
+            this.signalEndTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // quantizationStepTextBox
@@ -85,7 +89,7 @@
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(193, 267);
+            this.okButton.Location = new System.Drawing.Point(193, 322);
             this.okButton.Margin = new System.Windows.Forms.Padding(2);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(79, 30);
@@ -186,11 +190,55 @@
             this.chooseFileButton.UseVisualStyleBackColor = true;
             this.chooseFileButton.Click += new System.EventHandler(this.chooseFileButton_Click);
             // 
+            // signalStartLabel
+            // 
+            this.signalStartLabel.AutoSize = true;
+            this.signalStartLabel.Location = new System.Drawing.Point(13, 258);
+            this.signalStartLabel.Name = "signalStartLabel";
+            this.signalStartLabel.Size = new System.Drawing.Size(94, 15);
+            this.signalStartLabel.TabIndex = 43;
+            this.signalStartLabel.Text = "Signal start (Sec)";
+            // 
+            // signalStartTextBox
+            // 
+            this.signalStartTextBox.Location = new System.Drawing.Point(13, 276);
+            this.signalStartTextBox.Name = "signalStartTextBox";
+            this.signalStartTextBox.PlaceholderText = "0";
+            this.signalStartTextBox.Size = new System.Drawing.Size(96, 23);
+            this.signalStartTextBox.TabIndex = 42;
+            this.signalStartTextBox.Text = "0";
+            this.signalStartTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.signalStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.signalStartTextBox_KeyPress);
+            // 
+            // signalEndLabel
+            // 
+            this.signalEndLabel.AutoSize = true;
+            this.signalEndLabel.Location = new System.Drawing.Point(177, 258);
+            this.signalEndLabel.Name = "signalEndLabel";
+            this.signalEndLabel.Size = new System.Drawing.Size(91, 15);
+            this.signalEndLabel.TabIndex = 45;
+            this.signalEndLabel.Text = "Signal end (Sec)";
+            // 
+            // signalEndTextBox
+            // 
+            this.signalEndTextBox.Location = new System.Drawing.Point(177, 276);
+            this.signalEndTextBox.Name = "signalEndTextBox";
+            this.signalEndTextBox.PlaceholderText = "0";
+            this.signalEndTextBox.Size = new System.Drawing.Size(96, 23);
+            this.signalEndTextBox.TabIndex = 44;
+            this.signalEndTextBox.Text = "30";
+            this.signalEndTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.signalEndTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.signalStartTextBox_KeyPress);
+            // 
             // WFDBExplorerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(288, 308);
+            this.ClientSize = new System.Drawing.Size(288, 363);
+            this.Controls.Add(this.signalEndLabel);
+            this.Controls.Add(this.signalEndTextBox);
+            this.Controls.Add(this.signalStartLabel);
+            this.Controls.Add(this.signalStartTextBox);
             this.Controls.Add(this.chooseFileButton);
             this.Controls.Add(this.informationLabel);
             this.Controls.Add(this.annotationLabel);
@@ -226,5 +274,9 @@
         public System.Windows.Forms.ComboBox annotationsComboBox;
         private System.Windows.Forms.Label informationLabel;
         private System.Windows.Forms.Button chooseFileButton;
+        private System.Windows.Forms.Label signalStartLabel;
+        private System.Windows.Forms.TextBox signalStartTextBox;
+        private System.Windows.Forms.Label signalEndLabel;
+        private System.Windows.Forms.TextBox signalEndTextBox;
     }
 }

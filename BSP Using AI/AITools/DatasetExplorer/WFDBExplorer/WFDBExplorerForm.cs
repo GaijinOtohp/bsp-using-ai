@@ -1,4 +1,5 @@
 ﻿using Biological_Signal_Processing_Using_AI.WFDB;
+using BSP_Using_AI;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools.DatasetExplorer.WFDBExpl
             samplingRateTextBox.Text = _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq.ToString();
             quantizationStepTextBox.Text = _WFDBScope.SignalsDict[signalsComboBox.Text].adcGain.ToString();
             descriptionTextBox.Text = _WFDBScope.SignalsDict[signalsComboBox.Text].description;
+            signalEndTextBox.Text = (_WFDBScope.SignalsDict[signalsComboBox.Text].Samples.Length / _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq).ToString();
+        }
+
+        private void signalStartTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
         }
 
         private void okButton_Click(object sender, EventArgs e)

@@ -18,6 +18,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.DatasetExplorer.WFDBExpl
     {
         private void CWD_okButton_Click(object sender, EventArgs e)
         {
+            // Get the starting and ending indexes of the selected signal
+            int startingIndex = (int)(double.Parse(signalStartTextBox.Text) * _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq);
+            int endingIndex = (int)(double.Parse(signalEndTextBox.Text) * _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq);
+            double signalSpanInSec = (endingIndex - startingIndex) / _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq;
+
             // Build the annotation data from the selected wfdb annotation
             AnnotationData annotationData = new AnnotationData(CharacteristicWavesDelineation.ObjectiveName);
             int[] wfdbBeatCodes = AnnotationCodes.Beat.GetBeatCodes();
@@ -52,14 +57,14 @@ namespace Biological_Signal_Processing_Using_AI.AITools.DatasetExplorer.WFDBExpl
                 else if (wfdbBeatCodes.Contains(anno.codeValue))
                     annoLabel = PeaksLabelsOutputs.RPeak;
 
-                if (!annoLabel.Equals(""))
-                    annotationData.InsertAnnotation(annoLabel, AnnotationType.Point, anno.index, 0);
+                if (!annoLabel.Equals("") && startingIndex < anno.index && anno.index < endingIndex)
+                    annotationData.InsertAnnotation(annoLabel, AnnotationType.Point, anno.index - startingIndex, 0);
             }
 
             // Sort the rest of the signal infos
-            string signalName = _WFDBScope.SignalsDict[signalsComboBox.Text].FileName;
-            double startingIndexInSec = 0;
-            double[] signalData = _WFDBScope.SignalsDict[signalsComboBox.Text].Samples.Select(value => (double)value).ToArray();
+            string signalName = signalsComboBox.Text + "\\" + signalSpanInSec;
+            double startingIndexInSec = startingIndex / _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq;
+            double[] signalData = _WFDBScope.SignalsDict[signalsComboBox.Text].Samples.Where((value, index) => startingIndex <= index && index < endingIndex).Select(value => (double)value).ToArray();
             double samplingRate = _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq;
             double quantisationStep = _WFDBScope.SignalsDict[signalsComboBox.Text].adcGain;
 
