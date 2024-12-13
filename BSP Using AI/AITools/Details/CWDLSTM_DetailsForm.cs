@@ -172,6 +172,38 @@ namespace BSP_Using_AI.AITools.Details
             selectedModel.ValidationData = LSTM_ValidateTheModel(selectedModel, validationSequences, tempModel, ValidationReportUpdate).validationData;
         }
 
+        private static List<(RefDouble[] prediction, double deviation)> GetNearbyPositivePredictedPeaks(int selectedClass, OutputMetrics[] outputMetrics, int samplingRate, int iSample, int sampleIndex, int totalSamples,
+                                                                    List<(RefDouble[] predicted, int peakIndex)> prediOutputsIndexPairList, OutputThresholdItem[] outThresholdsClone)
+        {
+            List<(RefDouble[] prediction, double deviation)> nearbyPositivePeaks = new List<(RefDouble[] prediction, double deviation)>();
+
+            double tolerance = outputMetrics[selectedClass]._classDeviationTolerance / 1000d * samplingRate; // dividing by 1000d to convert the deviation from milliseconds to seconds
+            for (int iPred = iSample; iPred >= 0; iPred--)
+                if (Math.Abs(prediOutputsIndexPairList[iPred].peakIndex - sampleIndex) <= tolerance)
+                {
+                    if (prediOutputsIndexPairList[iPred].predicted[selectedClass].value >= outThresholdsClone[selectedClass]._threshold)
+                    {
+                        double deviationInMillis = (prediOutputsIndexPairList[iPred].peakIndex - sampleIndex) / (double)samplingRate * 1000d; // multiplying by 1000d to convert the deviation from seconds to milliseconds
+                        nearbyPositivePeaks.Add((prediOutputsIndexPairList[iPred].predicted, deviationInMillis));
+                    }
+                }
+                else
+                    break;
+            for (int iPred = iSample + 1; iPred < totalSamples; iPred++)
+                if (Math.Abs(prediOutputsIndexPairList[iPred].peakIndex - sampleIndex) <= tolerance)
+                {
+                    if (prediOutputsIndexPairList[iPred].predicted[selectedClass].value >= outThresholdsClone[selectedClass]._threshold)
+                    {
+                        double deviationInMillis = (prediOutputsIndexPairList[iPred].peakIndex - sampleIndex) / (double)samplingRate * 1000d; // multiplying by 1000d to convert the deviation from seconds to milliseconds
+                        nearbyPositivePeaks.Add((prediOutputsIndexPairList[iPred].predicted, deviationInMillis));
+                    }
+                }
+                else
+                    break;
+
+            return nearbyPositivePeaks;
+        }
+
         public static (ValidationData validationData, OutputThresholdItem[] outThresholds) LSTM_ValidateTheModel(TFNETLSTMModel selectedModel, List<List<Sample>> validationSequences, TFNETLSTMModel tempModel, ValidationReportDelegate validationReportDelegate )
         {
             // Get current model's output metrics' resutls and thresholds
@@ -313,12 +345,8 @@ namespace BSP_Using_AI.AITools.Details
                         if (actualOutput[i] == 1)
                         {
                             // Get nearby positively predicted samples according to the selected label's tolerance
-                            List<(RefDouble[] prediction, double deviation)> nearbyPositivePeaks = prediOutputsIndexPairList.Where(predIndexPair =>
-                                                                        (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= validationDataClone._ModelOutputsValidMetrics[i]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
-                                                                        && predIndexPair.predicted[i].value >= outThresholdsClone[i]._threshold)
-                                                                    .Select(predIndexPair => (predIndexPair.predicted,
-                                                                                              Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d))
-                                                                    .ToList();
+                            List<(RefDouble[] prediction, double deviation)> nearbyPositivePeaks = GetNearbyPositivePredictedPeaks(i, validationDataClone._ModelOutputsValidMetrics, samplingRate, iSample, sampleIndex, samplesSeq.Count,
+                                                                                                                                    prediOutputsIndexPairList, outThresholdsClone);
 
                             // Compute the deviations of the prediction
                             foreach ((_, double deviation) in nearbyPositivePeaks)
@@ -341,20 +369,17 @@ namespace BSP_Using_AI.AITools.Details
                 }
 
                 // Set the confusion matrix
-                foreach (Sample sample in samplesSeq)
+                for (int iSample = 0; iSample < samplesSeq.Count; iSample++)
                 {
-                    actualOutput = sample.getOutputs();
-                    sampleIndex = (int)sample.AdditionalInfo[CWDNamigs.peakIndex];
-                    samplingRate = (int)sample.AdditionalInfo[CWDNamigs.samplingRate];
+                    actualOutput = samplesSeq[iSample].getOutputs();
+                    sampleIndex = (int)samplesSeq[iSample].AdditionalInfo[CWDNamigs.peakIndex];
+                    samplingRate = (int)samplesSeq[iSample].AdditionalInfo[CWDNamigs.samplingRate];
                     for (int col = 0; col < actualOutput.Length; col++)
                         if (actualOutput[col] == 1)
                             for (int row = 0; row < actualOutput.Length; row++)
                             {
-                                List<RefDouble[]> nearbyPositivePeaks = prediOutputsIndexPairList.Where(predIndexPair =>
-                                                                            (Math.Abs(predIndexPair.peakIndex - sampleIndex) / (double)samplingRate * 1000d) <= validationDataClone._ModelOutputsValidMetrics[row]._classDeviationTolerance // 1000d to convert the deviation from seconds to milliseconds
-                                                                            && predIndexPair.predicted[row].value >= outThresholdsClone[row]._threshold)
-                                                                        .Select(predIndexPair => predIndexPair.predicted)
-                                                                        .ToList();
+                                List<(RefDouble[] prediction, double deviation)> nearbyPositivePeaks = GetNearbyPositivePredictedPeaks(row, validationDataClone._ModelOutputsValidMetrics, samplingRate, iSample, sampleIndex, samplesSeq.Count,
+                                                                                                                                    prediOutputsIndexPairList, outThresholdsClone);
                                 if (nearbyPositivePeaks.Count > 0)
                                     validationDataClone._ConfusionMatrix[col][row]++;
                             }
