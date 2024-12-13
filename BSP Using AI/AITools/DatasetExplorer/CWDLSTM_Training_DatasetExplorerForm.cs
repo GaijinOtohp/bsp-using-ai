@@ -67,13 +67,10 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
         private static double[] GetSurroundingRangeFeatures(int longRangeIndex, int shortRangeIndex, int cornerIndex, LSTMDataBuilderMemory dataBuilderMemory, double[] rescaledSignalTotalSamples)
         {
-            double[] xPeakPreSamples = rescaledSignalTotalSamples.Where((value, index) => (cornerIndex - longRangeIndex) <= index &&
-                                                                                                      index <= cornerIndex).
-                                                                  ToArray();
+            double[] xPeakPreSamples = GeneralTools.FastTruncate(rescaledSignalTotalSamples, cornerIndex - longRangeIndex, cornerIndex);
             xPeakPreSamples = xPeakPreSamples.Reverse().ToArray();
-            double[] xPeakPostSamples = rescaledSignalTotalSamples.Where((value, index) => cornerIndex <= index &&
-                                                                                                      index <= cornerIndex + longRangeIndex).
-                                                                   ToArray();
+            double[] xPeakPostSamples = GeneralTools.FastTruncate(rescaledSignalTotalSamples, cornerIndex, cornerIndex + longRangeIndex);
+
             double[] xPeakPreFeatures = new double[5];
             double[] xPeakPostFeatures = new double[5];
             if (xPeakPreSamples.Length > 0)

@@ -373,7 +373,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                     startingIndex = (iDWTGlobal - dwtPrefExtension) * dwtDownScale,
                     endingIndex = (bufferEndingIndexBeforeExtension + dwtSuffExtension + 1) * dwtDownScale - 1 // Add the samples of the gape between two segments [ (.. + 1 * dwtDownScale) - 1 ]
                 };
-                newSegment.SegmentSamples = globalSamples.Where((val, index) => newSegment.startingIndex <= index && index <= newSegment.endingIndex).ToArray();
+                newSegment.SegmentSamples = GeneralTools.FastTruncate(globalSamples, newSegment.startingIndex, newSegment.endingIndex);
                 (newSegment.segmentMean, newSegment.segmentMin, newSegment.segmentMax) = GeneralTools.MeanMinMax(newSegment.SegmentSamples);
 
                 signalSegmentsList.Add(newSegment);

@@ -1545,5 +1545,17 @@ namespace Biological_Signal_Processing_Using_AI.Garage
                 }
             }
         }
+
+        //*******************************************************************************************************//
+        //*****************************************Fast truncating array*****************************************//
+        public static T[] FastTruncate<T>(T[] sourceArray, int startingIndex, int endingIndex)
+        {
+            startingIndex = Math.Max(0, startingIndex);
+            endingIndex = Math.Min(sourceArray.Length - 1, endingIndex);
+            T[] truncatedArray = new T[endingIndex - startingIndex + 1];
+            Array.Copy(sourceArray, startingIndex, truncatedArray, 0, truncatedArray.Length);
+
+            return truncatedArray;
+        }
     }
 }
