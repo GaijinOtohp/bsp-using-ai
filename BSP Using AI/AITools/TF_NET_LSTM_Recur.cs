@@ -187,7 +187,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     {
                         // Create the empty data for the current LSTM model sequence batch
                         emptyInputBatch = new float[lstmSequenceBatchesList[iSequencesBatch].inputBatches[0].GetLength(0), lstmSequenceBatchesList[iSequencesBatch].inputBatches[0].GetLength(1)];
-                        emptyOutputBatch = new float[lstmSequenceBatchesList[iSequencesBatch].outputBatches[0].GetLength(0), lstmSequenceBatchesList[iSequencesBatch].outputBatches[0].GetLength(1)];
+                        emptyOutputBatch = new float[lstmSequenceBatchesList[iSequencesBatch].outputBatches[0].GetLength(0), layersSartingOutputs[0].shape[1]];
 
                         // Initialize the starting placeholders of the lstm sequence for the selected data sequence
                         layersLatestOutputsVals = new List<NDArray>(layersLatestOutputs.Count);
@@ -523,8 +523,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             {
                 for (int i = 0; i < layersLatestOutputs.Count; i++)
                 {
-                    layersLatestOutputsVals.Add(new NDArray(new float[1, model._outputDim]));
-                    layersLatestStatesVals.Add(new NDArray(new float[1, model._outputDim]));
+                    layersLatestOutputsVals.Add(new NDArray(new float[1, layersSartingOutputs[0].shape[1]]));
+                    layersLatestStatesVals.Add(new NDArray(new float[1, layersStartingStates[0].shape[1]]));
                 }
             }
 
