@@ -31,6 +31,8 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         {
             this.tabControl = new System.Windows.Forms.TabControl();
             this.valDetailsTabPage = new System.Windows.Forms.TabPage();
+            this.predictionDeviationTitlesPanel = new System.Windows.Forms.Panel();
+            this.predictionDeviationFlowLayoutPanel = new BSP_Using_AI.CustomFlowLayoutPanel();
             this.ConfMatSaveImageButton = new System.Windows.Forms.Button();
             this.confusionMatrixPlot = new ScottPlot.FormsPlot();
             this.validationSaveButton = new System.Windows.Forms.Button();
@@ -56,8 +58,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tsneVisTabPage = new System.Windows.Forms.TabPage();
             this.umapVisTabPage = new System.Windows.Forms.TabPage();
             this.stepLabel = new System.Windows.Forms.Label();
-            this.predictionDeviationTitlesPanel = new System.Windows.Forms.Panel();
-            this.predictionDeviationFlowLayoutPanel = new BSP_Using_AI.CustomFlowLayoutPanel();
+            this.rocThresholdsButton = new System.Windows.Forms.Button();
             this.tabControl.SuspendLayout();
             this.valDetailsTabPage.SuspendLayout();
             this.rawVisTabPage.SuspendLayout();
@@ -83,6 +84,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // valDetailsTabPage
             // 
+            this.valDetailsTabPage.Controls.Add(this.rocThresholdsButton);
             this.valDetailsTabPage.Controls.Add(this.predictionDeviationTitlesPanel);
             this.valDetailsTabPage.Controls.Add(this.predictionDeviationFlowLayoutPanel);
             this.valDetailsTabPage.Controls.Add(this.ConfMatSaveImageButton);
@@ -98,6 +100,26 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.valDetailsTabPage.TabIndex = 4;
             this.valDetailsTabPage.Text = "Validation details";
             this.valDetailsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // predictionDeviationTitlesPanel
+            // 
+            this.predictionDeviationTitlesPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.predictionDeviationTitlesPanel.Location = new System.Drawing.Point(19, 455);
+            this.predictionDeviationTitlesPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.predictionDeviationTitlesPanel.Name = "predictionDeviationTitlesPanel";
+            this.predictionDeviationTitlesPanel.Size = new System.Drawing.Size(683, 35);
+            this.predictionDeviationTitlesPanel.TabIndex = 54;
+            // 
+            // predictionDeviationFlowLayoutPanel
+            // 
+            this.predictionDeviationFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.predictionDeviationFlowLayoutPanel.AutoScroll = true;
+            this.predictionDeviationFlowLayoutPanel.Location = new System.Drawing.Point(19, 496);
+            this.predictionDeviationFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.predictionDeviationFlowLayoutPanel.Name = "predictionDeviationFlowLayoutPanel";
+            this.predictionDeviationFlowLayoutPanel.Size = new System.Drawing.Size(713, 370);
+            this.predictionDeviationFlowLayoutPanel.TabIndex = 53;
             // 
             // ConfMatSaveImageButton
             // 
@@ -126,6 +148,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             // 
             // validationSaveButton
             // 
+            this.validationSaveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.validationSaveButton.Location = new System.Drawing.Point(740, 839);
             this.validationSaveButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.validationSaveButton.Name = "validationSaveButton";
@@ -358,7 +381,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.tsneVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tsneVisTabPage.Name = "tsneVisTabPage";
             this.tsneVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.tsneVisTabPage.Size = new System.Drawing.Size(1254, 774);
+            this.tsneVisTabPage.Size = new System.Drawing.Size(1254, 882);
             this.tsneVisTabPage.TabIndex = 2;
             this.tsneVisTabPage.Text = "t-SNE visualisation";
             this.tsneVisTabPage.UseVisualStyleBackColor = true;
@@ -369,7 +392,7 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.umapVisTabPage.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.umapVisTabPage.Name = "umapVisTabPage";
             this.umapVisTabPage.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.umapVisTabPage.Size = new System.Drawing.Size(1254, 721);
+            this.umapVisTabPage.Size = new System.Drawing.Size(1254, 882);
             this.umapVisTabPage.TabIndex = 3;
             this.umapVisTabPage.Text = "UMAP visualisation";
             this.umapVisTabPage.UseVisualStyleBackColor = true;
@@ -384,25 +407,16 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
             this.stepLabel.TabIndex = 1;
             this.stepLabel.Text = "step Label";
             // 
-            // predictionDeviationTitlesPanel
+            // rocThresholdsButton
             // 
-            this.predictionDeviationTitlesPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.predictionDeviationTitlesPanel.Location = new System.Drawing.Point(19, 455);
-            this.predictionDeviationTitlesPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.predictionDeviationTitlesPanel.Name = "predictionDeviationTitlesPanel";
-            this.predictionDeviationTitlesPanel.Size = new System.Drawing.Size(683, 35);
-            this.predictionDeviationTitlesPanel.TabIndex = 54;
-            // 
-            // predictionDeviationFlowLayoutPanel
-            // 
-            this.predictionDeviationFlowLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.predictionDeviationFlowLayoutPanel.AutoScroll = true;
-            this.predictionDeviationFlowLayoutPanel.Location = new System.Drawing.Point(19, 496);
-            this.predictionDeviationFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.predictionDeviationFlowLayoutPanel.Name = "predictionDeviationFlowLayoutPanel";
-            this.predictionDeviationFlowLayoutPanel.Size = new System.Drawing.Size(713, 370);
-            this.predictionDeviationFlowLayoutPanel.TabIndex = 53;
+            this.rocThresholdsButton.Location = new System.Drawing.Point(473, 11);
+            this.rocThresholdsButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.rocThresholdsButton.Name = "rocThresholdsButton";
+            this.rocThresholdsButton.Size = new System.Drawing.Size(111, 27);
+            this.rocThresholdsButton.TabIndex = 55;
+            this.rocThresholdsButton.Text = "ROC thresholds";
+            this.rocThresholdsButton.UseVisualStyleBackColor = true;
+            this.rocThresholdsButton.Click += new System.EventHandler(this.rocThresholdsButton_Click);
             // 
             // DataVisualisationForm
             // 
@@ -457,5 +471,6 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         public System.Windows.Forms.Button ConfMatSaveImageButton;
         private System.Windows.Forms.Panel predictionDeviationTitlesPanel;
         private CustomFlowLayoutPanel predictionDeviationFlowLayoutPanel;
+        private System.Windows.Forms.Button rocThresholdsButton;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDetails;
 using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.OutValDetails.Titles;
+using BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation.ValDataVis.ROC_thresholds;
 using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,14 @@ namespace BSP_Using_AI.AITools.Details.ValidationItem.DataVisualisation
         private void ConfMatSaveImageButton_Click(object sender, EventArgs e)
         {
             GeneralTools.saveChartAsImage(confusionMatrixPlot);
+        }
+
+        private void rocThresholdsButton_Click(object sender, EventArgs e)
+        {
+            // Open ValidationDataSelectionForm
+            ROCDataSelForm rocDataSelForm = new ROCDataSelForm(_ObjectiveModel, _modelId, _ValidationItemUserControl);
+            rocDataSelForm.Show();
+            rocDataSelForm.initializeForm();
         }
 
         private void SetConfusionMatrix()

@@ -75,6 +75,12 @@
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\OutValDetails\Titles\OutClasRawTit.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\ValDataVis\ROC thresholds\ROCDataSelForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\ValDataVis\ROC thresholds\ROCDSelItemUC.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="AITools\Details\ValidationItem\Titles\ValidationAccF1ScoreTitles.cs">
       <SubType>UserControl</SubType>
     </Compile>

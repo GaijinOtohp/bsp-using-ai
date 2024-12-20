@@ -63,7 +63,7 @@
     <Compile Update="AITools\Details\ValidationItem\DataVisualisation\RawDataVis.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\ValidationDataVis.cs">
+    <Compile Update="AITools\Details\ValidationItem\DataVisualisation\ValDataVis\ValidationDataVis.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="AITools\Details\ValidationLogDetailsForm.cs">
