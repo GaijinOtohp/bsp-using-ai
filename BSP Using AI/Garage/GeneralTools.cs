@@ -80,7 +80,8 @@ namespace Biological_Signal_Processing_Using_AI.Garage
         public static HSpan AddHorizontalSpan(FormsPlot chart, Color color, string label, HorizSpan_Dragged_Delegate draggingHandler)
         {
             HSpan horizSpan = chart.Plot.AddHorizontalSpan(0, 0, Color.FromArgb(51, color), label: label);
-            horizSpan.Dragged += new System.EventHandler(draggingHandler);
+            if (draggingHandler != null)
+                horizSpan.Dragged += new System.EventHandler(draggingHandler);
             horizSpan.DragEnabled = true;
             horizSpan.BorderLineWidth = 2;
             horizSpan.BorderLineStyle = LineStyle.Solid;
@@ -1513,6 +1514,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
                     scaledChart.Plot.SetAxisLimits(signalChart.Plot.GetAxisLimits());
                     Legend legend = scaledChart.Plot.Legend();
                     legend.Orientation = ScottPlot.Orientation.Horizontal;
+                    legend.IsVisible = false;
                     foreach (IPlottable plottable in signalChart.Plot.GetPlottables())
                     {
                         if (plottable is ScatterPlot scatterPlot)
@@ -1537,6 +1539,24 @@ namespace Biological_Signal_Processing_Using_AI.Garage
                                                                                                                                          signalPlot.MarkerShape, signalPlot.LineStyle, signalPlot.Label);
                             scalScatterPlot.OffsetX = signalPlot.OffsetX;
                             scalScatterPlot.IsVisible = signalPlot.IsVisible;
+                        }
+                        else if (plottable is BarSeries barSeries)
+                        {
+                            scaledChart.Plot.AddBarSeries(barSeries.Bars);
+                        }
+                        else if (plottable is BarPlot barPlot)
+                        {
+                            BarPlot scaledBarPlot = scaledChart.Plot.AddBar(barPlot.Values, barPlot.Positions);
+                            scaledBarPlot.ShowValuesAboveBars = true;
+                            scaledChart.Plot.SetAxisLimits(yMin: 0);
+                            scaledChart.Plot.XTicks(signalChart.Plot.XAxis.GetTicks().Select(tick => tick.Label).ToArray());
+                        }
+                        else if (plottable is HSpan hSpan)
+                        {
+                            HSpan scaledHSpan = GeneralTools.AddHorizontalSpan(scaledChart, hSpan.Color, label: "Distribution horizontal span", null);
+                            scaledHSpan.X1 = hSpan.X1;
+                            scaledHSpan.X2 = hSpan.X2;
+                            scaledHSpan.IsVisible = true;
                         }
                     }
 
