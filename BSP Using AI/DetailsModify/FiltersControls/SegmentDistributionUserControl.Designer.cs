@@ -33,19 +33,20 @@
             this.highlightedSegmentDistributionLabel = new System.Windows.Forms.Label();
             this.applyButton = new System.Windows.Forms.Button();
             this.distributionSignalChart = new ScottPlot.FormsPlot();
-            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.sendSignalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.analyseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.endingIndexTextBox = new System.Windows.Forms.TextBox();
             this.endingIndexLabel = new System.Windows.Forms.Label();
             this.startingIndexTextBox = new System.Windows.Forms.TextBox();
             this.startingIndexLabel = new System.Windows.Forms.Label();
             this.resolutionTextBox = new System.Windows.Forms.TextBox();
             this.resolutionLabel = new System.Windows.Forms.Label();
-            this.contextMenuStrip1.SuspendLayout();
+            this.saveImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip2.SuspendLayout();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // autoApplyCheckBox
@@ -95,6 +96,30 @@
             this.distributionSignalChart.Size = new System.Drawing.Size(331, 211);
             this.distributionSignalChart.TabIndex = 27;
             // 
+            // contextMenuStrip2
+            // 
+            this.contextMenuStrip2.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.contextMenuStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.sendSignalToolStripMenuItem,
+            this.analyseToolStripMenuItem,
+            this.saveImageToolStripMenuItem});
+            this.contextMenuStrip2.Name = "contextMenuStrip1";
+            this.contextMenuStrip2.Size = new System.Drawing.Size(181, 92);
+            // 
+            // sendSignalToolStripMenuItem
+            // 
+            this.sendSignalToolStripMenuItem.Name = "sendSignalToolStripMenuItem";
+            this.sendSignalToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sendSignalToolStripMenuItem.Text = "Send signal";
+            this.sendSignalToolStripMenuItem.Click += new System.EventHandler(this.sendSignalToolStripMenuItem_Click);
+            // 
+            // analyseToolStripMenuItem
+            // 
+            this.analyseToolStripMenuItem.Name = "analyseToolStripMenuItem";
+            this.analyseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.analyseToolStripMenuItem.Text = "Analyse";
+            this.analyseToolStripMenuItem.Click += new System.EventHandler(this.analyseToolStripMenuItem_Click);
+            // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
@@ -109,29 +134,6 @@
             this.deleteToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(108, 26);
-            // 
-            // contextMenuStrip2
-            // 
-            this.contextMenuStrip2.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.contextMenuStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.sendSignalToolStripMenuItem,
-            this.analyseToolStripMenuItem});
-            this.contextMenuStrip2.Name = "contextMenuStrip1";
-            this.contextMenuStrip2.Size = new System.Drawing.Size(135, 48);
-            // 
-            // sendSignalToolStripMenuItem
-            // 
-            this.sendSignalToolStripMenuItem.Name = "sendSignalToolStripMenuItem";
-            this.sendSignalToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
-            this.sendSignalToolStripMenuItem.Text = "Send signal";
-            this.sendSignalToolStripMenuItem.Click += new System.EventHandler(this.sendSignalToolStripMenuItem_Click);
-            // 
-            // analyseToolStripMenuItem
-            // 
-            this.analyseToolStripMenuItem.Name = "analyseToolStripMenuItem";
-            this.analyseToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
-            this.analyseToolStripMenuItem.Text = "Analyse";
-            this.analyseToolStripMenuItem.Click += new System.EventHandler(this.analyseToolStripMenuItem_Click);
             // 
             // endingIndexTextBox
             // 
@@ -202,6 +204,13 @@
             this.resolutionLabel.TabIndex = 35;
             this.resolutionLabel.Text = "Resolution";
             // 
+            // saveImageToolStripMenuItem
+            // 
+            this.saveImageToolStripMenuItem.Name = "saveImageToolStripMenuItem";
+            this.saveImageToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveImageToolStripMenuItem.Text = "Save image";
+            this.saveImageToolStripMenuItem.Click += new System.EventHandler(this.saveImageToolStripMenuItem_Click);
+            // 
             // SegmentDistributionUserControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -219,8 +228,8 @@
             this.Controls.Add(this.highlightedSegmentDistributionLabel);
             this.Name = "SegmentDistributionUserControl";
             this.Size = new System.Drawing.Size(331, 328);
-            this.contextMenuStrip1.ResumeLayout(false);
             this.contextMenuStrip2.ResumeLayout(false);
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -243,5 +252,6 @@
         public System.Windows.Forms.Label startingIndexLabel;
         public System.Windows.Forms.TextBox resolutionTextBox;
         public System.Windows.Forms.Label resolutionLabel;
+        private System.Windows.Forms.ToolStripMenuItem saveImageToolStripMenuItem;
     }
 }

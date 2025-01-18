@@ -39,8 +39,10 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
             _BarsPlot = distributionSignalChart.Plot.AddBarSeries();
 
             FormsPlot signalChart = _FormDetailsModify?.signalChart;
+            SignalPlot signalPlot = (SignalPlot)_FormDetailsModify._Plots[SANamings.Signal];
             distributionHSpan = GeneralTools.AddHorizontalSpan(signalChart, Color.Red, label: "Distribution horizontal span", HorizSpan_Dragged);
-            distributionHSpan.X2 = 0.1d;
+            distributionHSpan.X1 = signalPlot.OffsetX;
+            distributionHSpan.X2 = signalPlot.OffsetX + 0.1d;
             distributionHSpan.IsVisible = true;
             _FormDetailsModify.signalChart.Refresh();
         }
@@ -221,6 +223,11 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
 
                 EventHandlers.analyseSignalTool(filteringTools, _FormDetailsModify.pathLabel.Text + "\\Distribution");
             }
+        }
+
+        private void saveImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GeneralTools.saveChartAsImage(distributionSignalChart);
         }
     }
 }
