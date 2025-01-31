@@ -188,10 +188,15 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             // Iterate through 100 possibilities of thresholds
             int[] rocBestGap = new int[lstmModel._outputDim];
             double[] rocBestThreshold = new double[lstmModel._outputDim];
-            for (int iThreshold = 0; iThreshold < 100; iThreshold++)
+            // Create the general thresholds with additional last threshold "0.99"
+            Queue<double> selectedThresholds = new Queue<double>(new double[] { 0, 0.1d, 0.2d, 0.3d, 0.4d, 0.5d, 0.6d, 0.7d, 0.8d, 0.9d, 0.99d });
+            int totalThresholds = selectedThresholds.Count;
+            int iThreshold = 0;
+            while (selectedThresholds.Any())
             {
+                iThreshold++;
                 // Modify the model's outputs' thresholds
-                double newThreshold = iThreshold / 100d;
+                double newThreshold = selectedThresholds.Dequeue();
                 for (int iOutput = 0; iOutput < lstmModel._outputDim; iOutput++)
                     lstmModel.OutputsThresholds[iOutput]._threshold = newThreshold;
 
@@ -206,6 +211,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
 
                     lstmModel.OutputsThresholds[iOutput]._ROC.Add(newThreshold, (truePositives, falsePositives));
 
+                    // Check if the current threshold gave better results
                     if (truePositives - falsePositives > rocBestGap[iOutput])
                     {
                         rocBestGap[iOutput] = truePositives - falsePositives;
@@ -214,11 +220,30 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
                         lstmModel.OutputsThresholds[iOutput]._highOutputAv = outThresholds[iOutput]._highOutputAv;
                         lstmModel.OutputsThresholds[iOutput]._lowOutputAv = outThresholds[iOutput]._lowOutputAv;
                     }
+                    // Otherwise the previous threshold was better
+                    else
+                    {
+                        // Check if the selected threshold is one of the general ones
+                        if (newThreshold * 10 % 1 == 0 || newThreshold == 0.99d)
+                        {
+                            double bestThresh = rocBestThreshold[iOutput];
+                            // If yes then add new details thresholds around the previous threshold
+                            for (double addThresh = bestThresh - 0.09d; addThresh <= bestThresh + 0.09d; addThresh += 0.01d)
+                            {
+                                addThresh = Math.Round(addThresh, 2);
+                                if (!selectedThresholds.Contains(addThresh) && addThresh > 0 && addThresh < 1 && addThresh != bestThresh)
+                                {
+                                    selectedThresholds.Enqueue(addThresh);
+                                    totalThresholds++;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Update fitProgressBar
                 if (fittingProgAIReportDelegate != null)
-                    fittingProgAIReportDelegate(iThreshold, 99);
+                    fittingProgAIReportDelegate(iThreshold, totalThresholds);
             }
 
             // Set the best thresholds
