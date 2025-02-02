@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
+﻿using Biological_Signal_Processing_Using_AI.DetailsModify.ExportToWFDB;
+using Biological_Signal_Processing_Using_AI.DetailsModify.Filters;
 using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI.DetailsModify.SignalFusion;
 using ScottPlot;
@@ -16,6 +17,13 @@ namespace BSP_Using_AI.DetailsModify
         private void saveAsImageButton_Click(object sender, EventArgs e)
         {
             GeneralTools.saveChartAsImage(signalChart);
+        }
+
+        private void exportToWFDBButton_Click(object sender, EventArgs e)
+        {
+            ExportToWFDBForm exportToWFDBForm = new ExportToWFDBForm(_FilteringTools._FilteredSamples, _FilteringTools._samplingRate, (int)_FilteringTools._quantizationStep, _AnnotationData);
+
+            exportToWFDBForm.Show();
         }
 
         private void FormDetailsModify_KeyDown(object sender, KeyEventArgs e)

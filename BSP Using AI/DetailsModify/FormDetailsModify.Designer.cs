@@ -58,6 +58,7 @@
             this.samplingRateLabel = new System.Windows.Forms.Label();
             this.quantizationStepLabel = new System.Windows.Forms.Label();
             this.saveButton = new System.Windows.Forms.Button();
+            this.exportToWFDBButton = new System.Windows.Forms.Button();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -432,11 +433,24 @@
             this.saveButton.UseVisualStyleBackColor = false;
             this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
+            // exportToWFDBButton
+            // 
+            this.exportToWFDBButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.exportToWFDBButton.Location = new System.Drawing.Point(533, 276);
+            this.exportToWFDBButton.Margin = new System.Windows.Forms.Padding(2);
+            this.exportToWFDBButton.Name = "exportToWFDBButton";
+            this.exportToWFDBButton.Size = new System.Drawing.Size(102, 23);
+            this.exportToWFDBButton.TabIndex = 37;
+            this.exportToWFDBButton.Text = "Export to WFDB";
+            this.exportToWFDBButton.UseVisualStyleBackColor = true;
+            this.exportToWFDBButton.Click += new System.EventHandler(this.exportToWFDBButton_Click);
+            // 
             // FormDetailsModify
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1104, 854);
+            this.Controls.Add(this.exportToWFDBButton);
             this.Controls.Add(this.saveButton);
             this.Controls.Add(this.quantizationStepLabel);
             this.Controls.Add(this.samplingRateLabel);
@@ -507,5 +521,6 @@
         private System.Windows.Forms.Label quantizationStepLabel;
         public System.Windows.Forms.Button saveButton;
         public System.Windows.Forms.Label pathLabel;
+        public System.Windows.Forms.Button exportToWFDBButton;
     }
 }
