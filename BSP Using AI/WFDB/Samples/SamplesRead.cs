@@ -174,7 +174,8 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Samples
                 int[] signalSamples = signalsSamples[fileName];
                 List<Signal> signalGroup = groupedSignals[fileName];
 
-                for (int iSample = 0; iSample < signalSamples.Length; iSample++)
+                int totalMultiplexedSamples = signalGroup.Select(signal => signal.Samples.Length).Sum();
+                for (int iSample = 0; iSample < totalMultiplexedSamples; iSample++)
                     signalGroup[iSample % signalGroup.Count].Samples[iSample / signalGroup.Count] = signalSamples[iSample];
             }
 
