@@ -156,7 +156,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.Keras_NET_Objectives
             while (_objectivesModelsDic.ContainsKey("Neural network for WPW syndrome detection" + modelIndx))
                 modelIndx++;
             //string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/WPW/TFModels/NN" + modelIndx + "/";
-            string modelPath = "C:/Users/SMURF/Desktop/Tens/AIModels/WPW/TFModels/NN" + modelIndx + "/";
+            string modelPath = "./AIModels/WPW/TFModels/NN" + modelIndx + "/";
 
             // Create neural network models for WPW syndrome detection
             // Create 7 models for { 2 for QRS detection (Threshold_ratio & Hor_threshold, remove_miss_selected_R),

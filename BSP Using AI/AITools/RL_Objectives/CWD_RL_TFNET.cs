@@ -83,8 +83,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             int modelIndx = 0;
             while (_objectivesModelsDic.ContainsKey(TFNETReinforcementL.ModelName + " for " + CharacteristicWavesDelineation.ObjectiveName + modelIndx))
                 modelIndx++;
-            string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + modelIndx;
-            string crazyModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/CrazyRL" + modelIndx;
+            /*string modelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + modelIndx;
+            string crazyModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/CrazyRL" + modelIndx;*/
+            string modelPath = @"./AIModels/CWD/TFNETModels/RL" + modelIndx;
+            string crazyModelPath = @"./AIModels/CWD/TFNETModels/CrazyRL" + modelIndx;
 
             // Create the model object
             CWDReinforcementL cwdReinforcementL = new CWDReinforcementL();
