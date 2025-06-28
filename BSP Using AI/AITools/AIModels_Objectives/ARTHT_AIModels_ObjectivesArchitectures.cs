@@ -107,7 +107,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools.AIModels_Objectives
             }
 
             [Serializable]
-            [DataContract(IsReference = true)]
+            [DataContract(Name = "Structures.ARTHTFeatures", IsReference = true, Namespace = "http://schemas.datacontract.org/2004/07/Biological_Signal_Processing_Using_AI")]
             public class ARTHTFeatures
             {
                 [DataMember]
