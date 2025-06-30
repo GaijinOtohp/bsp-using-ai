@@ -104,8 +104,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.TF_NET_Objectives
             /*string rlModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/RL" + rlModelIndx;
             string crazyRLModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/CrazyRL" + rlModelIndx;
             string lstmModelPath = System.IO.Directory.GetCurrentDirectory() + @"/AIModels/CWD/TFNETModels/LSTM" + lstmModelIndx;*/
-            string rlModelPath = @"./AIModels/CWD/TFNETModels/RL" + rlModelIndx;
-            string crazyRLModelPath = @"./AIModels/CWD/TFNETModels/CrazyRL" + rlModelIndx;
+            string rlModelPath = @"./AIModels/CWD/TFNETModels/RL" + lstmModelIndx + rlModelIndx;
+            string crazyRLModelPath = @"./AIModels/CWD/TFNETModels/CrazyRL" + lstmModelIndx + rlModelIndx;
             string lstmModelPath = @"./AIModels/CWD/TFNETModels/LSTM" + lstmModelIndx;
 
             // Create the model object
