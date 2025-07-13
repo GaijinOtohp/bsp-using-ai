@@ -1,8 +1,8 @@
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-# Biological Signal Processing using AI
+# PhD project "Biological Signal Processing using AI"
 
 This is a friendly desktop application project in C# for signal processing, and customized for Electrocardiogram (ECG) signal features extraction and classification.
 
@@ -176,5 +176,5 @@ The Principal Component Analysis tab displays the Eigenvalues of the training da
 </p>
 
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+[Apache](https://choosealicense.com/licenses/apache-2.0/)
 
