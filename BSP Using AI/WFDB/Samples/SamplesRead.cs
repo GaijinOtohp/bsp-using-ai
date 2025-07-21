@@ -35,6 +35,35 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Samples
             return samplesList.ToArray();
         }
 
+        private static int[] SamplesReadFormat16(BitArray samplesBits)
+        {
+            List<int> samplesList = new List<int>(samplesBits.Length / 16 + 1);
+
+            // The final samples would be stored in a 32 bit int
+            // while the original samples occupies 16 bits
+            int sampleOriginalBitLen = 16;
+            int sampleFinalBitLen = 32;
+            int bitExtension = sampleFinalBitLen - sampleOriginalBitLen;
+
+            for (int i = 0; i < samplesBits.Length; i += 16)
+            {
+                BitArray sampleBits = new BitArray(16);
+                for (int j = 0; j < 16; j++)
+                    sampleBits.Set(j, samplesBits.Get(i + j));
+                int[] newSample = new int[1];
+                sampleBits.CopyTo(newSample, 0);
+
+                // Extend the 16 bits copied signed values to 32 bits int signed values
+                // Shift the 16 bits that are occupying the right side of the 32 bit int to the left
+                // then shift them back to the right to their original positions so they get the 32 bit format
+                newSample[0] = (newSample[0] << bitExtension) >> bitExtension;
+
+                samplesList.Add(newSample[0]);
+            }
+
+            return samplesList.ToArray();
+        }
+
         private static int[] SamplesReadFormat212(BitArray samplesBits)
         {
             List<int> samplesList = new List<int>(samplesBits.Length / 12 + 1);
@@ -77,6 +106,8 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Samples
             int[] samples = null;
             if (format == FormatCodes.format8)
                 samples = SamplesReadFormat8(samplesBits);
+            if (format == FormatCodes.format16)
+                samples = SamplesReadFormat16(samplesBits);
             else if (format == FormatCodes.format212)
                 samples = SamplesReadFormat212(samplesBits);
 
