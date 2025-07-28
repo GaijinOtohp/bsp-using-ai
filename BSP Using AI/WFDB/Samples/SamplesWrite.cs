@@ -27,6 +27,16 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Samples
             return compressedMultiplexedBytes.ToArray();
         }
 
+        private static byte[] BytesWriteFormat16(byte[] multiplexedBytes)
+        {
+            List<byte> compressedMultiplexedBytes = new List<byte>(multiplexedBytes.Length / 2);
+
+            for (int i = 0; i < multiplexedBytes.Length; i += 4)
+                compressedMultiplexedBytes.AddRange(new byte[] { multiplexedBytes[i], multiplexedBytes[i + 1] });
+
+            return compressedMultiplexedBytes.ToArray();
+        }
+
         private static byte[] BytesWriteFormat212(byte[] multiplexedBytes)
         {
             List<byte> compressedMultiplexedBytes = new List<byte>(multiplexedBytes.Length * 12 / 32);
@@ -66,6 +76,8 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Samples
             byte[] compressedMultiplexedBytes = null;
             if (format == FormatCodes.format8)
                 compressedMultiplexedBytes = BytesWriteFormat8(multiplexedBytes);
+            else if (format == FormatCodes.format16)
+                compressedMultiplexedBytes = BytesWriteFormat16(multiplexedBytes);
             else if (format == FormatCodes.format212)
                 compressedMultiplexedBytes = BytesWriteFormat212(multiplexedBytes);
 

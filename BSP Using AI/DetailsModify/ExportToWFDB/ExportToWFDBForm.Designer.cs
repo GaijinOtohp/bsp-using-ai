@@ -85,6 +85,7 @@
             this.signalFormatsComboBox.DropDownWidth = 140;
             this.signalFormatsComboBox.FormattingEnabled = true;
             this.signalFormatsComboBox.Items.AddRange(new object[] {
+            "16",
             "212"});
             this.signalFormatsComboBox.Location = new System.Drawing.Point(122, 18);
             this.signalFormatsComboBox.Margin = new System.Windows.Forms.Padding(2);
