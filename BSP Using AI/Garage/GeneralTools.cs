@@ -208,7 +208,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
         {
             (double mean, double min, double max) meanMinMax = MeanMinMax(samples);
             double ampInterval = meanMinMax.max - meanMinMax.min;
-            double scalingRatio = newAmpInterval / ampInterval;
+            double scalingRatio = 1 / ampInterval;
             // Normalize the samples
             double[] filteredSamples = new double[samples.Length];
 
@@ -279,12 +279,50 @@ namespace Biological_Signal_Processing_Using_AI.Garage
         public static double stdDevCalc(double[] samples, double mean)
         {
             // Calculate standard deviation
-            double stdDev = 0d;
-            foreach (double sample in samples)
-                stdDev += Math.Pow(sample - mean, 2) / samples.Length;
-            stdDev = Math.Sqrt(stdDev);
+            double stdDev = Math.Sqrt(Variance(samples, mean));
 
             return stdDev;
+        }
+
+        public static double Mean(double[] variables)
+        {
+            double mean = 0;
+            foreach (double var in variables)
+                mean += var / variables.Length;
+            return mean;
+        }
+
+        public static double Variance(double[] variables, double mean)
+        {
+            double variance = 0;
+            foreach (double var in variables)
+                variance += Math.Pow(var - mean, 2) / variables.Length;
+            return variance;
+        }
+
+        public static double Gaussian(double mean, double variance, double x)
+        {
+            double y = -Math.Pow(x - mean, 2) / (2 * variance);
+            y = Math.Exp(y);
+            y = 1 / Math.Sqrt(2 * Math.PI * variance) * y;
+            return y;
+        }
+
+        public static double[] GaussianWhiteNoise(double mean, double variance, int length)
+        {
+            double[] gwn = new double[length];
+            double stdDev = Math.Sqrt(variance);
+
+            Random random = new Random();
+            for (int i = 0; i < length; i++)
+            {
+                double u1 = random.NextDouble(); // Uniform random number between 0 and 1
+                double z0 = Math.Cos(2.0 * Math.PI * u1); // Uniform random number between -1 and 1
+
+                gwn[i] = z0 * stdDev + mean;
+            }
+
+            return gwn;
         }
 
         //*******************************************************************************************************//

@@ -153,6 +153,9 @@
     <Compile Update="DetailsModify\FiltersControls\DCRemovalUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="DetailsModify\FiltersControls\AddGWNUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="DetailsModify\FiltersControls\NormalizedSignalUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

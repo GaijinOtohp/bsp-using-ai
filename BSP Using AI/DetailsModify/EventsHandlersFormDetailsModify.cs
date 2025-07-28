@@ -179,6 +179,9 @@ namespace BSP_Using_AI.DetailsModify
                 case "Distribution display":
                     filter = new DistributionDisplay(_FilteringTools);
                     break;
+                case "Add gaussian white noise":
+                    filter = new AddGWN(_FilteringTools);
+                    break;
                 default:
                     filter = new IIRFilter(_FilteringTools, (string)filtersComboBox.SelectedItem);
                     break;

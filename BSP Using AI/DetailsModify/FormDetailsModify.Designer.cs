@@ -191,7 +191,8 @@
             "DWT",
             "Peaks analyzer",
             "Corners scanner",
-            "Distribution display"});
+            "Distribution display",
+            "Add gaussian white noise"});
             this.filtersComboBox.Location = new System.Drawing.Point(945, 48);
             this.filtersComboBox.Margin = new System.Windows.Forms.Padding(2);
             this.filtersComboBox.Name = "filtersComboBox";

@@ -47,7 +47,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     Partition partition = partitions[j];
                     double proba = partition._proba;
                     for (int k = 0; k < partition.GausParamsInputsGivenOutput.Length; k++)
-                        proba *= gaussian(partition.GausParamsInputsGivenOutput[k]._mean, partition.GausParamsInputsGivenOutput[k]._variance, features[k]);
+                        proba *= GeneralTools.Gaussian(partition.GausParamsInputsGivenOutput[k]._mean, partition.GausParamsInputsGivenOutput[k]._variance, features[k]);
 
                     ((List<outputProbaGivenInput>)outputProbaGivenInput[i]).Add(new outputProbaGivenInput { proba = proba, output = partition._value });
                 }
@@ -151,8 +151,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                         double[] inputVals = new double[gausParamsInputsGivenOutput.ValuesList.Count];
                         for (int l = 0; l < inputVals.Length; l++)
                             inputVals[l] = gausParamsInputsGivenOutput.ValuesList[l];
-                        outputsProbaList[i][j].GausParamsInputsGivenOutput[k]._mean = (gausParamsInputsGivenOutput._mean + mean(inputVals)) / 2;
-                        outputsProbaList[i][j].GausParamsInputsGivenOutput[k]._variance = (gausParamsInputsGivenOutput._variance + variance(gausParamsInputsGivenOutput._mean, inputVals)) / 2;
+                        outputsProbaList[i][j].GausParamsInputsGivenOutput[k]._mean = (gausParamsInputsGivenOutput._mean + GeneralTools.Mean(inputVals)) / 2;
+                        outputsProbaList[i][j].GausParamsInputsGivenOutput[k]._variance = (gausParamsInputsGivenOutput._variance + GeneralTools.Variance(inputVals, gausParamsInputsGivenOutput._mean)) / 2;
 
                         outputsProbaList[i][j].GausParamsInputsGivenOutput[k].ValuesList = null;
                     }
@@ -187,30 +187,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             for (int i = 0; i < partition.GausParamsInputsGivenOutput.Length; i++)
                 partition.GausParamsInputsGivenOutput[i] = new gausParamsInputGivenOutput() { ValuesList = new List<double>() };
             return partition;
-        }
-
-        private static double mean(double[] variables)
-        {
-            double mean = 0;
-            foreach (double var in variables)
-                mean += var / variables.Length;
-            return mean;
-        }
-
-        private static double variance(double mean, double[] variables)
-        {
-            double variance = 0;
-            foreach (double var in variables)
-                variance += Math.Pow(var - mean, 2) / variables.Length;
-            return variance;
-        }
-
-        private static double gaussian(double mean, double variance, double x)
-        {
-            double y = -Math.Pow(x - mean, 2) / (2 * variance);
-            y = Math.Exp(y);
-            y = 1 / Math.Sqrt(2 * Math.PI * variance) * y;
-            return y;
         }
     }
 }
