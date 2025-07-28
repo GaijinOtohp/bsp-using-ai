@@ -50,19 +50,27 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
             public int[] ProbingIntervals = new int[4];
         }
 
-        public static (double opposite, double adjacent, double hypotenuse) ExtractRightTriangleBranches(double[] samples, double samplingRate)
+        public static (double avOpposite, double avAdjacent, double avHypotenuse, double avTangent) ExtractRightTriangleBranches(double[] samples, double samplingRate)
         {
-            double opposite = 0;
-            double adjacent = 0;
+            double avOpposite = 0;
+            double avAdjacent = 0;
+            double avTangent = 0;
             for (int i = 1; i < samples.Length; i++)
             {
-                opposite += (samples[i] - samples[0]) / (double)(samples.Length - 1);
-                adjacent += i / (double)(samples.Length - 1);
-            }
-            adjacent = adjacent / samplingRate;
-            double hypotenuse = Math.Sqrt(Math.Pow(opposite, 2) + Math.Pow(adjacent, 2));
+                double opposite = samples[i] - samples[0];
+                double adjacent = i / samplingRate;
+                double tangent = opposite / adjacent;
 
-            return (opposite, adjacent, hypotenuse);
+                avOpposite += opposite;
+                avAdjacent += adjacent;
+                avTangent += tangent;
+            }
+            avOpposite /= (samples.Length - 1);
+            avAdjacent /= (samples.Length - 1);
+            avTangent /= (samples.Length - 1);
+            double avHypotenuse = Math.Sqrt(Math.Pow(avOpposite, 2) + Math.Pow(avAdjacent, 2));
+
+            return (avOpposite, avAdjacent, avHypotenuse, avTangent);
         }
 
         private static double[] GetSurroundingRangeFeatures(int longRangeIndex, int shortRangeIndex, int cornerIndex, LSTMDataBuilderMemory dataBuilderMemory, double[] rescaledSignalTotalSamples)
@@ -82,7 +90,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
 
             return xPeakAllFeatures;
         }
-        public static (int maxAmpIndex, int minAmpInde) GetMaxMinAmpFromTanIndecies(int shortRangeIndex, double meanTan, double[] spanSamples, double samplingRate)
+        public static (int maxAmpIndex, int minAmpIndex) GetMaxMinAmpFromTanIndecies(int shortRangeIndex, double meanTan, double[] spanSamples, double samplingRate)
         {
             int maxAmpIndex = 0;
             double maxAmpFromTan = double.MinValue;
@@ -108,11 +116,7 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
         }
         private static double[] GetSideRangeFeatures(int shortRangeIndex, double[] spanSamples, LSTMDataBuilderMemory dataBuilderMemory)
         {
-            (double spanOps, double spanAdja, _) = ExtractRightTriangleBranches(spanSamples, dataBuilderMemory.samplingRate);
-
-            double spanTan = 0;
-            if (spanAdja != 0)
-                spanTan = spanOps / spanAdja;
+            (_, _, _, double spanTan) = ExtractRightTriangleBranches(spanSamples, dataBuilderMemory.samplingRate);
 
             (int spanMaxAmpIndex, int spanMinAmpIndex) = GetMaxMinAmpFromTanIndecies(shortRangeIndex, spanTan, spanSamples, dataBuilderMemory.samplingRate);
 
