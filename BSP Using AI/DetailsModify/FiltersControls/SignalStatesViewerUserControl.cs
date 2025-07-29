@@ -236,6 +236,9 @@ namespace BSP_Using_AI.DetailsModify.FiltersControls
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            _peaksAnalyzer.ScanPeaks(new double[0]);
+            if (IsHandleCreated) showSignalStates(_peaksAnalyzer._StatesDIc);
+
             _peaksAnalyzer.RemoveFilter();
         }
     }

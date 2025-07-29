@@ -169,12 +169,11 @@ namespace BSP_Using_AI.DetailsModify
 
                 bool reloadSignal = sortedFiltersDic.Count > 0 ? false : true;
                 foreach (FilterBase filter in sortedFiltersDic)
-                    if (filter._activated)
-                    {
-                        // Apply the filter to _FilteredSamples
-                        (_FilteredSamples, bool tempReloadSignal) = filter.ApplyFilter(_FilteredSamples, forceApply, _showResultInChart);
-                        reloadSignal |= tempReloadSignal;
-                    }
+                {
+                    // Apply the filter to _FilteredSamples
+                    (_FilteredSamples, bool tempReloadSignal) = filter.ApplyFilter(_FilteredSamples, forceApply, _showResultInChart);
+                    reloadSignal |= tempReloadSignal;
+                }
 
                 if(reloadSignal)
                     // Show signal in the chart

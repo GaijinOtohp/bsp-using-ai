@@ -70,7 +70,10 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
         }
         public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
         {
-            return (this.TransformSamples(filteredSamples), true);
+            if (_activated)
+                return (this.TransformSamples(filteredSamples), true);
+            else
+                return (filteredSamples, true);
         }
         public override void Activate(bool activate)
         {

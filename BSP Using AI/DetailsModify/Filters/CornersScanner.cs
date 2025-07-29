@@ -114,10 +114,13 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
                 }
                 else if (!_forSelectionBubbles)
                 {
-                    this.ScanCorners(filteredSamples);
                     // Show states in the chart
-                    if (this._FilterControl != null && showResultsInChart)
-                        if (this._FilterControl.IsHandleCreated) ((CornersScannerUserControl)this._FilterControl).showSignalCorners(this._CornersList);
+                    if (this._FilterControl != null && showResultsInChart && _activated)
+                        this.ScanCorners(filteredSamples);
+                    else
+                        this.ScanCorners(new double[0]);
+
+                    if (this._FilterControl.IsHandleCreated) ((CornersScannerUserControl)this._FilterControl).showSignalCorners(this._CornersList);
                 }
             }
             return (filteredSamples, false);
@@ -215,6 +218,8 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
         {
             List<CornerSample> cornersList = new List<CornerSample>();
             double amplitudeInterval = GeneralTools.amplitudeInterval(samples);
+
+            if (amplitudeInterval == 0) return cornersList;
 
             CornerSample[] corners = new CornerSample[samples.Length];
             CornerSample latestCorner = null;

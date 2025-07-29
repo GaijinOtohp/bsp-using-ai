@@ -41,7 +41,8 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
         }
         public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
         {
-            filteredSamples = ApplyMedianFilter(filteredSamples, _windowSize, _strideSize);
+            if (_activated)
+                filteredSamples = ApplyMedianFilter(filteredSamples, _windowSize, _strideSize);
             return (filteredSamples, true);
         }
         public override void Activate(bool activate)

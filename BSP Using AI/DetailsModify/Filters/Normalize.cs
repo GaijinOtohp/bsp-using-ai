@@ -37,7 +37,10 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
         }
         public override (double[] filteredSignal, bool reloadSignal) ApplyFilter(double[] filteredSamples, bool forceApply, bool showResultsInChart)
         {
-            return (GeneralTools.normalizeSignal(filteredSamples), true);
+            if (_activated)
+                return (GeneralTools.normalizeSignal(filteredSamples), true);
+            else
+                return (filteredSamples, true);
         }
         public override void Activate(bool activate)
         {

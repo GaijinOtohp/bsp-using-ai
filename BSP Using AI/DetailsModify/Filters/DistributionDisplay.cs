@@ -59,7 +59,7 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
             {
                 // Show distribution in the chart
                 (double[] distribution, double xOffset, double step) = CoputeDistribution();
-                if (this._FilterControl != null && showResultsInChart)
+                if (this._FilterControl != null && showResultsInChart && _activated)
                     if (this._FilterControl.IsHandleCreated) ((SegmentDistributionUserControl)this._FilterControl).ShowDistribution(distribution, xOffset, step);
             }
             return (filteredSamples, false);

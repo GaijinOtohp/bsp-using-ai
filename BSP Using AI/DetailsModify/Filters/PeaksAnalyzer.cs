@@ -90,10 +90,12 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
         {
             if (this._autoApply || forceApply)
             {
-                this.ScanPeaks(filteredSamples);
                 // Show states in the chart
-                if (this._FilterControl != null && showResultsInChart)
-                    if (this._FilterControl.IsHandleCreated) ((SignalStatesViewerUserControl)this._FilterControl).showSignalStates(this._StatesDIc);
+                if (this._FilterControl != null && showResultsInChart && _activated)
+                    this.ScanPeaks(filteredSamples);
+                else
+                    this.ScanPeaks(new double[0]);
+                if (this._FilterControl.IsHandleCreated) ((SignalStatesViewerUserControl)this._FilterControl).showSignalStates(this._StatesDIc);
             }
             return (filteredSamples, false);
         }

@@ -186,6 +186,9 @@ namespace BSP_Using_AI.DetailsModify.FiltersControls
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            _cornersScanner.ScanCorners(new double[0]);
+            if (IsHandleCreated) showSignalCorners(_cornersScanner._CornersList);
+
             _cornersScanner.RemoveFilter();
         }
     }

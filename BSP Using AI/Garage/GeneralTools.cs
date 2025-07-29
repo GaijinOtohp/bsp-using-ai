@@ -573,6 +573,8 @@ namespace Biological_Signal_Processing_Using_AI.Garage
         //*********************************************SIGNAL INTERVAL*******************************************//
         public static double amplitudeInterval(double[] signal)
         {
+            if (signal == null || signal.Length == 0)
+                return 0;
             // Get y values interval
             double min = signal[0];
             double max = signal[0];

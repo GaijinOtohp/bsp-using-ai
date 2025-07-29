@@ -21,6 +21,9 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
             InitializeComponent();
 
             Filter = filter;
+            Filter._ignoreEvent = true;
+            snrDBTextBox.Text = Filter.SNRdb.ToString();
+            Filter._ignoreEvent = false;
         }
 
         private void windowSizeTextBox_KeyPress(object sender, KeyPressEventArgs e)

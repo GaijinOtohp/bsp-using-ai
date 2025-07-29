@@ -18,6 +18,7 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
         {
             // Clone filter properties
             AddGWN clonedAddGWN = new AddGWN(filteringTools);
+            clonedAddGWN._snrDB = _snrDB;
             clonedAddGWN.CloneBase(this);
             // CLone the control
             if (_FilterControl != null)
@@ -57,7 +58,6 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Filters
                 _snrDB = value;
 
                 _ParentFilteringTools?.ApplyFilters(false);
-                
             }
         }
 
