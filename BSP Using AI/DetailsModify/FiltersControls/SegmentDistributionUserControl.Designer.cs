@@ -36,6 +36,7 @@
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.sendSignalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.analyseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.endingIndexTextBox = new System.Windows.Forms.TextBox();
@@ -44,7 +45,6 @@
             this.startingIndexLabel = new System.Windows.Forms.Label();
             this.resolutionTextBox = new System.Windows.Forms.TextBox();
             this.resolutionLabel = new System.Windows.Forms.Label();
-            this.saveImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip2.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -61,6 +61,7 @@
             this.autoApplyCheckBox.TabIndex = 24;
             this.autoApplyCheckBox.Text = "Auto apply";
             this.autoApplyCheckBox.UseVisualStyleBackColor = true;
+            this.autoApplyCheckBox.CheckedChanged += new System.EventHandler(this.autoApplyCheckBox_CheckedChanged);
             // 
             // highlightedSegmentDistributionLabel
             // 
@@ -104,21 +105,28 @@
             this.analyseToolStripMenuItem,
             this.saveImageToolStripMenuItem});
             this.contextMenuStrip2.Name = "contextMenuStrip1";
-            this.contextMenuStrip2.Size = new System.Drawing.Size(181, 92);
+            this.contextMenuStrip2.Size = new System.Drawing.Size(135, 70);
             // 
             // sendSignalToolStripMenuItem
             // 
             this.sendSignalToolStripMenuItem.Name = "sendSignalToolStripMenuItem";
-            this.sendSignalToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sendSignalToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.sendSignalToolStripMenuItem.Text = "Send signal";
             this.sendSignalToolStripMenuItem.Click += new System.EventHandler(this.sendSignalToolStripMenuItem_Click);
             // 
             // analyseToolStripMenuItem
             // 
             this.analyseToolStripMenuItem.Name = "analyseToolStripMenuItem";
-            this.analyseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.analyseToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.analyseToolStripMenuItem.Text = "Analyse";
             this.analyseToolStripMenuItem.Click += new System.EventHandler(this.analyseToolStripMenuItem_Click);
+            // 
+            // saveImageToolStripMenuItem
+            // 
+            this.saveImageToolStripMenuItem.Name = "saveImageToolStripMenuItem";
+            this.saveImageToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.saveImageToolStripMenuItem.Text = "Save image";
+            this.saveImageToolStripMenuItem.Click += new System.EventHandler(this.saveImageToolStripMenuItem_Click);
             // 
             // deleteToolStripMenuItem
             // 
@@ -203,13 +211,6 @@
             this.resolutionLabel.Size = new System.Drawing.Size(63, 15);
             this.resolutionLabel.TabIndex = 35;
             this.resolutionLabel.Text = "Resolution";
-            // 
-            // saveImageToolStripMenuItem
-            // 
-            this.saveImageToolStripMenuItem.Name = "saveImageToolStripMenuItem";
-            this.saveImageToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.saveImageToolStripMenuItem.Text = "Save image";
-            this.saveImageToolStripMenuItem.Click += new System.EventHandler(this.saveImageToolStripMenuItem_Click);
             // 
             // SegmentDistributionUserControl
             // 

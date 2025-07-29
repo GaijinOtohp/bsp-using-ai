@@ -166,11 +166,15 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
             ShowDistribution(distribution, xOffset, step);
         }
 
-        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        private void autoApplyCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            FormsPlot signalChart = ((FormDetailsModify)this.FindForm()).signalChart;
-            signalChart.Plot.Remove(distributionHSpan);
-            _DistributionDisplay.RemoveFilter();
+            // Update _peaksAnalyzer
+            if (!_DistributionDisplay._ignoreEvent)
+            {
+                _DistributionDisplay._ignoreEvent = true;
+                _DistributionDisplay.ActivateAutoApply(autoApplyCheckBox.Checked);
+                _DistributionDisplay._ignoreEvent = false;
+            }
         }
 
         private void sendSignalToolStripMenuItem_Click(object sender, EventArgs e)
@@ -228,6 +232,13 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
         private void saveImageToolStripMenuItem_Click(object sender, EventArgs e)
         {
             GeneralTools.saveChartAsImage(distributionSignalChart);
+        }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FormsPlot signalChart = ((FormDetailsModify)this.FindForm()).signalChart;
+            signalChart.Plot.Remove(distributionHSpan);
+            _DistributionDisplay.RemoveFilter();
         }
     }
 }
