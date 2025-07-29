@@ -1,4 +1,5 @@
-﻿using Biological_Signal_Processing_Using_AI.Garage;
+﻿using Biological_Signal_Processing_Using_AI.DetailsModify.Annotations;
+using Biological_Signal_Processing_Using_AI.Garage;
 using BSP_Using_AI;
 using BSP_Using_AI.AITools.DatasetExplorer;
 using System;
@@ -67,6 +68,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.DatasetExplorer.WFDBExpl
             double[] signalData = _WFDBScope.SignalsDict[signalsComboBox.Text].Samples.Where((value, index) => startingIndex <= index && index < endingIndex).Select(value => (double)value).ToArray();
             double samplingRate = _WFDBScope.SignalsDict[signalsComboBox.Text].samplingFreq;
             double quantisationStep = _WFDBScope.SignalsDict[signalsComboBox.Text].adcGain;
+
+            // Fix borders annotation if requested
+            if (fixBordersCcheckBox.Checked)
+                annotationData = AnnotationTools.FixBordersAnnotation(annotationData);
 
             // Save the signal with its features in dataset
             DbStimulator dbStimulator = new DbStimulator();

@@ -24,6 +24,15 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
             [DataMember]
             private List<AnnotationECG> Annotations = new List<AnnotationECG>();
 
+            public AnnotationData Clone()
+            {
+                AnnotationData clonedAnnotationData = new AnnotationData(Name);
+                foreach (AnnotationECG annoECG in Annotations)
+                    annoECG.Clone(clonedAnnotationData);
+
+                return clonedAnnotationData;
+            }
+
             public AnnotationData(string name)
             {
                 Name = name;
@@ -74,6 +83,12 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.Annotations
             private int _startingIndex { get; set; }
             [DataMember]
             private int _endingIndex { get; set; }
+
+            public AnnotationECG Clone(AnnotationData clonedParentAnnoData)
+            {
+                AnnotationECG clonedAnnoECG = new AnnotationECG(Name, Type, _startingIndex, _endingIndex, clonedParentAnnoData);
+                return clonedAnnoECG;
+            }
 
             public AnnotationECG(string name, AnnotationType type, int startingIndex, int endingIndex, AnnotationData parentAnnoData)
             {

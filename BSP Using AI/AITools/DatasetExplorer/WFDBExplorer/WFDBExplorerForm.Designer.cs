@@ -45,6 +45,7 @@
             this.signalStartTextBox = new System.Windows.Forms.TextBox();
             this.signalEndLabel = new System.Windows.Forms.Label();
             this.signalEndTextBox = new System.Windows.Forms.TextBox();
+            this.fixBordersCcheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // quantizationStepTextBox
@@ -89,7 +90,7 @@
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(193, 322);
+            this.okButton.Location = new System.Drawing.Point(193, 352);
             this.okButton.Margin = new System.Windows.Forms.Padding(2);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(79, 30);
@@ -230,11 +231,22 @@
             this.signalEndTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.signalEndTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.signalStartTextBox_KeyPress);
             // 
+            // fixBordersCcheckBox
+            // 
+            this.fixBordersCcheckBox.AutoSize = true;
+            this.fixBordersCcheckBox.Location = new System.Drawing.Point(13, 317);
+            this.fixBordersCcheckBox.Name = "fixBordersCcheckBox";
+            this.fixBordersCcheckBox.Size = new System.Drawing.Size(172, 19);
+            this.fixBordersCcheckBox.TabIndex = 46;
+            this.fixBordersCcheckBox.Text = "Auto fix borders annotation";
+            this.fixBordersCcheckBox.UseVisualStyleBackColor = true;
+            // 
             // WFDBExplorerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(288, 363);
+            this.ClientSize = new System.Drawing.Size(288, 393);
+            this.Controls.Add(this.fixBordersCcheckBox);
             this.Controls.Add(this.signalEndLabel);
             this.Controls.Add(this.signalEndTextBox);
             this.Controls.Add(this.signalStartLabel);
@@ -278,5 +290,6 @@
         private System.Windows.Forms.TextBox signalStartTextBox;
         private System.Windows.Forms.Label signalEndLabel;
         private System.Windows.Forms.TextBox signalEndTextBox;
+        private System.Windows.Forms.CheckBox fixBordersCcheckBox;
     }
 }
