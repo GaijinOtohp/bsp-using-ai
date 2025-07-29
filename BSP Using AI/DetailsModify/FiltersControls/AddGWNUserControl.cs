@@ -28,7 +28,7 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
 
         private void windowSizeTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            EventHandlers.keypressNumbersAndDecimalOnly(sender, e);
+            EventHandlers.keypressNegPosNumbersAndDecimalOnly(sender, e);
         }
 
         private void snrDBTextBox_TextChanged(object sender, EventArgs e)
@@ -36,9 +36,9 @@ namespace Biological_Signal_Processing_Using_AI.DetailsModify.FiltersControls
             if (!Filter._ignoreEvent)
             {
                 Filter._ignoreEvent = true;
-                int snrDB = 1;
+                double snrDB = 0;
                 if (snrDBTextBox.Text.Length > 0 && !snrDBTextBox.Text.Equals("."))
-                    snrDB = int.Parse(snrDBTextBox.Text);
+                    snrDB = double.Parse(snrDBTextBox.Text);
                 Filter.SNRdb = snrDB;
                 Filter._ignoreEvent = false;
             }

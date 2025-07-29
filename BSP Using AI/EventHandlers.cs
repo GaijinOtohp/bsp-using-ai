@@ -113,6 +113,17 @@ namespace BSP_Using_AI
                 e.Handled = true;
             }
         }
+        public static void keypressNegPosNumbersAndDecimalOnly(object sender, KeyPressEventArgs e)
+        {
+            if ((!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.') && (e.KeyChar != '-')) ||
+                ((e.KeyChar == '.' || e.KeyChar == '-') && (sender as TextBox).Text.Replace(" ", "").Equals("")) ||
+                (e.KeyChar == '.' && (sender as TextBox).Text.Contains(".")) ||
+                (e.KeyChar == '-' && (sender as TextBox).Text.Contains("-")) ||
+                (e.KeyChar == '-' && (sender as TextBox).SelectionStart != 0))
+            {
+                e.Handled = true;
+            }
+        }
 
         //*******************************************************************************************************//
         //*******************************************Clear flow layout*******************************************//
