@@ -18,6 +18,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.DatasetExplorer.WFDBExpl
     {
         WFDBScope _WFDBScope;
 
+        string _SelectedFilePath;
+
         DatasetExplorerForm _DatasetExplorerForm;
 
         public WFDBExplorerForm(DatasetExplorerForm datasetExplorerForm)
@@ -36,10 +38,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools.DatasetExplorer.WFDBExpl
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     // Get the path of specified file
-                    String filePath = ofd.FileName;
+                    _SelectedFilePath = ofd.FileName;
 
                     // Read the data for WFDBScope
-                    _WFDBScope = WFDBRead.ReadWFDBInfo(filePath);
+                    _WFDBScope = WFDBRead.ReadWFDBInfo(_SelectedFilePath);
 
                     // Fill the signals and annotaions combo boxes
                     signalsComboBox.DataSource = _WFDBScope.SignalsDict.Keys.ToList();

@@ -46,6 +46,7 @@
             this.signalEndLabel = new System.Windows.Forms.Label();
             this.signalEndTextBox = new System.Windows.Forms.TextBox();
             this.fixBordersCcheckBox = new System.Windows.Forms.CheckBox();
+            this.savePprogressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // quantizationStepTextBox
@@ -90,7 +91,7 @@
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(193, 352);
+            this.okButton.Location = new System.Drawing.Point(193, 383);
             this.okButton.Margin = new System.Windows.Forms.Padding(2);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(79, 30);
@@ -241,11 +242,19 @@
             this.fixBordersCcheckBox.Text = "Auto fix borders annotation";
             this.fixBordersCcheckBox.UseVisualStyleBackColor = true;
             // 
+            // savePprogressBar
+            // 
+            this.savePprogressBar.Location = new System.Drawing.Point(13, 342);
+            this.savePprogressBar.Name = "savePprogressBar";
+            this.savePprogressBar.Size = new System.Drawing.Size(259, 23);
+            this.savePprogressBar.TabIndex = 47;
+            // 
             // WFDBExplorerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(288, 393);
+            this.ClientSize = new System.Drawing.Size(288, 424);
+            this.Controls.Add(this.savePprogressBar);
             this.Controls.Add(this.fixBordersCcheckBox);
             this.Controls.Add(this.signalEndLabel);
             this.Controls.Add(this.signalEndTextBox);
@@ -291,5 +300,6 @@
         private System.Windows.Forms.Label signalEndLabel;
         private System.Windows.Forms.TextBox signalEndTextBox;
         private System.Windows.Forms.CheckBox fixBordersCcheckBox;
+        private System.Windows.Forms.ProgressBar savePprogressBar;
     }
 }
