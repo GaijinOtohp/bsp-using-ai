@@ -118,7 +118,6 @@ namespace BSP_Using_AI.DetailsModify
 
                         if (_LSTMClasGlobVars.PredictedRefOutput[iPredOutput].value >= _LSTMClasGlobVars.LatestClassified.refOutput[iPredOutput].value)
                         {
-                            _LSTMClasGlobVars.LatestClassified.refOutput[iPredOutput].value = 0;
                             _LSTMClasGlobVars.LatestClassified.refOutput[iPredOutput] = _LSTMClasGlobVars.PredictedRefOutput[iPredOutput];
                             _LSTMClasGlobVars.LatestClassified.indecies[iPredOutput] = scannedCorner._index;
 
@@ -130,8 +129,8 @@ namespace BSP_Using_AI.DetailsModify
                                 PlotAnnotation();
                             }
                         }
-                        else
-                            _LSTMClasGlobVars.PredictedRefOutput[iPredOutput].value = 0;
+                        /*else
+                            _LSTMClasGlobVars.PredictedRefOutput[iPredOutput].value = 0;*/ // This line allows successive annotations of same type
                     }
                     else
                         _LSTMClasGlobVars.LatestClassified.refOutput[iPredOutput] = new RefDouble(0);
