@@ -232,8 +232,8 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                     double[] signalSamples = GeneralTools.ByteArrayToObject<double[]>(row.Field<byte[]>("signal_data"));
                     AnnotationData annoData = GeneralTools.ByteArrayToObject<AnnotationData>(row.Field<byte[]>("anno_data"));
 
-                    // Rescale samples to be in an amplitude interval of 4
-                    double globalAmpInterval = 4d;
+                    // Rescale samples to be in an amplitude interval of 1
+                    double globalAmpInterval = 1d;
                     double[] RescaledSamples = GeneralTools.rescaleSignal(signalSamples, globalAmpInterval);
 
                     // Scan the corners of each segment using the corners scanner in FormDetailsModifyFilters

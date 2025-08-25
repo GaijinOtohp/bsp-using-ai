@@ -212,8 +212,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
             RLDimension atDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.AT)).ToList()[0];
             RLDimension artDim = _Env._DimensionsList.Where(dim => dim._Name.Equals(CWDNamigs.CornersScanOutputs.ART)).ToList()[0];
             // Include the signal infos
-            // Rescale samples to be in an amplitude interval of 4
-            _RescaledSamples = GeneralTools.rescaleSignal(samples, 4);
+            // Rescale samples to be in an amplitude interval of 1
+            _RescaledSamples = GeneralTools.rescaleSignal(samples, 1);
             _samplingRate = samplingRate;
 
             AnnotationECG[] trueCorners = CWD_RL.GetCornersWithException(annoData, new string[] { CWDNamigs.Delta, CWDNamigs.Normal, CWDNamigs.Abnormal });

@@ -208,7 +208,7 @@ namespace Biological_Signal_Processing_Using_AI.Garage
         {
             (double mean, double min, double max) meanMinMax = MeanMinMax(samples);
             double ampInterval = meanMinMax.max - meanMinMax.min;
-            double scalingRatio = 1 / ampInterval;
+            double scalingRatio = newAmpInterval / ampInterval;
             // Normalize the samples
             double[] filteredSamples = new double[samples.Length];
 

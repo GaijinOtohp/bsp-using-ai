@@ -199,8 +199,8 @@ namespace BSP_Using_AI.DetailsModify
                 // Initialize the global variables
                 _LSTMClasGlobVars = new LSTMAutoClassifierVars();
 
-                // Rescale samples to be in an amplitude interval of 4
-                double globalAmpInterval = 4d;
+                // Rescale samples to be in an amplitude interval of 1
+                double globalAmpInterval = 1d;
                 _LSTMClasGlobVars.RescaledSamples = GeneralTools.rescaleSignal(_FilteringTools._FilteredSamples, globalAmpInterval);
 
                 // Create the data builder memory for generating the input data

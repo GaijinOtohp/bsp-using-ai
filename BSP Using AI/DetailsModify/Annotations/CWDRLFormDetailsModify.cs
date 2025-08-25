@@ -46,8 +46,8 @@ namespace BSP_Using_AI.DetailsModify
 
         public static (List<CornerSample> ScannedCorners, List<SignalSegment> SegmentsList) RLAutoCornersScanner_Training(TFNETReinforcementL CWDReinforcementLModel, double[] SignalSamples, int samplingRate)
         {
-            // Rescale samples to be in an amplitude interval of 4
-            double globalAmpInterval = 4d;
+            // Rescale samples to be in an amplitude interval of 1
+            double globalAmpInterval = 1d;
             double[] RescaledSamples = GeneralTools.rescaleSignal(SignalSamples, globalAmpInterval);
 
             List<SignalSegment> SegmentsList = CWD_RL.SegmentTheMainSamples(RescaledSamples, samplingRate, 0.5d, null, null);
@@ -66,8 +66,8 @@ namespace BSP_Using_AI.DetailsModify
 
         private List<SignalSegment> RLAutoCornersScanner_Prediction(double[] SignalSamples, int samplingRate, ObjectiveBaseModel baseModel, SegmentDelegate segmentDelegate)
         {
-            // Rescale samples to be in an amplitude interval of 4
-            double globalAmpInterval = 4d;
+            // Rescale samples to be in an amplitude interval of 1
+            double globalAmpInterval = 1d;
             double[] RescaledSamples = GeneralTools.rescaleSignal(SignalSamples, globalAmpInterval);
 
             List<SignalSegment> SegmentsList = CWD_RL.SegmentTheMainSamples(RescaledSamples, samplingRate, 0.5d, baseModel, segmentDelegate);
