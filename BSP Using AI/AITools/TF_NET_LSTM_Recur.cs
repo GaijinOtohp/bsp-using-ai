@@ -111,7 +111,8 @@ namespace Biological_Signal_Processing_Using_AI.AITools
             return inOutFeedItemsList;
         }
 
-        public static TFNETLSTMModel Fit(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences, FittingProgAIReportDelegate fittingProgAIReportDelegate, bool saveModel = false, int suggestedBatchSize = 4)
+        public static TFNETLSTMModel Fit(TFNETLSTMModel lstmModel, List<List<Sample>> dataListSequences, FittingProgAIReportDelegate fittingProgAIReportDelegate, bool saveModel = false, int suggestedBatchSize = 4,
+                                        int epochsMax = 200, bool earlyStopping = true, int patience = 15, bool restoreBestWeights = false)
         {
             if (lstmModel._pcaActive)
                 for (int iSequence = 0; iSequence < dataListSequences.Count; iSequence++)
@@ -168,8 +169,12 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 foreach (IVariableV1 iVar in currentVars)
                     currentVarsValsDict.Add(iVar.Name, session.run(iVar.AsTensor()));
 
+                // Create a backup for the best model
+                float bestCost = float.MaxValue;
+                Dictionary<string, NDArray> bestVarsValsDict = new Dictionary<string, NDArray>();
+
                 // Create an error queue for storing the mean training error of each epoch
-                CircularQueue<float> costCirQueue = new CircularQueue<float>(15);
+                CircularQueue<float> costCirQueue = new CircularQueue<float>(patience);
                 float meanCost = 0;
 
                 // Start training
@@ -179,7 +184,6 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                 NDArray[] predictedSequence = null;
                 float[,] emptyInputBatch;
                 float[,] emptyOutputBatch;
-                int epochsMax = 200;
                 for (int epoch = 0; epoch < epochsMax; epoch++)
                 {
                     // Iterate through the sequences of batches
@@ -231,10 +235,24 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                                 lRate /= 10f;
                                 // Restore the initial values of the variables (weights, and biases)
                                 TF_NET_NN.RefreshModelAndUpdateInitVals(lstmModel.BaseModel, currentVars, currentVarsValsDict);
+
+                                // Reset the best weights
+                                if (restoreBestWeights)
+                                    foreach (string varName in currentVarsValsDict.Keys)
+                                        bestVarsValsDict[varName] = currentVarsValsDict[varName];
+                            }
+                            else if (cost < bestCost && restoreBestWeights)
+                            {
+                                // Save the new best weights
+                                currentVars = tf.global_variables();
+                                foreach (IVariableV1 iVar in currentVars)
+                                    bestVarsValsDict[iVar.Name] = session.run(iVar.AsTensor());
+
+                                bestCost = cost;
                             }
 
-                            // Update the last and the mean cost value
-                            meanCost += cost / (longestSequence * lstmSequenceBatchesList.Count);
+                                // Update the last and the mean cost value
+                                meanCost += cost / (longestSequence * lstmSequenceBatchesList.Count);
                         }
                     }
 
@@ -247,7 +265,7 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                     costCirQueue.Enqueue(meanCost);
                     meanCost = 0;
 
-                    if (costCirQueue._count == 15)
+                    if (costCirQueue._count == patience && earlyStopping)
                     {
                         (float mean, float min, float max) = GeneralTools.MeanMinMax(costCirQueue.ToArray());
                         if ((max - min) < improvementThreshold * lstmModel._modelSequenceLength)
@@ -255,6 +273,10 @@ namespace Biological_Signal_Processing_Using_AI.AITools
                             break;
                     }
                 }
+
+                // Restore the the best weights if enabled
+                if (restoreBestWeights)
+                    TF_NET_NN.RefreshModelAndUpdateInitVals(lstmModel.BaseModel, currentVars, bestVarsValsDict);
 
                 // Update fitProgressBar
                 if (fittingProgAIReportDelegate != null)
