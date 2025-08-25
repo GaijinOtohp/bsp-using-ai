@@ -65,9 +65,12 @@ namespace BSP_Using_AI.AITools.DatasetExplorer
                 avAdjacent += adjacent;
                 avTangent += tangent;
             }
-            avOpposite /= (samples.Length - 1);
-            avAdjacent /= (samples.Length - 1);
-            avTangent /= (samples.Length - 1);
+            if (samples.Length > 1)
+            {
+                avOpposite /= (samples.Length - 1);
+                avAdjacent /= (samples.Length - 1);
+                avTangent /= (samples.Length - 1);
+            }
             double avHypotenuse = Math.Sqrt(Math.Pow(avOpposite, 2) + Math.Pow(avAdjacent, 2));
 
             return (avOpposite, avAdjacent, avHypotenuse, avTangent);
