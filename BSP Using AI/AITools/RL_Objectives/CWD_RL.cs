@@ -127,9 +127,11 @@ namespace Biological_Signal_Processing_Using_AI.AITools.RL_Objectives
                     badState = true;
                 }
 
-            if (!badState && (((double)tempCornersIndex.Length / windowapproxIntervals.Length) < _overPeaksRatio || windowapproxIntervals.Length == 0) || (_overPeaksRatio - _overPeaksRatioReset) >= 40)
+            bool allPeaksDetected = ((double)tempCornersIndex.Length / windowapproxIntervals.Length) < _overPeaksRatio;
+            if (!badState && (allPeaksDetected || windowapproxIntervals.Length == 0) || (_overPeaksRatio - _overPeaksRatioReset) >= 40)
             {
-                reward += _reward_detecting_all_corners;
+                if (allPeaksDetected)
+                    reward += _reward_detecting_all_corners;
                 _done = true;
             }
 
