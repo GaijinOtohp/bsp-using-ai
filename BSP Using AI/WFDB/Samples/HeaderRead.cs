@@ -174,7 +174,7 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Samples
             {
                 string line = headerStreamReader.ReadLine();
                 // Check if this is a comment line
-                if (line[0].Equals("#") || line.Equals(string.Empty))
+                if (line.Equals(string.Empty) || line[0].Equals("#"))
                     // Ignore the line
                     continue;
 

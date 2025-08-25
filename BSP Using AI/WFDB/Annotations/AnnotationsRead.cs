@@ -95,7 +95,7 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
                     // Change the num of the next annotations being P[0], QRS[1], or T[2]
                     selectedNum = annoInfo[0];
                     // additional to the previous one
-                    annotations[annotations.Count - 1].number = selectedNum;
+                    if (annotations.Count > 0) annotations[^1].number = selectedNum;
                 }
                 else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.Control.SUB)
                 {
@@ -110,7 +110,7 @@ namespace Biological_Signal_Processing_Using_AI.WFDB.Annotations
                     // Change the channel of the next annotations
                     selectedChannel = annoInfo[0];
                     // additional to the previous one
-                    annotations[annotations.Count - 1].channel = selectedChannel;
+                    if (annotations.Count > 0) annotations[^1].channel = selectedChannel;
                 }
                 else if (annoInfo[1] == AnnotationsDefinitions.AnnotationCodes.Control.AUX)
                 {
